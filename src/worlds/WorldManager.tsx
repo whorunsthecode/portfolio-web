@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import { useStore, type StopId } from '../store'
 import { Museum } from './Museum/index'
+import { ChristmasVillage } from './ChristmasVillage/index'
 
 /**
  * Manages world mounting and camera transitions.
@@ -12,7 +13,7 @@ import { Museum } from './Museum/index'
 
 const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number] }> = {
   museum:    { pos: [-100, 1.7, 3.5], look: [-100, 2.0, -3.5] },
-  christmas: { pos: [100, 2.0, 4],    look: [100, 2.0, -4] },
+  christmas: { pos: [100, 2.5, 5],    look: [99, 1.8, -3] },
   fantasy:   { pos: [0, 62, 4],       look: [0, 62, -4] },
   aquarium:  { pos: [0, -28, 4],      look: [0, -28, -4] },
   gym:       { pos: [100, 2.0, 104],  look: [100, 2.0, 96] },
@@ -87,7 +88,7 @@ export function Worlds() {
       <WorldCamera />
       {/* Lazy-mount: only render the world that's active */}
       {activeRoom === 'museum' && <Museum />}
-      {/* Other worlds will be added here as they're built */}
+      {activeRoom === 'christmas' && <ChristmasVillage />}
     </>
   )
 }
