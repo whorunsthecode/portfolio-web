@@ -54,7 +54,7 @@ export default function App() {
         )}
 
         {/* Tram exterior — visible during sidewalk beat */}
-        <TramExterior visible={!boardingDone && elapsed < 2.0} />
+        <TramExterior visible={!boardingDone && elapsed < 3.5} />
 
         {boardingDone && <SeatedCameraWrapper />}
         <Scene />

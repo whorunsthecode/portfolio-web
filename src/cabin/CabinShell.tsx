@@ -80,7 +80,7 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
         return (
           <mesh key={`glass-${i}`} position={[x, 1.57, midZ]} rotation={[0, Math.PI / 2, 0]}>
             <planeGeometry args={[spanZ, 1.0]} />
-            <meshStandardMaterial color="#b8ccd4" transparent opacity={0.35} roughness={0.3} side={2} />
+            <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
           </mesh>
         )
       })}
@@ -88,7 +88,7 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
       {/* Glass pane between last post (z=-7) and windshield (z=-10) */}
       <mesh position={[x, 1.57, -8.5]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[2.8, 1.0]} />
-        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.35} roughness={0.3} side={2} />
+        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
       </mesh>
 
       {/* Solid upper wall — between top of windows and ceiling */}
@@ -138,6 +138,24 @@ function Dashboard() {
       <mesh position={[1.125, 1.57, 0]}>
         <boxGeometry args={[0.05, 1.06, 0.05]} />
         <meshStandardMaterial color={GREEN} roughness={0.5} />
+      </mesh>
+
+      {/* Center windshield post */}
+      <mesh position={[0, 1.57, 0]}>
+        <boxGeometry args={[0.05, 1.06, 0.05]} />
+        <meshStandardMaterial color={GREEN} roughness={0.5} />
+      </mesh>
+
+      {/* Windshield glass — left pane */}
+      <mesh position={[-0.56, 1.57, 0.01]}>
+        <planeGeometry args={[1.05, 1.0]} />
+        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+      </mesh>
+
+      {/* Windshield glass — right pane */}
+      <mesh position={[0.56, 1.57, 0.01]}>
+        <planeGeometry args={[1.05, 1.0]} />
+        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
       </mesh>
     </group>
   )
