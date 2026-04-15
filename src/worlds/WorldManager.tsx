@@ -6,6 +6,7 @@ import { Museum } from './Museum/index'
 import { ChristmasVillage } from './ChristmasVillage/index'
 import { Terminus } from './Terminus/index'
 import { Dreamery } from './Dreamery/index'
+import { Gym } from './Gym/index'
 
 /**
  * Manages world mounting and camera transitions.
@@ -21,7 +22,10 @@ const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [numb
   // (local (0, 0, 0.5) / (0, -0.2, -4) → parent offset (0, 62, 0))
   fantasy:   { pos: [0, 62, 0.5],     look: [0, 61.8, -4] },
   aquarium:  { pos: [0, -28, 4],      look: [0, -28, -4] },
-  gym:       { pos: [100, 2.0, 104],  look: [100, 2.0, 96] },
+  // Gym: eye-level at the mouth of the room looking slightly down at the
+  // caged phone on the yoga mat (local (0, 1.6, 0.5) / (0, 0.4, -2) at
+  // parent offset (100, 0, 100))
+  gym:       { pos: [100, 1.6, 100.5], look: [100, 0.4, 98] },
   // Arrival sits on the safety island, looking directly at the info panel
   // on the shelter back wall (local z = -2.22, world z = 100 + -2.22).
   terminus:  { pos: [0, 1.5, 100.5],  look: [0, 1.1, 97.78] },
@@ -97,6 +101,7 @@ export function Worlds() {
       {activeRoom === 'museum' && <Museum />}
       {activeRoom === 'christmas' && <ChristmasVillage />}
       {activeRoom === 'fantasy' && <Dreamery />}
+      {activeRoom === 'gym' && <Gym />}
       {activeRoom === 'terminus' && <Terminus />}
     </>
   )
