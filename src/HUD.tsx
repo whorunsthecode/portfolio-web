@@ -1,4 +1,5 @@
 import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
+import { playDingDing } from './audio/playDingDing'
 
 export function HUD() {
   const mode = useStore((s) => s.mode)
@@ -104,7 +105,10 @@ export function HUD() {
 
           {/* GO button */}
           <button
-            onClick={() => setRoom(currentStop.id)}
+            onClick={() => {
+              playDingDing()
+              setRoom(currentStop.id)
+            }}
             style={{
               background: '#c82820', border: 'none', borderRadius: 16,
               color: '#fff', fontSize: 12, fontWeight: 700,

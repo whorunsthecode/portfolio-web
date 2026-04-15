@@ -2,6 +2,10 @@ import { create } from 'zustand'
 
 export type StopId = 'museum' | 'christmas' | 'fantasy' | 'aquarium' | 'gym' | 'terminus'
 
+/** WorldId — the current audio context. 'tram' is the default when no
+ *  activeRoom is set; otherwise it mirrors StopId. */
+export type WorldId = 'tram' | StopId
+
 export const STOPS: { id: StopId; label: string; subtitle: string }[] = [
   { id: 'museum',    label: 'THE MUSEUM',          subtitle: '中環 CENTRAL' },
   { id: 'christmas', label: 'CHRISTMAS VILLAGE',    subtitle: '上環 SHEUNG WAN' },
@@ -26,14 +30,14 @@ interface State {
   modal: null | StopId          // separate from activeRoom — only opens on exhibit click
   blindIndex: number
   routePos: number  // 0–140, advances with tram scroll speed
-  muted: boolean
+  audioEnabled: boolean         // Phase 7 — default OFF, user-activated
   setMode: (m: 'day' | 'night') => void
   setRoom: (r: State['activeRoom']) => void
   setModal: (m: State['modal']) => void
   setBlindIndex: (i: number) => void
   cycleBind: (dir: 1 | -1) => void
   advanceRoute: (delta: number) => void
-  toggleMute: () => void
+  setAudioEnabled: (enabled: boolean) => void
 }
 
 export const useStore = create<State>((set) => ({
@@ -42,7 +46,7 @@ export const useStore = create<State>((set) => ({
   modal: null,
   blindIndex: 0,
   routePos: 0,
-  muted: false,
+  audioEnabled: false, // Phase 7 — respect autoplay policies, wait for user gesture
   setMode: (mode) => set({ mode }),
   setRoom: (activeRoom) => set({ activeRoom, modal: null }),
   setModal: (modal) => set({ modal }),
@@ -53,5 +57,5 @@ export const useStore = create<State>((set) => ({
   advanceRoute: (delta) => set((s) => ({
     routePos: (s.routePos + delta) % 140,
   })),
-  toggleMute: () => set((s) => ({ muted: !s.muted })),
+  setAudioEnabled: (audioEnabled) => set({ audioEnabled }),
 }))

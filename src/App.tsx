@@ -7,6 +7,8 @@ import { Vector3 } from 'three'
 import { CameraRig } from './scene/CameraRig'
 import { TramExterior } from './scene/TramExterior'
 import { ProjectModal } from './ui/ProjectModal'
+import { AudioManager } from './audio/AudioManager'
+import { SoundToggle } from './components/SoundToggle'
 import { useStore } from './store'
 
 export default function App() {
@@ -87,6 +89,8 @@ export default function App() {
       )}
 
       <HUD />
+      <SoundToggle />
+      <AudioManager />
       <ProjectModal />
       <Toast />
     </>
