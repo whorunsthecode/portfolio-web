@@ -1,23 +1,23 @@
-const ASPHALT = '#2a2824'
-const CONCRETE = '#9a9590'
+const ASPHALT = '#3a2a20'
+const CONCRETE = '#a89878'
 const LINE_PAINT = '#e8d888'
 
 export function TerminusGround() {
   return (
     <group>
-      {/* Road — large dark plane */}
+      {/* Road */}
       <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[40, 40]} />
         <meshStandardMaterial color={ASPHALT} roughness={0.9} />
       </mesh>
 
-      {/* Safety island — slightly raised concrete platform the shelter sits on */}
+      {/* Safety island */}
       <mesh position={[0, 0.1, 0]} receiveShadow>
         <boxGeometry args={[4, 0.2, 6]} />
         <meshStandardMaterial color={CONCRETE} roughness={0.85} />
       </mesh>
 
-      {/* Yellow hazard stripes on the safety island edges */}
+      {/* Yellow hazard stripes */}
       <mesh position={[-1.9, 0.21, 0]}>
         <boxGeometry args={[0.2, 0.02, 6]} />
         <meshStandardMaterial color={LINE_PAINT} roughness={0.8} />
@@ -27,7 +27,7 @@ export function TerminusGround() {
         <meshStandardMaterial color={LINE_PAINT} roughness={0.8} />
       </mesh>
 
-      {/* Tram tracks — two parallel grey strips running along z axis */}
+      {/* Tram tracks */}
       {[-2.5, 2.5].map((xSide) => (
         <group key={xSide}>
           {[-0.6, 0.6].map((offset) => (
@@ -43,7 +43,7 @@ export function TerminusGround() {
         </group>
       ))}
 
-      {/* Road lane markings — dashed white lines on the far lane */}
+      {/* Road lane markings */}
       {Array.from({ length: 8 }).map((_, i) => (
         <mesh
           key={i}

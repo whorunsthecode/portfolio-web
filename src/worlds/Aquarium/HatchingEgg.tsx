@@ -109,7 +109,7 @@ export function HatchingEgg() {
   ]
 
   return (
-    <group position={[0, -0.4, -1]}>
+    <group position={[0, 0.5, -2.5]}>
       {/* The egg */}
       <group ref={eggRef}>
         {/* Outer glow disc */}
@@ -194,14 +194,16 @@ export function HatchingEgg() {
         </mesh>
       </group>
 
-      {/* FOCUSING label below the egg */}
+      {/* FOCUSING label below the egg — large and readable */}
       <Text
-        position={[0, -0.6, 0.1]}
-        fontSize={0.08}
+        position={[0, -1.0, 0.1]}
+        fontSize={0.18}
         color="#ffd460"
         anchorX="center"
         anchorY="middle"
-        letterSpacing={0.15}
+        letterSpacing={0.12}
+        outlineWidth={0.012}
+        outlineColor="#1a3858"
       >
         FOCUSING · 25:00
       </Text>

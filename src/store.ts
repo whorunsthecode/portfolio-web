@@ -4,10 +4,10 @@ export type StopId = 'museum' | 'christmas' | 'fantasy' | 'aquarium' | 'gym' | '
 
 export const STOPS: { id: StopId; label: string; subtitle: string }[] = [
   { id: 'museum',    label: 'THE MUSEUM',          subtitle: '中環 CENTRAL' },
-  { id: 'christmas', label: 'CHRISTMAS VILLAGE',    subtitle: '上環 SHEUNG WAN' },
+  { id: 'christmas', label: 'THE XMAS VILLAGE',      subtitle: '上環 SHEUNG WAN' },
   { id: 'fantasy',   label: 'THE DREAMERY',         subtitle: '西營盤 SAI YING PUN' },
   { id: 'aquarium',  label: 'THE AQUARIUM',         subtitle: '石塘咀 SHEK TONG TSUI' },
-  { id: 'gym',       label: 'THE GYM',              subtitle: '堅尼地城 KENNEDY TOWN' },
+  { id: 'gym',       label: 'THE STUDIO',            subtitle: '堅尼地城 KENNEDY TOWN' },
   { id: 'terminus',  label: 'THE TERMINUS',          subtitle: '屈地街 WHITTY STREET' },
 ]
 

@@ -3,21 +3,17 @@ import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useStore } from '../../store'
+import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
 
 export function GestureGalleryExhibit() {
   const handRef = useRef<THREE.Group>(null)
-  const orbitRef = useRef<THREE.Group>(null)
   const setModal = useStore((s) => s.setModal)
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (handRef.current) {
       handRef.current.rotation.y = t * 0.4
-      // Floats just above the taller pedestal (cap y ≈ 1.2)
-      handRef.current.position.y = 2.2 + Math.sin(t * 0.8) * 0.08
-    }
-    if (orbitRef.current) {
-      orbitRef.current.rotation.y = t * 0.25
+      handRef.current.position.y = 2.0 + Math.sin(t * 0.8) * 0.08
     }
   })
 
@@ -80,9 +76,12 @@ export function GestureGalleryExhibit() {
         </Text>
       </group>
 
+      <InteractiveGlow radius={0.6} color="#c8a048" y={1.2} />
+
       {/* Floating hand — palm + thumb + 4 fingers */}
       <group
         ref={handRef}
+        scale={[1.8, 1.8, 1.8]}
         onClick={(e) => {
           e.stopPropagation()
           setModal('museum')
@@ -113,24 +112,6 @@ export function GestureGalleryExhibit() {
         ))}
       </group>
 
-      {/* Orbiting thumbnails */}
-      <group ref={orbitRef} position={[0, 2.2, 0]}>
-        {[0, 1, 2].map((i) => {
-          const angle = (i / 3) * Math.PI * 2
-          const r = 0.9
-          const colors = ['#4a7a8c', '#f0c848', '#c8a048']
-          return (
-            <mesh
-              key={i}
-              position={[Math.cos(angle) * r, 0, Math.sin(angle) * r]}
-              rotation={[0, -angle + Math.PI / 2, 0]}
-            >
-              <planeGeometry args={[0.25, 0.18]} />
-              <meshStandardMaterial color={colors[i]} roughness={0.7} side={2} />
-            </mesh>
-          )
-        })}
-      </group>
     </group>
   )
 }

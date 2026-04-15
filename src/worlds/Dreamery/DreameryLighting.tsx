@@ -1,28 +1,41 @@
 export function DreameryLighting() {
   return (
     <>
-      {/* Cool purple ambient base */}
-      <ambientLight color="#6a4884" intensity={0.4} />
+      {/* Brighter purple ambient */}
+      <ambientLight color="#A78BCA" intensity={0.6} />
 
-      {/* Soft lavender "moonlight" from above */}
-      <directionalLight position={[0, 10, 5]} color="#c8b0d8" intensity={0.6} />
-
-      {/* Pink warm accent from below to illuminate Drift's underside */}
+      {/* Warm key from the lamp */}
       <pointLight
-        position={[0, -3, -4]}
-        color="#f8b8c8"
-        intensity={0.8}
-        distance={10}
-        decay={1.8}
+        position={[0.6, 1.15, -1.4]}
+        color="#FFE0A8"
+        intensity={2.5}
+        distance={6}
+        decay={2}
       />
 
-      {/* Soft key light on Drift specifically */}
+      {/* Cool purple from window */}
       <pointLight
-        position={[2, 2, -2]}
-        color="#fff0d4"
+        position={[1.5, 2.3, -2.5]}
+        color="#A78BCA"
         intensity={1.2}
-        distance={8}
+        distance={5}
         decay={2}
+      />
+
+      {/* Pink underglow on Drift */}
+      <pointLight
+        position={[-1.2, 1.8, -0.3]}
+        color="#F498B0"
+        intensity={0.9}
+        distance={3}
+        decay={2}
+      />
+
+      {/* Top-down soft fill */}
+      <directionalLight
+        position={[0, 5, 2]}
+        color="#E8DEFF"
+        intensity={0.5}
       />
     </>
   )

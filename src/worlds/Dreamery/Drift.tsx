@@ -2,7 +2,9 @@ import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { Group } from 'three'
+import { Text } from '@react-three/drei'
 import { useStore } from '../../store'
+import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
 
 export function Drift() {
   const groupRef = useRef<Group>(null)
@@ -13,7 +15,7 @@ export function Drift() {
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
     if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(t * 0.5) * 0.2
+      groupRef.current.position.y = 1.6 + Math.sin(t * 0.5) * 0.2
       groupRef.current.rotation.y = Math.sin(t * 0.3) * 0.08
     }
     if (envelopeRef.current) {
@@ -23,14 +25,13 @@ export function Drift() {
 
   const handleTap = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
-    // Modal keyed off stop id — kept as 'fantasy' to avoid breaking references
     setModal('fantasy')
   }
 
   return (
     <group
       ref={groupRef}
-      position={[0, 0, -4]}
+      position={[-1.2, 1.6, -0.5]}
       scale={hovered ? 1.05 : 1}
       onClick={handleTap}
       onPointerOver={(e) => {
@@ -43,29 +44,47 @@ export function Drift() {
         document.body.style.cursor = 'auto'
       }}
     >
-      {/* Cloud body — overlapping spheres */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.7, 16, 16]} />
-        <meshStandardMaterial color="#f8f4e8" roughness={0.9} />
+      {/* Cloud body — pyramid shape: wide base, narrow top */}
+
+      {/* Bottom layer — 4 spheres wide */}
+      <mesh position={[-0.45, -0.15, 0]}>
+        <sphereGeometry args={[0.32, 16, 16]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.95} />
       </mesh>
-      <mesh position={[-0.55, -0.05, 0]}>
-        <sphereGeometry args={[0.5, 16, 16]} />
-        <meshStandardMaterial color="#f8f4e8" roughness={0.9} />
+      <mesh position={[-0.15, -0.18, 0]}>
+        <sphereGeometry args={[0.4, 16, 16]} />
+        <meshStandardMaterial color="#F8F4FF" roughness={0.95} />
       </mesh>
-      <mesh position={[0.55, -0.05, 0]}>
-        <sphereGeometry args={[0.5, 16, 16]} />
-        <meshStandardMaterial color="#f8f4e8" roughness={0.9} />
+      <mesh position={[0.18, -0.18, 0]}>
+        <sphereGeometry args={[0.4, 16, 16]} />
+        <meshStandardMaterial color="#F8F4FF" roughness={0.95} />
       </mesh>
-      <mesh position={[-0.25, 0.3, 0]}>
-        <sphereGeometry args={[0.45, 16, 16]} />
-        <meshStandardMaterial color="#f8f4e8" roughness={0.9} />
-      </mesh>
-      <mesh position={[0.25, 0.3, 0]}>
-        <sphereGeometry args={[0.45, 16, 16]} />
-        <meshStandardMaterial color="#f8f4e8" roughness={0.9} />
+      <mesh position={[0.48, -0.15, 0]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.95} />
       </mesh>
 
-      {/* Soft lavender underglow (sells the gradient bottom) */}
+      {/* Middle layer — 3 spheres */}
+      <mesh position={[-0.25, 0.1, 0]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.95} />
+      </mesh>
+      <mesh position={[0.05, 0.15, 0]}>
+        <sphereGeometry args={[0.32, 16, 16]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.95} />
+      </mesh>
+      <mesh position={[0.32, 0.1, 0]}>
+        <sphereGeometry args={[0.28, 16, 16]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.95} />
+      </mesh>
+
+      {/* Top puff */}
+      <mesh position={[0.05, 0.4, 0]}>
+        <sphereGeometry args={[0.24, 16, 16]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.95} />
+      </mesh>
+
+      {/* Soft lavender underglow */}
       <pointLight
         position={[0, -0.4, 0.3]}
         color="#b098d8"
@@ -74,63 +93,77 @@ export function Drift() {
         decay={2}
       />
 
-      {/* Closed sleepy eyes — small upward arcs ⌒ ⌒ */}
-      <mesh position={[-0.22, 0.05, 0.6]}>
-        <torusGeometry args={[0.07, 0.012, 8, 16, Math.PI]} />
-        <meshBasicMaterial color="#3a2a5a" />
+      {/* Eyes — deep purple */}
+      <mesh position={[-0.12, 0.0, 0.5]}>
+        <sphereGeometry args={[0.06, 10, 10]} />
+        <meshBasicMaterial color="#5A4A7A" />
       </mesh>
-      <mesh position={[0.22, 0.05, 0.6]}>
-        <torusGeometry args={[0.07, 0.012, 8, 16, Math.PI]} />
-        <meshBasicMaterial color="#3a2a5a" />
-      </mesh>
-
-      {/* Pink blush cheeks — two small rosy ovals */}
-      <mesh position={[-0.32, -0.05, 0.58]} scale={[1, 0.65, 1]}>
-        <circleGeometry args={[0.07, 16]} />
-        <meshBasicMaterial color="#f4a8b0" transparent opacity={0.85} />
-      </mesh>
-      <mesh position={[0.32, -0.05, 0.58]} scale={[1, 0.65, 1]}>
-        <circleGeometry args={[0.07, 16]} />
-        <meshBasicMaterial color="#f4a8b0" transparent opacity={0.85} />
+      <mesh position={[0.18, 0.0, 0.5]}>
+        <sphereGeometry args={[0.06, 10, 10]} />
+        <meshBasicMaterial color="#5A4A7A" />
       </mesh>
 
-      {/* Tiny gentle smile — small ∪ arc */}
-      <mesh position={[0, -0.08, 0.6]} rotation={[0, 0, Math.PI]}>
-        <torusGeometry args={[0.055, 0.011, 8, 16, Math.PI]} />
-        <meshBasicMaterial color="#3a2a5a" />
+      {/* Eye sparkles */}
+      <mesh position={[-0.1, 0.02, 0.55]}>
+        <sphereGeometry args={[0.018, 6, 6]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0.2, 0.02, 0.55]}>
+        <sphereGeometry args={[0.018, 6, 6]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+
+      {/* Pink blush cheeks */}
+      <mesh position={[-0.28, -0.08, 0.45]} scale={[1, 0.65, 1]}>
+        <circleGeometry args={[0.06, 16]} />
+        <meshBasicMaterial color="#F498B0" transparent opacity={0.5} />
+      </mesh>
+      <mesh position={[0.35, -0.08, 0.45]} scale={[1, 0.65, 1]}>
+        <circleGeometry args={[0.06, 16]} />
+        <meshBasicMaterial color="#F498B0" transparent opacity={0.5} />
+      </mesh>
+
+      {/* Smile */}
+      <mesh position={[0.03, -0.12, 0.5]}>
+        <torusGeometry args={[0.07, 0.012, 6, 10, Math.PI]} />
+        <meshBasicMaterial color="#5A4A7A" />
       </mesh>
 
       {/* Envelope held in front of Drift */}
-      <group ref={envelopeRef} position={[0, -0.8, 0.3]}>
-        {/* Envelope body */}
+      <group ref={envelopeRef} position={[0, -0.65, 0.25]}>
+        {/* Envelope body — bigger now */}
         <mesh>
-          <boxGeometry args={[0.5, 0.35, 0.02]} />
+          <boxGeometry args={[0.7, 0.5, 0.04]} />
           <meshStandardMaterial color="#f4e4c8" roughness={0.85} />
         </mesh>
-        {/* Flap — triangular prism hint */}
-        <mesh position={[0, 0.08, 0.012]} rotation={[0, 0, Math.PI]}>
-          <coneGeometry args={[0.26, 0.18, 3]} />
-          <meshStandardMaterial color="#e8d4a8" />
+        {/* Envelope back fold creases — V shape */}
+        <mesh position={[-0.18, 0.1, 0.025]} rotation={[0, 0, -0.5]}>
+          <planeGeometry args={[0.36, 0.005]} />
+          <meshBasicMaterial color="#a89868" />
         </mesh>
-        {/* Wax seal */}
-        <mesh position={[0, 0, 0.015]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.04, 0.04, 0.01, 12]} />
+        <mesh position={[0.18, 0.1, 0.025]} rotation={[0, 0, 0.5]}>
+          <planeGeometry args={[0.36, 0.005]} />
+          <meshBasicMaterial color="#a89868" />
+        </mesh>
+        {/* Wax seal — bigger */}
+        <mesh position={[0, 0, 0.03]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.06, 0.06, 0.015, 16]} />
           <meshStandardMaterial color="#c82820" roughness={0.3} />
         </mesh>
-        {/* "Coming Soon" band */}
-        <mesh position={[0, -0.1, 0.015]}>
-          <planeGeometry args={[0.4, 0.06]} />
-          <meshBasicMaterial color="#6a5a40" />
-        </mesh>
+        {/* "COMING SOON" text */}
+        <Text
+          position={[0, -0.15, 0.025]}
+          fontSize={0.05}
+          color="#5a4030"
+          anchorX="center"
+          anchorY="middle"
+          letterSpacing={0.1}
+        >
+          COMING SOON
+        </Text>
       </group>
 
-      {/* Hover ring */}
-      {hovered && (
-        <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.3, 1.4, 32]} />
-          <meshBasicMaterial color="#f8b8c8" transparent opacity={0.6} />
-        </mesh>
-      )}
+      <InteractiveGlow radius={0.7} color="#b098d8" y={-0.5} />
     </group>
   )
 }

@@ -4,6 +4,7 @@ import { InfoPanel } from './InfoPanel'
 import { ParkedTram } from './ParkedTram'
 import { TerminusLighting } from './TerminusLighting'
 import { TerminusSky } from './TerminusSky'
+import { WorldOrbit } from '../../scene/components/WorldOrbit'
 
 /**
  * THE TERMINUS — last stop on the route.
@@ -21,6 +22,7 @@ export function Terminus() {
       <TerminusShelter />
       <InfoPanel />
       <ParkedTram />
+      <WorldOrbit target={[0, 1.2, 97.8]} minDistance={2} maxDistance={8} />
     </group>
   )
 }

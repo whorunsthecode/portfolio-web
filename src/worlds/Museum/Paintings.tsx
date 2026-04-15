@@ -105,85 +105,116 @@ function StarryNight({ width = 1.2, height = 0.9 }) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Stylized painting: Hokusai's "The Great Wave off Kanagawa" (c. 1831)
+   Stylized painting: Da Vinci's "Mona Lisa" (c. 1503)
+   Dark background + woman silhouette + characteristic smile + sfumato gold
    ═══════════════════════════════════════════════════════ */
-function GreatWave({ width = 1.2, height = 0.9 }) {
+function MonaLisa({ width = 1.2, height = 0.9 }) {
   return (
     <group>
-      {/* Canvas base — cream/beige */}
+      {/* Canvas base — warm dark sfumato brown */}
       <mesh position={[0, 0, 0.001]}>
         <planeGeometry args={[width, height]} />
-        <meshStandardMaterial color="#e8dcb8" roughness={0.9} />
+        <meshStandardMaterial color="#3a2818" roughness={0.9} />
       </mesh>
 
-      {/* Sky band */}
+      {/* Background landscape — muted blue-green misty hills upper portion */}
       <mesh position={[0, 0.25, 0.002]}>
         <planeGeometry args={[width, 0.4]} />
-        <meshStandardMaterial color="#d8c898" roughness={0.85} />
+        <meshStandardMaterial color="#5a6048" roughness={0.85} />
+      </mesh>
+      {/* Distant mountains */}
+      <mesh position={[-0.25, 0.18, 0.003]}>
+        <coneGeometry args={[0.12, 0.1, 3]} />
+        <meshStandardMaterial color="#3a4838" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.25, 0.2, 0.003]}>
+        <coneGeometry args={[0.14, 0.12, 3]} />
+        <meshStandardMaterial color="#3a4838" roughness={0.85} />
       </mesh>
 
-      {/* Mount Fuji — small silhouette */}
-      <mesh position={[0.05, 0.1, 0.004]}>
-        <coneGeometry args={[0.12, 0.14, 3]} />
-        <meshStandardMaterial color="#4a5878" roughness={0.8} />
-      </mesh>
-      <mesh position={[0.05, 0.15, 0.005]}>
-        <coneGeometry args={[0.06, 0.06, 3]} />
-        <meshStandardMaterial color="#f0ece0" />
+      {/* Sky band at top — pale gold */}
+      <mesh position={[0, 0.42, 0.002]}>
+        <planeGeometry args={[width, 0.06]} />
+        <meshStandardMaterial color="#a89878" roughness={0.85} />
       </mesh>
 
-      {/* Main wave curl — dark blue ring arc */}
-      <mesh position={[-0.2, -0.1, 0.003]} rotation={[0, 0, 0.3]}>
-        <ringGeometry args={[0.25, 0.5, 12, 1, Math.PI, Math.PI]} />
-        <meshStandardMaterial color="#1a3868" roughness={0.9} side={2} />
+      {/* === THE FIGURE === */}
+
+      {/* Body/dress — large dark brown trapezoid */}
+      <mesh position={[0, -0.25, 0.004]}>
+        <planeGeometry args={[0.55, 0.45]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+      {/* Body shoulders taper — slightly narrower top */}
+      <mesh position={[0, -0.05, 0.005]}>
+        <planeGeometry args={[0.4, 0.18]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
       </mesh>
 
-      {/* Wave body fill */}
-      <mesh position={[-0.25, -0.15, 0.0025]}>
-        <circleGeometry args={[0.28, 12, Math.PI * 0.2, Math.PI * 1.2]} />
-        <meshStandardMaterial color="#2a4878" roughness={0.9} />
+      {/* Crossed arms hint — horizontal tan band across the dress */}
+      <mesh position={[0, -0.18, 0.006]}>
+        <planeGeometry args={[0.35, 0.04]} />
+        <meshStandardMaterial color="#8a6a48" roughness={0.85} />
       </mesh>
 
-      {/* Crest foam blobs */}
-      {[
-        { x: -0.1, y: 0.22, r: 0.04 },
-        { x: 0.02, y: 0.28, r: 0.035 },
-        { x: 0.12, y: 0.24, r: 0.03 },
-        { x: -0.2, y: 0.18, r: 0.05 },
-        { x: 0.2, y: 0.16, r: 0.035 },
-        { x: 0.3, y: 0.1, r: 0.04 },
-        { x: 0.38, y: 0.02, r: 0.03 },
-      ].map((foam, i) => (
-        <mesh key={i} position={[foam.x, foam.y, 0.006]}>
-          <circleGeometry args={[foam.r, 8]} />
-          <meshStandardMaterial color="#f0ece0" roughness={0.8} />
-        </mesh>
-      ))}
-
-      {/* Smaller wave at bottom right */}
-      <mesh position={[0.3, -0.3, 0.003]} rotation={[0, 0, -0.2]}>
-        <circleGeometry args={[0.15, 10, 0, Math.PI]} />
-        <meshStandardMaterial color="#2a4878" roughness={0.9} />
+      {/* Neck */}
+      <mesh position={[0, 0.04, 0.005]}>
+        <planeGeometry args={[0.08, 0.08]} />
+        <meshStandardMaterial color="#c8a888" roughness={0.85} />
       </mesh>
 
-      {/* Fishing boat hull */}
-      <mesh position={[-0.1, -0.05, 0.005]} rotation={[0, 0, 0.2]}>
-        <boxGeometry args={[0.08, 0.015, 0.01]} />
-        <meshStandardMaterial color="#3a2820" />
-      </mesh>
-      <mesh position={[-0.12, -0.03, 0.006]}>
-        <boxGeometry args={[0.02, 0.015, 0.005]} />
-        <meshStandardMaterial color="#2a1a10" />
+      {/* Face — oval (use circleGeometry slightly squished) */}
+      <mesh position={[0, 0.15, 0.006]} scale={[1, 1.2, 1]}>
+        <circleGeometry args={[0.11, 16]} />
+        <meshStandardMaterial color="#d8b898" roughness={0.85} />
       </mesh>
 
-      {/* Hokusai signature cartouche — red stamp */}
-      <mesh position={[-0.42, 0.32, 0.005]}>
-        <planeGeometry args={[0.08, 0.12]} />
-        <meshStandardMaterial color="#c82820" />
+      {/* Hair on each side of face — dark sweeps */}
+      <mesh position={[-0.13, 0.16, 0.005]} scale={[0.6, 1.4, 1]}>
+        <circleGeometry args={[0.08, 12]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
       </mesh>
-      <mesh position={[-0.42, 0.32, 0.006]}>
-        <planeGeometry args={[0.06, 0.1]} />
-        <meshStandardMaterial color="#f0ece0" />
+      <mesh position={[0.13, 0.16, 0.005]} scale={[0.6, 1.4, 1]}>
+        <circleGeometry args={[0.08, 12]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+
+      {/* Hair top — small dark cap above the head */}
+      <mesh position={[0, 0.27, 0.005]} scale={[1.1, 0.5, 1]}>
+        <circleGeometry args={[0.1, 12]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+
+      {/* Eyes — two small dark dots */}
+      <mesh position={[-0.04, 0.18, 0.007]}>
+        <circleGeometry args={[0.012, 8]} />
+        <meshBasicMaterial color="#2a1808" />
+      </mesh>
+      <mesh position={[0.04, 0.18, 0.007]}>
+        <circleGeometry args={[0.012, 8]} />
+        <meshBasicMaterial color="#2a1808" />
+      </mesh>
+
+      {/* Eyebrow hints — thin dark slashes */}
+      <mesh position={[-0.04, 0.21, 0.007]}>
+        <planeGeometry args={[0.025, 0.005]} />
+        <meshBasicMaterial color="#5a4028" transparent opacity={0.4} />
+      </mesh>
+      <mesh position={[0.04, 0.21, 0.007]}>
+        <planeGeometry args={[0.025, 0.005]} />
+        <meshBasicMaterial color="#5a4028" transparent opacity={0.4} />
+      </mesh>
+
+      {/* The smile — a small subtle curve */}
+      <mesh position={[0, 0.115, 0.007]} rotation={[0, 0, Math.PI]}>
+        <torusGeometry args={[0.022, 0.004, 6, 12, Math.PI]} />
+        <meshBasicMaterial color="#5a3018" />
+      </mesh>
+
+      {/* Nose suggestion — tiny shadow line */}
+      <mesh position={[0, 0.15, 0.007]}>
+        <planeGeometry args={[0.008, 0.04]} />
+        <meshBasicMaterial color="#a8886a" transparent opacity={0.5} />
       </mesh>
     </group>
   )
@@ -375,7 +406,7 @@ function Plaque({
 /* ═══════════════════════════════════════════════════════
    Full painting with frame + plaque
    ═══════════════════════════════════════════════════════ */
-type PaintingKey = 'starry' | 'wave' | 'lilies'
+type PaintingKey = 'starry' | 'mona' | 'lilies'
 
 interface PaintingProps {
   position: [number, number, number]
@@ -393,11 +424,11 @@ const PLAQUE_INFO: Record<
     year: '1889',
     medium: 'Oil on canvas · Museum of Modern Art',
   },
-  wave: {
-    title: 'The Great Wave off Kanagawa',
-    artist: 'Katsushika Hokusai',
-    year: 'c. 1831',
-    medium: 'Woodblock print · Metropolitan Museum',
+  mona: {
+    title: 'Mona Lisa',
+    artist: 'Leonardo da Vinci',
+    year: 'c. 1503',
+    medium: 'Oil on poplar panel · Louvre',
   },
   lilies: {
     title: 'Water Lilies',
@@ -413,7 +444,7 @@ function FramedPainting({ position, rotation, painting }: PaintingProps) {
   return (
     <group position={position} rotation={rotation}>
       {painting === 'starry' && <StarryNight />}
-      {painting === 'wave' && <GreatWave />}
+      {painting === 'mona' && <MonaLisa />}
       {painting === 'lilies' && <WaterLilies />}
 
       <GoldFrame />
@@ -440,7 +471,7 @@ export function Paintings() {
         rotation={[0, Math.PI / 2, 0]}
       />
       <FramedPainting
-        painting="wave"
+        painting="mona"
         position={[2.95, 2.5, 0]}
         rotation={[0, -Math.PI / 2, 0]}
       />

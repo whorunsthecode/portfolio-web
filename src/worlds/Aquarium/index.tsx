@@ -1,34 +1,29 @@
-import type { ThreeEvent } from '@react-three/fiber'
-import { PondChamber } from './PondChamber'
-import { PondVegetation } from './PondVegetation'
+import { TankInterior } from './TankInterior'
 import { SwimmingKoi } from './SwimmingKoi'
 import { HatchingEgg } from './HatchingEgg'
 import { WaterEffects } from './WaterEffects'
 import { AquariumLighting } from './AquariumLighting'
+import { WorldOrbit } from '../../scene/components/WorldOrbit'
+import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
 import { useStore } from '../../store'
 
 /**
  * THE AQUARIUM — PomoReef's world.
- * A side cross-section of a koi pond at sunset. Top half: sky, reeds,
- * lily pads. Bottom half: koi + a warmly-glowing egg mid-session with
- * a progress ring that loops every 15 seconds: wait → flash → crack →
- * new koi swims down and joins the pond.
+ * The camera is INSIDE an aquarium tank. Glass walls visible on all sides,
+ * koi swimming around at varied depths, hatching egg centered in front.
  *
- * The whole scene is tappable — tapping anywhere opens the PomoReef
- * modal. Parented at world (0, -28, 0) to match WORLD_CAMERAS.aquarium.
+ * Parented at world (0, -28, 0) to match WORLD_CAMERAS.aquarium.
  */
 export function Aquarium() {
   const setModal = useStore((s) => s.setModal)
 
-  const handleTap = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation()
-    setModal('aquarium')
-  }
-
   return (
     <group
       position={[0, -28, 0]}
-      onClick={handleTap}
+      onClick={(e) => {
+        e.stopPropagation()
+        setModal('aquarium')
+      }}
       onPointerOver={(e) => {
         e.stopPropagation()
         document.body.style.cursor = 'pointer'
@@ -38,19 +33,12 @@ export function Aquarium() {
       }}
     >
       <AquariumLighting />
-      <PondChamber />
-      <PondVegetation />
+      <TankInterior />
       <SwimmingKoi />
       <HatchingEgg />
+      <InteractiveGlow radius={0.6} color="#ffd878" y={-0.5} />
       <WaterEffects />
-
-      {/* Transparent tap-catching plane in front of the scene.
-          Catches clicks that miss the koi/egg/vegetation meshes so the
-          modal opens from any point on the pond. */}
-      <mesh position={[0, 0, 1]}>
-        <planeGeometry args={[10, 5]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-      </mesh>
+      <WorldOrbit target={[0, -27.5, -2]} minDistance={2} maxDistance={8} />
     </group>
   )
 }

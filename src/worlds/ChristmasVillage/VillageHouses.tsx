@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useStore } from '../../store'
+import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
 
 const WALL_COLORS = ['#f4e8c8', '#d89878', '#b8c4d4', '#a8b098', '#e8c498', '#c4a888']
 const ROOF_COLORS = ['#4a2818', '#3a1e14', '#5a3224']
@@ -103,6 +104,8 @@ function House({ position: p, isToday }: { position: HousePosition; isToday: boo
       />
 
       {/* Sparkle ring above today's house */}
+      {isToday && <InteractiveGlow radius={0.5} color="#ffc850" y={0.05} />}
+
       {isToday && (
         <mesh position={[0, 1.4, 0]}>
           <torusGeometry args={[0.4, 0.02, 6, 20]} />

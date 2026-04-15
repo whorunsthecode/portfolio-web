@@ -1,15 +1,12 @@
 import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
 
 export function HUD() {
-  const mode = useStore((s) => s.mode)
-  const setMode = useStore((s) => s.setMode)
   const activeRoom = useStore((s) => s.activeRoom)
   const setRoom = useStore((s) => s.setRoom)
   const blindIndex = useStore((s) => s.blindIndex)
   const cycleBind = useStore((s) => s.cycleBind)
   const routePos = useStore((s) => s.routePos)
 
-  const isDark = mode === 'night'
   const currentStop = STOPS[blindIndex]
   const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
 
@@ -33,23 +30,11 @@ export function HUD() {
           padding: '8px 16px', color: textColor, fontSize: 13,
           cursor: 'pointer', backdropFilter: 'blur(8px)',
         }}>
-          ← Back
+          ← Return to tram
         </button>
       )}
 
-      {/* Theme toggle */}
-      <button
-        onClick={() => setMode(isDark ? 'day' : 'night')}
-        style={{
-          position: 'absolute', top: 16, right: 16,
-          pointerEvents: 'auto',
-          background: pillBg, border: 'none', borderRadius: 20,
-          padding: '8px 16px', color: textColor, fontSize: 13,
-          cursor: 'pointer', backdropFilter: 'blur(8px)',
-        }}
-      >
-        {isDark ? 'Day' : 'Night'}
-      </button>
+      {/* TODO: re-enable in v1.1 if we want a night mode toggle */}
 
       {/* ── Destination navigation pill — bottom center ──── */}
       {!activeRoom && (

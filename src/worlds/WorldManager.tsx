@@ -18,21 +18,18 @@ import { Aquarium } from './Aquarium/index'
 const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number] }> = {
   // Pulled forward from z=3.5/-3.5 to frame the centerpiece at its new z=-2.0
   museum:    { pos: [-100, 1.7, 2.5], look: [-100, 2.0, -2.5] },
-  christmas: { pos: [100, 2.5, 5],    look: [99, 1.8, -3] },
-  // Dreamery: floating in the dream, looking slightly down at Drift
-  // (local (0, 0, 0.5) / (0, -0.2, -4) → parent offset (0, 62, 0))
-  fantasy:   { pos: [0, 62, 0.5],     look: [0, 61.8, -4] },
-  // Aquarium: side-cross-section camera at water-line level, looking
-  // slightly down at the hatching egg (local (0, 0, 3.5) / (0, -0.3, -1)
-  // at parent offset (0, -28, 0))
-  aquarium:  { pos: [0, -28, 3.5],    look: [0, -28.3, -1] },
+  christmas: { pos: [100, 1.6, 3],     look: [100, 1.3, -1.5] },
+  // Dreamery: doorway of the bedroom looking diagonally across
+  fantasy:   { pos: [2.5, 63.6, 1.5], look: [-0.5, 63.0, -0.8] },
+  // Aquarium: inside the tank, looking at the egg
+  aquarium:  { pos: [0, -27, 4],      look: [0, -27.5, -2] },
   // Gym: eye-level at the mouth of the room looking slightly down at the
   // caged phone on the yoga mat (local (0, 1.6, 0.5) / (0, 0.4, -2) at
   // parent offset (100, 0, 100))
-  gym:       { pos: [100, 1.6, 100.5], look: [100, 0.4, 98] },
+  gym:       { pos: [100, 1.55, 102.5], look: [100.3, 1.6, 97] },
   // Arrival sits on the safety island, looking directly at the info panel
   // on the shelter back wall (local z = -2.22, world z = 100 + -2.22).
-  terminus:  { pos: [0, 1.5, 100.5],  look: [0, 1.1, 97.78] },
+  terminus:  { pos: [2.5, 1.6, 100.5], look: [0, 1.4, 97.78] },
 }
 
 const SEATED_POS = new Vector3(0, 1.5, -7.6)
