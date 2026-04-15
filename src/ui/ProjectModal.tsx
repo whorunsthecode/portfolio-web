@@ -43,8 +43,9 @@ const PROJECTS: Record<string, ProjectData> = {
   aquarium: {
     name: 'PomoReef',
     tagline: 'Keep your cursor in the window. Earn a koi. Grow your pond.',
-    description: 'A browser-based pixel-art pomodoro timer themed as a koi pond. Complete focus sessions to earn permanent koi fish. 2nd place at Builder Night: Open Source AI by Lonely Octopus.',
-    tech: 'Browser-native · Page Visibility API · Pixel art · Claude Opus 4.6',
+    description: "A browser-based pixel-art pomodoro timer themed as a koi pond. Pick 10, 25, or 45 minutes and keep your cursor on the tab — move it off, and the session voids. Complete a session and earn a permanent koi that joins your pond. Every fish is one focus session made real.",
+    tech: 'Browser-native (HTML/CSS/JS) · Page Visibility API · Pixel art · Fully offline · Built with Claude Opus 4.6',
+    origin: '2nd place at Builder Night: Open Source AI by Lonely Octopus, sponsored by MindWorks Capital. Built with Matthew.',
     status: 'live',
     ctaLabel: 'Start a focus dive',
     ctaUrl: 'https://pomoreef.pages.dev',
