@@ -4,6 +4,7 @@ import { Vector3 } from 'three'
 import { useStore, type StopId } from '../store'
 import { Museum } from './Museum/index'
 import { ChristmasVillage } from './ChristmasVillage/index'
+import { Terminus } from './Terminus/index'
 
 /**
  * Manages world mounting and camera transitions.
@@ -17,7 +18,9 @@ const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [numb
   fantasy:   { pos: [0, 62, 4],       look: [0, 62, -4] },
   aquarium:  { pos: [0, -28, 4],      look: [0, -28, -4] },
   gym:       { pos: [100, 2.0, 104],  look: [100, 2.0, 96] },
-  terminus:  { pos: [0, 2.0, 104],    look: [0, 2.0, 96] },
+  // Arrival sits on the safety island, looking directly at the info panel
+  // on the shelter back wall (local z = -2.22, world z = 100 + -2.22).
+  terminus:  { pos: [0, 1.5, 100.5],  look: [0, 1.1, 97.78] },
 }
 
 const SEATED_POS = new Vector3(0, 1.5, -7.6)
@@ -89,6 +92,7 @@ export function Worlds() {
       {/* Lazy-mount: only render the world that's active */}
       {activeRoom === 'museum' && <Museum />}
       {activeRoom === 'christmas' && <ChristmasVillage />}
+      {activeRoom === 'terminus' && <Terminus />}
     </>
   )
 }

@@ -88,7 +88,52 @@ export default function App() {
 
       <HUD />
       <ProjectModal />
+      <Toast />
     </>
+  )
+}
+
+/* ── Global toast — triggered via window.__showToast(msg) ── */
+function Toast() {
+  const [msg, setMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    const w = window as unknown as { __showToast?: (msg: string) => void }
+    let timer: number | undefined
+    w.__showToast = (m: string) => {
+      setMsg(m)
+      if (timer) window.clearTimeout(timer)
+      timer = window.setTimeout(() => setMsg(null), 2500)
+    }
+    return () => {
+      delete w.__showToast
+      if (timer) window.clearTimeout(timer)
+    }
+  }, [])
+
+  if (!msg) return null
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 80,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(20,20,20,0.9)',
+        color: '#f0e6d0',
+        padding: '12px 24px',
+        borderRadius: 24,
+        fontFamily: 'Georgia, serif',
+        fontSize: 14,
+        letterSpacing: 1.5,
+        zIndex: 200,
+        backdropFilter: 'blur(8px)',
+        pointerEvents: 'none',
+      }}
+    >
+      {msg}
+    </div>
   )
 }
 
