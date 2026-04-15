@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useStore } from '../../store'
 
@@ -12,7 +13,8 @@ export function GestureGalleryExhibit() {
     const t = clock.getElapsedTime()
     if (handRef.current) {
       handRef.current.rotation.y = t * 0.4
-      handRef.current.position.y = 2.0 + Math.sin(t * 0.8) * 0.08
+      // Floats just above the taller pedestal (cap y ≈ 1.2)
+      handRef.current.position.y = 2.2 + Math.sin(t * 0.8) * 0.08
     }
     if (orbitRef.current) {
       orbitRef.current.rotation.y = t * 0.25
@@ -20,12 +22,63 @@ export function GestureGalleryExhibit() {
   })
 
   return (
-    <group position={[0, 0, -3.5]}>
-      {/* Pedestal */}
-      <mesh position={[0, 0.5, 0]} castShadow>
-        <cylinderGeometry args={[0.5, 0.6, 1.0, 16]} />
+    <group position={[0, 0, -2.0]}>
+      {/* Pedestal base — wider lower step */}
+      <mesh position={[0, 0.05, 0]} receiveShadow>
+        <cylinderGeometry args={[0.7, 0.75, 0.1, 24]} />
+        <meshStandardMaterial color="#d8d0c0" roughness={0.5} metalness={0.15} />
+      </mesh>
+
+      {/* Main pedestal column — beveled marble */}
+      <mesh position={[0, 0.6, 0]} castShadow>
+        <cylinderGeometry args={[0.5, 0.55, 1.1, 16]} />
         <meshStandardMaterial color="#e8e4dc" roughness={0.4} metalness={0.1} />
       </mesh>
+
+      {/* Top cap disc */}
+      <mesh position={[0, 1.18, 0]}>
+        <cylinderGeometry args={[0.56, 0.52, 0.04, 24]} />
+        <meshStandardMaterial color="#d8d0c0" roughness={0.5} metalness={0.15} />
+      </mesh>
+
+      {/* Pedestal plaque — gold frame + cream face */}
+      <group position={[0, 0.7, 0.5]}>
+        <mesh>
+          <boxGeometry args={[0.4, 0.14, 0.015]} />
+          <meshStandardMaterial color="#c8a048" metalness={0.5} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 0, 0.008]}>
+          <planeGeometry args={[0.37, 0.11]} />
+          <meshStandardMaterial color="#f4ebd4" roughness={0.8} />
+        </mesh>
+        <Text
+          position={[0, 0.025, 0.012]}
+          fontSize={0.022}
+          color="#2a2418"
+          anchorX="center"
+          anchorY="middle"
+        >
+          GESTURE GALLERY
+        </Text>
+        <Text
+          position={[0, -0.005, 0.012]}
+          fontSize={0.016}
+          color="#5a4030"
+          anchorX="center"
+          anchorY="middle"
+        >
+          Karmen Yip, 2025
+        </Text>
+        <Text
+          position={[0, -0.03, 0.012]}
+          fontSize={0.013}
+          color="#8a6a4a"
+          anchorX="center"
+          anchorY="middle"
+        >
+          MediaPipe · Three.js · Gemini
+        </Text>
+      </group>
 
       {/* Floating hand — palm + thumb + 4 fingers */}
       <group
@@ -34,8 +87,12 @@ export function GestureGalleryExhibit() {
           e.stopPropagation()
           setModal('museum')
         }}
-        onPointerOver={() => { document.body.style.cursor = 'pointer' }}
-        onPointerOut={() => { document.body.style.cursor = 'auto' }}
+        onPointerOver={() => {
+          document.body.style.cursor = 'pointer'
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = 'auto'
+        }}
       >
         {/* Palm */}
         <mesh>
@@ -56,8 +113,8 @@ export function GestureGalleryExhibit() {
         ))}
       </group>
 
-      {/* Orbiting thumbnails — 3 small painting cards */}
-      <group ref={orbitRef} position={[0, 2.0, 0]}>
+      {/* Orbiting thumbnails */}
+      <group ref={orbitRef} position={[0, 2.2, 0]}>
         {[0, 1, 2].map((i) => {
           const angle = (i / 3) * Math.PI * 2
           const r = 0.9
@@ -74,12 +131,6 @@ export function GestureGalleryExhibit() {
           )
         })}
       </group>
-
-      {/* Wall label behind the exhibit */}
-      <mesh position={[0, 3.8, -1.2]}>
-        <planeGeometry args={[1.6, 0.3]} />
-        <meshStandardMaterial color="#f0ead8" roughness={0.8} />
-      </mesh>
     </group>
   )
 }

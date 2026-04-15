@@ -14,7 +14,8 @@ import { Dreamery } from './Dreamery/index'
  */
 
 const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number] }> = {
-  museum:    { pos: [-100, 1.7, 3.5], look: [-100, 2.0, -3.5] },
+  // Pulled forward from z=3.5/-3.5 to frame the centerpiece at its new z=-2.0
+  museum:    { pos: [-100, 1.7, 2.5], look: [-100, 2.0, -2.5] },
   christmas: { pos: [100, 2.5, 5],    look: [99, 1.8, -3] },
   // Dreamery: floating in the dream, looking slightly down at Drift
   // (local (0, 0, 0.5) / (0, -0.2, -4) → parent offset (0, 62, 0))
