@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../store'
 
 export interface ProjectData {
@@ -42,8 +43,9 @@ const PROJECTS: Record<string, ProjectData> = {
   aquarium: {
     name: 'PomoReef',
     tagline: 'Keep your cursor in the window. Earn a koi. Grow your pond.',
-    description: 'A browser-based pixel-art pomodoro timer themed as a koi pond. Complete focus sessions to earn permanent koi fish. 2nd place at Builder Night: Open Source AI by Lonely Octopus.',
-    tech: 'Browser-native · Page Visibility API · Pixel art · Claude Opus 4.6',
+    description: "A browser-based pixel-art pomodoro timer themed as a koi pond. Pick 10, 25, or 45 minutes and keep your cursor on the tab — move it off, and the session voids. Complete a session and earn a permanent koi that joins your pond. Every fish is one focus session made real.",
+    tech: 'Browser-native (HTML/CSS/JS) · Page Visibility API · Pixel art · Fully offline · Built with Claude Opus 4.6',
+    origin: '2nd place at Builder Night: Open Source AI by Lonely Octopus, sponsored by MindWorks Capital. Built with Matthew.',
     status: 'live',
     ctaLabel: 'Start a focus dive',
     ctaUrl: 'https://pomoreef.pages.dev',
@@ -69,11 +71,26 @@ const PROJECTS: Record<string, ProjectData> = {
 export function ProjectModal() {
   const modal = useStore((s) => s.modal)
   const setModal = useStore((s) => s.setModal)
+  const [email, setEmail] = useState('')
 
   if (!modal || modal === 'terminus') return null
 
   const project = PROJECTS[modal]
   if (!project) return null
+
+  const handleNotify = () => {
+    const trimmed = email.trim()
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
+    const showToast = (window as unknown as { __showToast?: (msg: string) => void })
+      .__showToast
+    if (!valid) {
+      showToast?.('Enter a valid email')
+      return
+    }
+    // TODO: POST to Formspree endpoint when live
+    showToast?.('Thanks — we\u2019ll let you know')
+    setEmail('')
+  }
 
   const isLive = project.status === 'live'
 
@@ -199,10 +216,18 @@ export function ProjectModal() {
             <p style={{ margin: 0, fontSize: 13, opacity: 0.7 }}>
               Notify me when it's live
             </p>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleNotify()
+              }}
+              style={{ display: 'flex', gap: 8, marginTop: 10 }}
+            >
               <input
                 type="email"
                 placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 style={{
                   flex: 1,
                   padding: '8px 12px',
@@ -214,19 +239,22 @@ export function ProjectModal() {
                   outline: 'none',
                 }}
               />
-              <button style={{
-                padding: '8px 14px',
-                borderRadius: 6,
-                border: 'none',
-                background: '#d4a017',
-                color: '#1a1816',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}>
+              <button
+                type="submit"
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: '#d4a017',
+                  color: '#1a1816',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
                 NOTIFY
               </button>
-            </div>
+            </form>
           </div>
         ) : null}
       </div>

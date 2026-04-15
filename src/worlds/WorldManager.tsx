@@ -4,6 +4,10 @@ import { Vector3 } from 'three'
 import { useStore, type StopId } from '../store'
 import { Museum } from './Museum/index'
 import { ChristmasVillage } from './ChristmasVillage/index'
+import { Terminus } from './Terminus/index'
+import { Dreamery } from './Dreamery/index'
+import { Gym } from './Gym/index'
+import { Aquarium } from './Aquarium/index'
 
 /**
  * Manages world mounting and camera transitions.
@@ -12,12 +16,23 @@ import { ChristmasVillage } from './ChristmasVillage/index'
  */
 
 const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number] }> = {
-  museum:    { pos: [-100, 1.7, 3.5], look: [-100, 2.0, -3.5] },
+  // Pulled forward from z=3.5/-3.5 to frame the centerpiece at its new z=-2.0
+  museum:    { pos: [-100, 1.7, 2.5], look: [-100, 2.0, -2.5] },
   christmas: { pos: [100, 2.5, 5],    look: [99, 1.8, -3] },
-  fantasy:   { pos: [0, 62, 4],       look: [0, 62, -4] },
-  aquarium:  { pos: [0, -28, 4],      look: [0, -28, -4] },
-  gym:       { pos: [100, 2.0, 104],  look: [100, 2.0, 96] },
-  terminus:  { pos: [0, 2.0, 104],    look: [0, 2.0, 96] },
+  // Dreamery: floating in the dream, looking slightly down at Drift
+  // (local (0, 0, 0.5) / (0, -0.2, -4) → parent offset (0, 62, 0))
+  fantasy:   { pos: [0, 62, 0.5],     look: [0, 61.8, -4] },
+  // Aquarium: side-cross-section camera at water-line level, looking
+  // slightly down at the hatching egg (local (0, 0, 3.5) / (0, -0.3, -1)
+  // at parent offset (0, -28, 0))
+  aquarium:  { pos: [0, -28, 3.5],    look: [0, -28.3, -1] },
+  // Gym: eye-level at the mouth of the room looking slightly down at the
+  // caged phone on the yoga mat (local (0, 1.6, 0.5) / (0, 0.4, -2) at
+  // parent offset (100, 0, 100))
+  gym:       { pos: [100, 1.6, 100.5], look: [100, 0.4, 98] },
+  // Arrival sits on the safety island, looking directly at the info panel
+  // on the shelter back wall (local z = -2.22, world z = 100 + -2.22).
+  terminus:  { pos: [0, 1.5, 100.5],  look: [0, 1.1, 97.78] },
 }
 
 const SEATED_POS = new Vector3(0, 1.5, -7.6)
@@ -89,6 +104,10 @@ export function Worlds() {
       {/* Lazy-mount: only render the world that's active */}
       {activeRoom === 'museum' && <Museum />}
       {activeRoom === 'christmas' && <ChristmasVillage />}
+      {activeRoom === 'fantasy' && <Dreamery />}
+      {activeRoom === 'aquarium' && <Aquarium />}
+      {activeRoom === 'gym' && <Gym />}
+      {activeRoom === 'terminus' && <Terminus />}
     </>
   )
 }
