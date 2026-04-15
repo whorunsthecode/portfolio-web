@@ -7,6 +7,7 @@ import { Vector3 } from 'three'
 import { CameraRig } from './scene/CameraRig'
 import { TramExterior } from './scene/TramExterior'
 import { ProjectModal } from './ui/ProjectModal'
+import { FilmGrade } from './FilmGrade'
 import { useStore } from './store'
 
 export default function App() {
@@ -58,6 +59,7 @@ export default function App() {
 
         {boardingDone && <SeatedCameraWrapper />}
         <Scene />
+        <FilmGrade />
       </Canvas>
 
       {/* Skip button during boarding */}

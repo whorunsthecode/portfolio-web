@@ -3,15 +3,15 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useStore } from './store'
 
-const DAY_AMBIENT = { color: new THREE.Color('#ffe2b0'), intensity: 0.95 }
+// v3 — warmer, faded golden palette (Kodak Portra 400 feel)
+const DAY_AMBIENT = { color: new THREE.Color('#f8d098'), intensity: 0.95 }
 const NIGHT_AMBIENT = { color: new THREE.Color('#6a5a8a'), intensity: 1.1 }
 
-const DAY_SUN = { color: new THREE.Color('#ffb060'), intensity: 1.25 }
+const DAY_SUN = { color: new THREE.Color('#ffa040'), intensity: 1.25 }
 const NIGHT_SUN = { color: new THREE.Color('#8a70c0'), intensity: 0.7 }
 
-// Cabin interior light
 const DAY_CABIN = { color: new THREE.Color('#ffe8c8'), intensity: 0.3 }
-const NIGHT_CABIN = { color: new THREE.Color('#ffd090'), intensity: 2.5 }
+const NIGHT_CABIN = { color: new THREE.Color('#ffb868'), intensity: 2.5 }
 
 const LERP_SPEED = 4 // ~800ms to settle (exponential ease)
 
@@ -71,6 +71,12 @@ export function Lighting() {
         shadow-camera-right={15}
         shadow-camera-top={15}
         shadow-camera-bottom={-15}
+      />
+      {/* Teal shadow fill — Wong Kar-wai split-tone: warm highlights, cool shadows */}
+      <directionalLight
+        position={[3, 5, 8]}
+        color="#5878a0"
+        intensity={0.15}
       />
     </>
   )

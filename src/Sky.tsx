@@ -28,7 +28,7 @@ const SkyMaterial = shaderMaterial(
     dayColors[1] = vec3(0.722, 0.439, 0.345); // #b87058
     dayColors[2] = vec3(0.910, 0.596, 0.345); // #e89858
     dayColors[3] = vec3(0.957, 0.722, 0.408); // #f4b868
-    dayColors[4] = vec3(1.000, 0.800, 0.471); // #ffcc78
+    dayColors[4] = vec3(0.957, 0.722, 0.376); // #f4b860 — dustier golden horizon
 
     float scaled = t * 4.0;
     int idx = int(floor(scaled));
