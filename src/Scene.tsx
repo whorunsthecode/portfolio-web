@@ -5,6 +5,7 @@ import { Lighting } from './Lighting'
 import { Cabin } from './cabin'
 import { TenementRow } from './buildings/TenementRow'
 import { Landmarks } from './buildings/landmarks/Landmarks'
+import { TrafficSystem } from './traffic/TrafficSystem'
 import { useStore } from './store'
 import { Worlds } from './worlds/WorldManager'
 
@@ -28,6 +29,7 @@ export function Scene() {
       <Cabin />
       <TenementRow />
       <Landmarks />
+      <TrafficSystem />
       <RouteTracker />
       <Worlds />
     </>
