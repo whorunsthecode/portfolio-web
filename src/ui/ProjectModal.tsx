@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../store'
 
 export interface ProjectData {
@@ -69,11 +70,26 @@ const PROJECTS: Record<string, ProjectData> = {
 export function ProjectModal() {
   const modal = useStore((s) => s.modal)
   const setModal = useStore((s) => s.setModal)
+  const [email, setEmail] = useState('')
 
   if (!modal || modal === 'terminus') return null
 
   const project = PROJECTS[modal]
   if (!project) return null
+
+  const handleNotify = () => {
+    const trimmed = email.trim()
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
+    const showToast = (window as unknown as { __showToast?: (msg: string) => void })
+      .__showToast
+    if (!valid) {
+      showToast?.('Enter a valid email')
+      return
+    }
+    // TODO: POST to Formspree endpoint when live
+    showToast?.('Thanks — we\u2019ll let you know')
+    setEmail('')
+  }
 
   const isLive = project.status === 'live'
 
@@ -199,10 +215,18 @@ export function ProjectModal() {
             <p style={{ margin: 0, fontSize: 13, opacity: 0.7 }}>
               Notify me when it's live
             </p>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleNotify()
+              }}
+              style={{ display: 'flex', gap: 8, marginTop: 10 }}
+            >
               <input
                 type="email"
                 placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 style={{
                   flex: 1,
                   padding: '8px 12px',
@@ -214,19 +238,22 @@ export function ProjectModal() {
                   outline: 'none',
                 }}
               />
-              <button style={{
-                padding: '8px 14px',
-                borderRadius: 6,
-                border: 'none',
-                background: '#d4a017',
-                color: '#1a1816',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}>
+              <button
+                type="submit"
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: '#d4a017',
+                  color: '#1a1816',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
                 NOTIFY
               </button>
-            </div>
+            </form>
           </div>
         ) : null}
       </div>
