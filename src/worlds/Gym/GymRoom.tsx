@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
+import { MeshReflectorMaterial } from '@react-three/drei'
 
 const LIME = '#b8d848'
 const LIME_DARK = '#98b838'
-const MIRROR = '#c8d4d8'
 
 // Deterministic pseudo-random so the wear pattern is stable across renders
 function seededRand(i: number) {
@@ -88,14 +88,23 @@ export function GymRoom() {
         <meshStandardMaterial color={LIME} roughness={0.8} side={2} />
       </mesh>
 
-      {/* Right wall — the mirror */}
+      {/* Right wall — the actual mirror. MeshReflectorMaterial renders a
+          real planar reflection of the scene so the 6 shrimps visually
+          double when the camera sees the wall. */}
       <mesh position={[3.5, 2, 0]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[10, 4]} />
-        <meshStandardMaterial
-          color={MIRROR}
-          roughness={0.1}
-          metalness={0.6}
-          envMapIntensity={1.5}
+        <MeshReflectorMaterial
+          mirror={0.9}
+          resolution={512}
+          blur={[60, 60]}
+          mixBlur={0.6}
+          mixStrength={1.4}
+          depthScale={0.2}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.2}
+          color="#c8d4d8"
+          metalness={0.5}
+          roughness={0.25}
           side={2}
         />
       </mesh>
