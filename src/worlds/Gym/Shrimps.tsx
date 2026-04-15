@@ -30,7 +30,7 @@ export function Shrimps() {
   return (
     <group
       ref={groupRef}
-      position={[0.5, 2.5, -5.5]}
+      position={[2.2, 1.2, -5.5]}
       onClick={(e) => {
         e.stopPropagation()
         setModal('gym')

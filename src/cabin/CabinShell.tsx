@@ -91,6 +91,12 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
         <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
       </mesh>
 
+      {/* Glass pane from first post (z=3) to rear entrance (z=3.25) — short rear pane */}
+      <mesh position={[x, 1.57, 3.12]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[0.2, 1.0]} />
+        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+      </mesh>
+
       {/* Solid upper wall — between top of windows and ceiling */}
       <mesh position={[x, 2.3, -3]}>
         <boxGeometry args={[0.06, 0.35, 12.5]} />
@@ -122,10 +128,10 @@ function Dashboard() {
         <meshStandardMaterial color={GREEN} roughness={0.5} />
       </mesh>
 
-      {/* Solid upper windshield header — closes the gap to ceiling */}
-      <mesh position={[0, 2.35, 0]}>
-        <boxGeometry args={[2.3, 0.35, 0.06]} />
-        <meshStandardMaterial color={CREAM} roughness={0.7} />
+      {/* Upper windshield header — glass instead of solid */}
+      <mesh position={[0, 2.35, 0.01]}>
+        <planeGeometry args={[2.2, 0.35]} />
+        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
       </mesh>
 
       {/* Left windshield post */}
@@ -146,15 +152,15 @@ function Dashboard() {
         <meshStandardMaterial color={GREEN} roughness={0.5} />
       </mesh>
 
-      {/* Windshield glass — left pane */}
-      <mesh position={[-0.56, 1.57, 0.01]}>
-        <planeGeometry args={[1.05, 1.0]} />
+      {/* Full windshield glass — single large pane covering the entire front opening */}
+      <mesh position={[0, 1.57, 0.01]}>
+        <planeGeometry args={[2.2, 1.0]} />
         <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
       </mesh>
 
-      {/* Windshield glass — right pane */}
-      <mesh position={[0.56, 1.57, 0.01]}>
-        <planeGeometry args={[1.05, 1.0]} />
+      {/* Upper glass — between top windshield rail and the sign area */}
+      <mesh position={[0, 2.25, 0.01]}>
+        <planeGeometry args={[2.2, 0.22]} />
         <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
       </mesh>
     </group>
