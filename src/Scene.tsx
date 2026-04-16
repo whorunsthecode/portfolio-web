@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { Sky } from './Sky'
-import { Road, TramTracks, LaneMarkings, CatenaryPoles } from './Street'
+import { Road, LaneMarkings } from './Street'
+import { TramCorridor } from './scene/TramCorridor'
 import { Lighting } from './Lighting'
 import { Cabin } from './cabin'
 import { TenementRow } from './buildings/TenementRow'
@@ -23,9 +24,8 @@ export function Scene() {
       <Sky />
       <Lighting />
       <Road />
-      <TramTracks />
+      <TramCorridor />
       <LaneMarkings />
-      <CatenaryPoles />
       <Cabin />
       <TenementRow />
       <Landmarks />
