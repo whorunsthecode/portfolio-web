@@ -14,9 +14,7 @@ import * as THREE from 'three'
 const SKIN_CN_A = '#e8c8a0'
 const SKIN_CN_B = '#f0d4b0'
 const SKIN_CN_C = '#dfc090'
-const SKIN_WHITE = '#f4dcc4'
-// Additional skin tones for future tourist variation:
-// Southeast Asian '#c89878', Japanese '#f0d0a8'
+// Tourist skin tones are in TOURIST_SKINS array below
 
 // ── Shared sub-components ────────────────────────────────────────────
 
@@ -118,9 +116,14 @@ function OfficeMale() {
         <boxGeometry args={[0.16, 0.05, 0.02]} />
         <meshStandardMaterial color="#2a2018" roughness={0.7} />
       </mesh>
-      {/* Torso — navy suit with power shoulders (wider top than bottom) */}
-      <mesh position={[0, 0.3, 0]}>
-        <boxGeometry args={[0.42, 0.5, 0.25]} />
+      {/* Torso — navy suit, narrower at waist */}
+      <mesh position={[0, 0.25, 0]}>
+        <boxGeometry args={[0.38, 0.4, 0.24]} />
+        <meshStandardMaterial color="#2a3a5c" roughness={0.8} />
+      </mesh>
+      {/* Power shoulder pads — wider at top (80s silhouette) */}
+      <mesh position={[0, 0.48, 0]}>
+        <boxGeometry args={[0.44, 0.14, 0.25]} />
         <meshStandardMaterial color="#2a3a5c" roughness={0.8} />
       </mesh>
       {/* White shirt collar visible */}
@@ -150,8 +153,9 @@ function OfficeMale() {
 }
 
 // ── Variant 2: Female office worker (OL) ─────────────────────────────
-function OfficeFemale() {
+function OfficeFemale({ seed = 0 }: { seed?: number }) {
   const skin = SKIN_CN_B
+  const hasGlasses = seed % 5 < 2 // ~40%
   return (
     <group>
       {/* Head — slightly larger for 80s perm volume */}
@@ -176,6 +180,13 @@ function OfficeFemale() {
         <boxGeometry args={[0.05, 0.015, 0.01]} />
         <meshStandardMaterial color="#c82820" roughness={0.6} />
       </mesh>
+      {/* Oversized 80s glasses — chunky plastic, bigger than male's (40% chance) */}
+      {hasGlasses && (
+        <mesh position={[0, 0.63, 0.11]}>
+          <boxGeometry args={[0.18, 0.06, 0.02]} />
+          <meshStandardMaterial color="#1a1010" roughness={0.7} />
+        </mesh>
+      )}
       {/* Torso — pastel blouse with MASSIVE shoulder pads */}
       <mesh position={[0, 0.3, 0]}>
         <boxGeometry args={[0.45, 0.48, 0.24]} />
@@ -201,6 +212,14 @@ function OfficeFemale() {
 // ── Variant 3: Primary schoolboy (小學生) ────────────────────────────
 function Schoolboy() {
   const skin = SKIN_CN_C
+  // Leg-swinging refs (feet don't reach floor)
+  const leftLegRef = useRef<THREE.Group>(null)
+  const rightLegRef = useRef<THREE.Group>(null)
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime
+    if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * 2.0) * 0.15
+    if (rightLegRef.current) rightLegRef.current.rotation.x = Math.sin(t * 2.0 + Math.PI) * 0.15
+  })
   return (
     <group scale={[0.75, 0.75, 0.75]}>
       {/* Head — slightly larger proportionally (child) */}
@@ -224,8 +243,29 @@ function Schoolboy() {
         <meshStandardMaterial color="#2a5a8a" roughness={0.7} />
       </mesh>
       <Arms color="#fafaf0" skinColor={skin} radius={0.035} length={0.35} spread={0.2} />
-      {/* Navy shorts */}
-      <SeatedLegs color="#1a2840" radius={0.055} upperLen={0.25} lowerLen={0.3} />
+      {/* Swinging legs with navy shorts + white knee socks */}
+      {[
+        { side: -1, ref: leftLegRef },
+        { side: 1, ref: rightLegRef },
+      ].map(({ side, ref }) => (
+        <group key={side} ref={ref} position={[side * 0.12, -0.02, 0.1]}>
+          {/* Upper leg (navy shorts) */}
+          <mesh position={[0, 0, 0.125]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.055, 0.055, 0.25, 8]} />
+            <meshStandardMaterial color="#1a2840" roughness={0.85} />
+          </mesh>
+          {/* Lower leg — white knee socks */}
+          <mesh position={[0, -0.15, 0.25]}>
+            <cylinderGeometry args={[0.05, 0.047, 0.3, 8]} />
+            <meshStandardMaterial color="#fafaf0" roughness={0.8} />
+          </mesh>
+          {/* Shoe */}
+          <mesh position={[0, -0.3, 0.29]}>
+            <boxGeometry args={[0.12, 0.06, 0.14]} />
+            <meshStandardMaterial color="#1a1614" roughness={0.9} />
+          </mesh>
+        </group>
+      ))}
       {/* Leather satchel beside him */}
       <mesh position={[0.25, 0.08, 0]}>
         <boxGeometry args={[0.08, 0.3, 0.25]} />
@@ -236,8 +276,9 @@ function Schoolboy() {
 }
 
 // ── Variant 4: Secondary schoolgirl (中學生) ─────────────────────────
-function Schoolgirl() {
+function Schoolgirl({ seed = 0 }: { seed?: number }) {
   const skin = SKIN_CN_B
+  const hasGlasses = seed % 10 < 3 // ~30%
   return (
     <group scale={[0.88, 0.88, 0.88]}>
       {/* Head */}
@@ -264,6 +305,13 @@ function Schoolgirl() {
           </mesh>
         </group>
       ))}
+      {/* Thin wire-rim glasses — studious look (30% chance) */}
+      {hasGlasses && (
+        <mesh position={[0, 0.63, 0.11]}>
+          <boxGeometry args={[0.14, 0.04, 0.015]} />
+          <meshStandardMaterial color="#8a8a8a" metalness={0.4} roughness={0.3} />
+        </mesh>
+      )}
       {/* White blouse */}
       <mesh position={[0, 0.32, 0]}>
         <boxGeometry args={[0.36, 0.44, 0.22]} />
@@ -282,6 +330,16 @@ function Schoolgirl() {
         <boxGeometry args={[0.16, 0.22, 0.02]} />
         <meshStandardMaterial color="#f4ebd4" roughness={0.8} />
       </mesh>
+      {/* School bag on floor beside her */}
+      <mesh position={[0.22, -0.35, 0.1]}>
+        <boxGeometry args={[0.1, 0.35, 0.3]} />
+        <meshStandardMaterial color="#1a2840" roughness={0.85} />
+      </mesh>
+      {/* Small school crest patch on bag */}
+      <mesh position={[0.28, -0.3, 0.1]}>
+        <planeGeometry args={[0.04, 0.04]} />
+        <meshStandardMaterial color="#c82820" roughness={0.7} />
+      </mesh>
     </group>
   )
 }
@@ -289,10 +347,18 @@ function Schoolgirl() {
 // ── Variant 5: Elderly auntie (師奶) ─────────────────────────────────
 function Auntie() {
   const skin = SKIN_CN_C
+  const rightArmRef = useRef<THREE.Group>(null)
+  // Subtle bracelet-rubbing gesture every ~20s
+  useFrame(({ clock }) => {
+    if (!rightArmRef.current) return
+    const t = clock.elapsedTime
+    const cycle = Math.sin(t * 0.3) // slow ~20s cycle
+    rightArmRef.current.rotation.x = cycle > 0.9 ? 0.5 + Math.sin(t * 4) * 0.08 : 0.5
+  })
   return (
-    <group>
-      {/* Head */}
-      <mesh position={[0, 0.6, 0.02]}>
+    <group rotation={[0.12, 0, 0]}>{/* Slight forward hunch */}
+      {/* Head — tilted slightly forward */}
+      <mesh position={[0, 0.58, 0.05]}>
         <sphereGeometry args={[0.12, 12, 10]} />
         <meshStandardMaterial color={skin} roughness={0.75} />
       </mesh>
@@ -306,7 +372,28 @@ function Auntie() {
         <boxGeometry args={[0.42, 0.48, 0.26]} />
         <meshStandardMaterial color="#c86870" roughness={0.75} />
       </mesh>
-      <Arms color="#c86870" skinColor={skin} spread={0.24} restAngle={0.5} />
+      {/* Left arm */}
+      <group position={[-0.24, 0.22, 0]} rotation={[0.5, 0, 0]}>
+        <mesh position={[0, -0.105, 0]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.21, 8]} />
+          <meshStandardMaterial color="#c86870" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, -0.252, 0]}>
+          <cylinderGeometry args={[0.036, 0.034, 0.168, 8]} />
+          <meshStandardMaterial color={skin} roughness={0.75} />
+        </mesh>
+      </group>
+      {/* Right arm (animated — bracelet rubbing) */}
+      <group ref={rightArmRef} position={[0.24, 0.22, 0]} rotation={[0.5, 0, 0]}>
+        <mesh position={[0, -0.105, 0]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.21, 8]} />
+          <meshStandardMaterial color="#c86870" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, -0.252, 0]}>
+          <cylinderGeometry args={[0.036, 0.034, 0.168, 8]} />
+          <meshStandardMaterial color={skin} roughness={0.75} />
+        </mesh>
+      </group>
       {/* Jade bracelet — green torus on left wrist */}
       <mesh position={[-0.24, -0.02, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.04, 0.012, 8, 16]} />
@@ -345,10 +432,21 @@ function Auntie() {
 }
 
 // ── Variant 6: Tourist (late-80s style) ──────────────────────────────
-function Tourist() {
-  const skin = SKIN_WHITE
+const TOURIST_SKINS = ['#f4dcc4', '#c89878', '#f0d0a8'] // white, SEA, JP
+function Tourist({ seed = 0 }: { seed?: number }) {
+  const skin = TOURIST_SKINS[seed % TOURIST_SKINS.length]
+  const cameraRef = useRef<THREE.Group>(null)
+  // Lift camera to face every ~15s
+  useFrame(({ clock }) => {
+    if (!cameraRef.current) return
+    const t = clock.elapsedTime
+    const cycle = Math.sin(t * 0.4) // ~15s full cycle
+    const lifting = cycle > 0.85
+    cameraRef.current.position.y = lifting ? 0.52 : 0.38
+    cameraRef.current.position.z = lifting ? 0.12 : 0.16
+  })
   return (
-    <group>
+    <group rotation={[0.08, 0, 0]}>{/* Leaning forward, actively engaged */}
       {/* Head */}
       <mesh position={[0, 0.62, 0]}>
         <sphereGeometry args={[0.12, 12, 10]} />
@@ -368,7 +466,7 @@ function Tourist() {
       {/* Beige pleated trousers — 80s tourist dad */}
       <SeatedLegs color="#c4b490" radius={0.065} />
       {/* Film camera around neck — Nikon FM / Canon AE-1 */}
-      <group position={[0, 0.38, 0.16]}>
+      <group ref={cameraRef} position={[0, 0.38, 0.16]}>
         {/* Camera body */}
         <mesh>
           <boxGeometry args={[0.12, 0.08, 0.06]} />
@@ -401,14 +499,18 @@ function Tourist() {
 
 // ── Animated wrapper per passenger ───────────────────────────────────
 
-const VARIANTS = [
-  OfficeMale,
-  OfficeFemale,
-  Schoolboy,
-  Schoolgirl,
-  Auntie,
-  Tourist,
-] as const
+// Variant render functions — some accept a seed prop for conditional details
+function renderVariant(index: number, seed: number) {
+  switch (index) {
+    case 0: return <OfficeMale />
+    case 1: return <OfficeFemale seed={seed} />
+    case 2: return <Schoolboy />
+    case 3: return <Schoolgirl seed={seed} />
+    case 4: return <Auntie />
+    case 5: return <Tourist seed={seed} />
+    default: return <OfficeMale />
+  }
+}
 
 interface SeatAssignment {
   variant: number // index into VARIANTS
@@ -434,13 +536,14 @@ function AnimatedPassenger({
   variant,
   position,
   personalOffset,
+  seed,
 }: {
   variant: number
   position: [number, number, number]
   personalOffset: number
+  seed: number
 }) {
   const groupRef = useRef<THREE.Group>(null)
-  const Variant = VARIANTS[variant]
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return
@@ -451,8 +554,7 @@ function AnimatedPassenger({
       Math.sin(t * 1.2 + personalOffset) * 0.025
 
     // Tourist actively looks around
-    if (variant === 5 && groupRef.current.children[0]) {
-      // Rotate the whole upper body slightly for the tourist
+    if (variant === 5) {
       groupRef.current.rotation.y =
         Math.sin(t * 0.4 + personalOffset) * 0.3
     }
@@ -460,7 +562,7 @@ function AnimatedPassenger({
 
   return (
     <group ref={groupRef} position={position}>
-      <Variant />
+      {renderVariant(variant, seed)}
     </group>
   )
 }
@@ -475,7 +577,8 @@ export function TramPassengers() {
           key={i}
           variant={seat.variant}
           position={[seat.x, SEAT_Y, seat.z]}
-          personalOffset={i * 1.7} // stagger sway phase
+          personalOffset={i * 1.7}
+          seed={i * 7 + 3} // deterministic per-seat seed for conditional details
         />
       ))}
     </group>
