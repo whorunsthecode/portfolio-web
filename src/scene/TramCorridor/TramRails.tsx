@@ -28,7 +28,7 @@ const TRACKS = [
 ]
 
 const SLEEPER_SPACING = 4
-const SLEEPER_COUNT = 40
+const SLEEPER_COUNT = 70    // 280 units — matches pole coverage
 
 export function TramRails() {
   return (

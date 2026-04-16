@@ -17,7 +17,7 @@ const POLE_HEIGHT = 6.5
 const POLE_RADIUS = 0.08
 const POLE_X = 2.85            // matches existing Street.tsx
 const POLE_SPACING = 7         // matches existing spacing
-const POLE_COUNT = 20          // 20 per side visible forward, covers ~140 units
+const POLE_COUNT = 40          // covers ~280 units (matches old 42-pole coverage)
 
 export function TramPoles() {
   return (
@@ -71,6 +71,27 @@ export function TramPoles() {
               <sphereGeometry args={[POLE_RADIUS + 0.01, 8, 8]} />
               <meshStandardMaterial color={POLE_CAP} roughness={0.6} />
             </mesh>
+
+            {/* Short outward bracket + insulator for the oncoming track wire.
+                Left poles (x=-2.85) are only 0.05 from the oncoming wire at x=-2.9.
+                Right poles (x=+2.85) are too far — skip. */}
+            {xSide < 0 && (
+              <group>
+                {/* Short bracket stub extending 0.2 units outward toward oncoming track */}
+                <mesh
+                  position={[-0.15, POLE_HEIGHT, 0]}
+                  rotation={[0, 0, Math.PI / 2]}
+                >
+                  <cylinderGeometry args={[0.02, 0.02, 0.3, 6]} />
+                  <meshStandardMaterial color={BRACKET} roughness={0.6} metalness={0.5} />
+                </mesh>
+                {/* Small insulator at the oncoming wire attachment point */}
+                <mesh position={[-0.25, POLE_HEIGHT, 0]}>
+                  <cylinderGeometry args={[0.03, 0.03, 0.08, 6]} />
+                  <meshStandardMaterial color={INSULATOR} roughness={0.5} />
+                </mesh>
+              </group>
+            )}
           </group>
         )
       })}

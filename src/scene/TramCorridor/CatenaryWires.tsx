@@ -20,7 +20,7 @@ const WIRE_X = [0, -2.9]     // user's track and oncoming track
 
 const POLE_X = 2.85
 const POLE_SPACING = 7
-const HANGER_COUNT = 20       // matches pole count
+const HANGER_COUNT = 40       // matches pole count
 
 export function CatenaryWires() {
   return (
@@ -56,6 +56,16 @@ export function CatenaryWires() {
             {dropLen > 0.1 && (
               <mesh position={[dropMidX, WIRE_HEIGHT, z]}>
                 <boxGeometry args={[dropLen, 0.015, 0.015]} />
+                <meshStandardMaterial color={WIRE_DARK} metalness={0.5} roughness={0.5} />
+              </mesh>
+            )}
+
+            {/* Drop wire from left pole outward bracket to oncoming wire (x=-2.9).
+                Left poles at x=-2.85 have a short bracket with insulator at x=-3.1.
+                Wire runs the 0.2 units from insulator to oncoming contact wire. */}
+            {xSide < 0 && (
+              <mesh position={[-2.95, WIRE_HEIGHT, z]}>
+                <boxGeometry args={[0.15, 0.012, 0.012]} />
                 <meshStandardMaterial color={WIRE_DARK} metalness={0.5} roughness={0.5} />
               </mesh>
             )}
