@@ -47,6 +47,15 @@ export function TerminusLighting() {
         distance={4}
         decay={1.8}
       />
+
+      {/* Fill light inside shelter — ensures bench, route map, info panel visible */}
+      <pointLight
+        position={[0, 1.8, 0]}
+        color="#ffddaa"
+        intensity={0.8}
+        distance={3}
+        decay={2}
+      />
     </>
   )
 }
