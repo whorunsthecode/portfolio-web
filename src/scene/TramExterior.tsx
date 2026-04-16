@@ -55,10 +55,10 @@ export function TramExterior({ visible }: { visible: boolean }) {
         ))
       ))}
 
-      {/* ── Upper deck (cream) — center at y=1.5 ──── */}
+      {/* ── Upper deck (green — same as lower) ──── */}
       <mesh position={[0, 1.5, 0]}>
         <boxGeometry args={[10, 2.0, 2.3]} />
-        <meshStandardMaterial color={TRAM_CREAM} roughness={0.7} />
+        <meshStandardMaterial color={TRAM_GREEN} roughness={0.6} />
       </mesh>
 
       {/* Upper deck windows */}

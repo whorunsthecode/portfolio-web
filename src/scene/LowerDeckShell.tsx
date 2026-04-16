@@ -126,29 +126,47 @@ function DriverCockpit() {
   )
 }
 
-/* ── Rear boarding area ────────────────────────────────── */
+/* ── Open rear platform — iconic HK tram feature ─────── */
 function RearBoardingArea() {
+  const rearZ = 3.5
   return (
-    <group position={[0, LOWER_DECK_FLOOR_Y, 3]}>
-      {/* Door frame on the right side */}
-      <mesh position={[0.9, 0.8, 0]}>
-        <boxGeometry args={[0.04, 1.6, 0.9]} />
-        <meshStandardMaterial color="#2a1a10" roughness={0.8} />
+    <group position={[0, LOWER_DECK_FLOOR_Y, 0]}>
+      {/* Half-height side barriers (waist-high, not full walls) */}
+      <mesh position={[-CABIN_WIDTH / 2 + 0.15, 0.5, rearZ]}>
+        <boxGeometry args={[0.3, 1.0, 0.05]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} />
+      </mesh>
+      <mesh position={[CABIN_WIDTH / 2 - 0.15, 0.5, rearZ]}>
+        <boxGeometry args={[0.3, 1.0, 0.05]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
 
-      {/* Step up from pavement */}
-      <mesh position={[1.0, 0.2, 0]}>
-        <boxGeometry args={[0.3, 0.08, 0.8]} />
+      {/* Central grab pole — tall brass pole */}
+      <mesh position={[0, 1.0, rearZ + 0.05]}>
+        <cylinderGeometry args={[0.03, 0.03, 2.0, 10]} />
+        <meshStandardMaterial color={BRASS} metalness={0.7} roughness={0.3} />
+      </mesh>
+
+      {/* Platform step extending beyond cabin */}
+      <mesh position={[0, 0.02, rearZ + 0.2]}>
+        <boxGeometry args={[CABIN_WIDTH - 0.2, 0.04, 0.4]} />
         <meshStandardMaterial color={WOOD_LIGHT} roughness={0.85} />
       </mesh>
 
+      {/* Anti-slip brass strips on step */}
+      {[-0.5, -0.25, 0, 0.25, 0.5].map((xp, i) => (
+        <mesh key={`strip-${i}`} position={[xp, 0.045, rearZ + 0.2]}>
+          <boxGeometry args={[0.08, 0.005, 0.38]} />
+          <meshStandardMaterial color={BRASS} roughness={0.8} />
+        </mesh>
+      ))}
+
       {/* Fare box */}
-      <mesh position={[0.6, 0.8, -0.4]}>
+      <mesh position={[0.6, 0.8, rearZ - 0.4]}>
         <boxGeometry args={[0.2, 0.5, 0.25]} />
         <meshStandardMaterial color="#2a4a2a" roughness={0.8} />
       </mesh>
-      {/* Fare box slot */}
-      <mesh position={[0.6, 1.0, -0.275]}>
+      <mesh position={[0.6, 1.0, rearZ - 0.275]}>
         <boxGeometry args={[0.12, 0.03, 0.02]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
@@ -212,6 +230,36 @@ function LowerDeckLight() {
   )
 }
 
+/* ── Advertising wrap on lower deck exterior ──────────── */
+function AdvertisingWrap() {
+  const wrapY = LOWER_DECK_FLOOR_Y + 0.35
+  const wrapH = 0.6
+  const wrapLen = CABIN_LENGTH - 2.0
+
+  return (
+    <group>
+      {[-1, 1].map((side) => {
+        const x = (CABIN_WIDTH / 2 + 0.05) * side
+        const rot: [number, number, number] = [0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]
+        return (
+          <group key={`wrap-${side}`} position={[x, wrapY, CABIN_Z_CENTER]} rotation={rot}>
+            {/* Dark background */}
+            <mesh>
+              <planeGeometry args={[wrapLen, wrapH]} />
+              <meshStandardMaterial color="#1a1410" roughness={0.6} side={2} />
+            </mesh>
+            {/* Red stripe */}
+            <mesh position={[0, 0.1, 0.002]}>
+              <planeGeometry args={[wrapLen, 0.18]} />
+              <meshStandardMaterial color="#e8394a" roughness={0.5} side={2} />
+            </mesh>
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
 /* ── Assemble ──────────────────────────────────────────── */
 export function LowerDeckShell() {
   return (
@@ -226,6 +274,7 @@ export function LowerDeckShell() {
       <LowerDeckStraps />
       <LowerDeckSideSeats />
       <LowerDeckLight />
+      <AdvertisingWrap />
     </group>
   )
 }

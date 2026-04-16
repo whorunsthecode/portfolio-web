@@ -72,16 +72,23 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
         <meshStandardMaterial color={GREEN} roughness={0.5} />
       </mesh>
 
-      {/* Glass windows — all panes, visible as frosted glass */}
+      {/* Glass windows + horizontal center mullion (sliding window divider) */}
       {postZs.slice(0, -1).map((z, i) => {
         const nextZ = postZs[i + 1]
         const midZ = (z + nextZ) / 2
         const spanZ = Math.abs(z - nextZ) - 0.08
         return (
-          <mesh key={`glass-${i}`} position={[x, 1.57, midZ]} rotation={[0, Math.PI / 2, 0]}>
-            <planeGeometry args={[spanZ, 1.0]} />
-            <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
-          </mesh>
+          <group key={`glass-${i}`}>
+            <mesh position={[x, 1.57, midZ]} rotation={[0, Math.PI / 2, 0]}>
+              <planeGeometry args={[spanZ, 1.0]} />
+              <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
+            </mesh>
+            {/* Horizontal center mullion — the sliding window divider */}
+            <mesh position={[x + side * 0.01, 1.57, midZ]}>
+              <boxGeometry args={[0.02, 0.025, spanZ]} />
+              <meshStandardMaterial color="#1a1a18" />
+            </mesh>
+          </group>
         )
       })}
 
@@ -97,10 +104,10 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
         <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
       </mesh>
 
-      {/* Solid upper wall — between top of windows and ceiling */}
+      {/* Solid upper wall — green (matching all-green exterior) */}
       <mesh position={[x, 2.3, -3]}>
         <boxGeometry args={[0.06, 0.35, 12.5]} />
-        <meshStandardMaterial color={CREAM} roughness={0.7} />
+        <meshStandardMaterial color={GREEN} roughness={0.6} />
       </mesh>
     </group>
   )
@@ -177,6 +184,53 @@ function StaircaseHole() {
   )
 }
 
+/* ── Front face exterior details (destination board, route, headlights) ── */
+function FrontFaceDetails() {
+  const fz = -10.04 // just outside the dashboard wall
+
+  return (
+    <group>
+      {/* Destination board — cream strip above windshield */}
+      <mesh position={[0, 2.18, fz]}>
+        <boxGeometry args={[2.0, 0.18, 0.02]} />
+        <meshStandardMaterial color="#f0e6c8" roughness={0.8} />
+      </mesh>
+
+      {/* Route number box — upper left */}
+      <group position={[-0.85, 2.18, fz - 0.01]}>
+        <mesh>
+          <boxGeometry args={[0.22, 0.22, 0.025]} />
+          <meshStandardMaterial color="#1a1a18" />
+        </mesh>
+        <mesh position={[0, 0, -0.014]}>
+          <planeGeometry args={[0.18, 0.18]} />
+          <meshBasicMaterial color="#f8e8b8" />
+        </mesh>
+      </group>
+
+      {/* Two round headlights at bottom */}
+      {[-0.45, 0.45].map((hx, i) => (
+        <group key={`hl-${i}`} position={[hx, 0.65, fz]}>
+          <mesh>
+            <cylinderGeometry args={[0.08, 0.08, 0.03, 12]} rotation={[Math.PI / 2, 0, 0]} />
+            <meshStandardMaterial color="#1a1a18" />
+          </mesh>
+          <mesh position={[0, 0, -0.02]}>
+            <circleGeometry args={[0.06, 12]} />
+            <meshBasicMaterial color="#ffecb8" />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Fleet number bottom center */}
+      <mesh position={[0, 0.55, fz]}>
+        <boxGeometry args={[0.35, 0.14, 0.01]} />
+        <meshStandardMaterial color={GREEN} />
+      </mesh>
+    </group>
+  )
+}
+
 export function CabinShell() {
   return (
     <group>
@@ -186,6 +240,7 @@ export function CabinShell() {
       <WindowPanel side={1} />
       <WindowPanel side={-1} />
       <Dashboard />
+      <FrontFaceDetails />
       <StaircaseHole />
     </group>
   )
