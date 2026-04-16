@@ -125,19 +125,20 @@ export function TrafficSystem() {
           direction = -1
           speed = ONCOMING_TRAM_SPEED
           scale = 1.0
+          // Tram wheels (r=0.25) at local y=0.35 → bottom at 0.10, sits on rails (top ≈ 0.09)
           yOffset = 0
           minGap = 18
           break
         }
         case 'bus': {
-          // Alternate lanes per spawn seed to approximate the spec's
-          // "alternating lanes" behaviour.
           const oncoming = variant % 2 === 0
           lane = oncoming ? LANES.oncomingCar : LANES.sameDirCar
           direction = oncoming ? -1 : 1
           speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
-          scale = 0.7
-          yOffset = 0
+          // Scale 0.6 (not 0.7) so bus width 1.5 clears catenary poles at x=2.85
+          scale = 0.6
+          // Wheels (r=0.5) at local y=0.5 → bottom at 0*0.6=0, need +0.05 for road
+          yOffset = 0.05
           minGap = 14
           break
         }
@@ -147,7 +148,8 @@ export function TrafficSystem() {
           direction = oncoming ? -1 : 1
           speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
           scale = 0.55
-          yOffset = 0
+          // Wheels (r=0.3) at local y=0.15 → bottom at -0.0825, need +0.13
+          yOffset = 0.13
           minGap = 6
           break
         }
@@ -157,7 +159,8 @@ export function TrafficSystem() {
           direction = oncoming ? -1 : 1
           speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
           scale = 0.55
-          yOffset = 0
+          // W123 worst case: wheels (r=0.32) at y=0.18 → bottom -0.077, need +0.13
+          yOffset = 0.13
           minGap = 5
           carVariant = pickCarVariant(Math.random())
           break
@@ -168,7 +171,8 @@ export function TrafficSystem() {
           direction = oncoming ? -1 : 1
           speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
           scale = 0.6
-          yOffset = 0
+          // Wheels (r=0.32) at local y=0.28 → bottom -0.024, need +0.07
+          yOffset = 0.07
           minGap = 8
           break
         }

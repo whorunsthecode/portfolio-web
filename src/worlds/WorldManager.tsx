@@ -27,9 +27,9 @@ const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [numb
   // caged phone on the yoga mat (local (0, 1.6, 0.5) / (0, 0.4, -2) at
   // parent offset (100, 0, 100))
   gym:       { pos: [100, 1.55, 102.5], look: [100.3, 1.6, 97] },
-  // Arrival sits on the safety island, looking directly at the info panel
-  // on the shelter back wall (local z = -2.22, world z = 100 + -2.22).
-  terminus:  { pos: [2.5, 1.6, 100.5], look: [0, 1.4, 97.78] },
+  // 3/4 pedestrian view showing refuge island, shelter scalloped roof,
+  // pole sign, and the info panel from the right side of the street.
+  terminus:  { pos: [3.2, 1.9, 104.5], look: [0, 1.0, 100] },
 }
 
 const SEATED_POS = new Vector3(0, 1.5, -7.6)
