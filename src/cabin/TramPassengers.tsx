@@ -519,29 +519,32 @@ interface SeatAssignment {
   facingAngle?: number // Y rotation, 0 = facing +Z (toward rear)
 }
 
-// Place 6 passengers on existing seats (rows 1–3, skipping row 0 which
-// is the player's row at z=-7.0). Seat X = ±0.7, Y cushion top ≈ 0.73.
+// Place 6 passengers on the long benches facing INWARD toward the aisle.
+// Left bench x ≈ -0.93 → face +X (right) → angle = -π/2
+// Right bench x ≈ 0.93 → face -X (left) → angle = +π/2
 const ASSIGNMENTS: SeatAssignment[] = [
-  { variant: 0, x: -0.7, z: -5.5 },  // Office male — row 1 left
-  { variant: 1, x: 0.7, z: -5.5 },   // Office female — row 1 right
-  { variant: 2, x: -0.7, z: -4.0 },  // Schoolboy — row 2 left
-  { variant: 3, x: 0.7, z: -4.0 },   // Schoolgirl — row 2 right
-  { variant: 4, x: -0.7, z: -2.5 },  // Auntie — row 3 left
-  { variant: 5, x: 0.7, z: -2.5 },   // Tourist — row 3 right
+  { variant: 0, x: -0.73, z: -6.5, facingAngle: -Math.PI / 2 },  // Office male — left bench
+  { variant: 1, x: 0.73, z: -5.5, facingAngle: Math.PI / 2 },    // Office female — right bench
+  { variant: 2, x: -0.73, z: -4.0, facingAngle: -Math.PI / 2 },  // Schoolboy — left bench
+  { variant: 3, x: 0.73, z: -3.0, facingAngle: Math.PI / 2 },    // Schoolgirl — right bench
+  { variant: 4, x: -0.73, z: -1.5, facingAngle: -Math.PI / 2 },  // Auntie — left bench
+  { variant: 5, x: 0.73, z: -1.0, facingAngle: Math.PI / 2 },    // Tourist — right bench
 ]
 
-const SEAT_Y = 0.73 // cushion top (seat group y=0.56 + cushion local y=0.14 + half height 0.03)
+const SEAT_Y = 0.95 // bench seat surface (FLOOR_Y 0.5 + SEAT_Y offset 0.45)
 
 function AnimatedPassenger({
   variant,
   position,
   personalOffset,
   seed,
+  facingAngle = 0,
 }: {
   variant: number
   position: [number, number, number]
   personalOffset: number
   seed: number
+  facingAngle?: number
 }) {
   const groupRef = useRef<THREE.Group>(null)
 
@@ -549,19 +552,19 @@ function AnimatedPassenger({
     if (!groupRef.current) return
     const t = clock.elapsedTime
 
-    // Tiny head/body sway from tram motion — all passengers
+    // Tiny body sway from tram motion
     groupRef.current.rotation.z =
       Math.sin(t * 1.2 + personalOffset) * 0.025
 
-    // Tourist actively looks around
+    // Tourist actively looks around (additive to facing angle)
     if (variant === 5) {
       groupRef.current.rotation.y =
-        Math.sin(t * 0.4 + personalOffset) * 0.3
+        facingAngle + Math.sin(t * 0.4 + personalOffset) * 0.3
     }
   })
 
   return (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef} position={position} rotation={[0, facingAngle, 0]}>
       {renderVariant(variant, seed)}
     </group>
   )
@@ -578,7 +581,8 @@ export function TramPassengers() {
           variant={seat.variant}
           position={[seat.x, SEAT_Y, seat.z]}
           personalOffset={i * 1.7}
-          seed={i * 7 + 3} // deterministic per-seat seed for conditional details
+          seed={i * 7 + 3}
+          facingAngle={seat.facingAngle}
         />
       ))}
     </group>

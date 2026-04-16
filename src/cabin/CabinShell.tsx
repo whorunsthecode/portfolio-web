@@ -13,12 +13,12 @@ function Floor() {
   )
 }
 
-/* ── Ceiling ───────────────────────────────────────────── */
+/* ── Ceiling — dark wood like reference photos ─────────── */
 function Ceiling() {
   return (
     <mesh position={[0, 2.5, -3]}>
       <boxGeometry args={[2.3, 0.08, 12.5]} />
-      <meshStandardMaterial color={CREAM} roughness={0.7} />
+      <meshStandardMaterial color="#3a2a1a" roughness={0.85} />
     </mesh>
   )
 }
@@ -31,7 +31,7 @@ function CeilingBeams() {
       {zPositions.map((z) => (
         <mesh key={z} position={[0, 2.44, z]}>
           <boxGeometry args={[2.3, 0.12, 0.25]} />
-          <meshStandardMaterial color="#6a4a2a" roughness={0.8} />
+          <meshStandardMaterial color="#2a1a0e" roughness={0.85} />
         </mesh>
       ))}
     </>
@@ -80,7 +80,7 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
         return (
           <mesh key={`glass-${i}`} position={[x, 1.57, midZ]} rotation={[0, Math.PI / 2, 0]}>
             <planeGeometry args={[spanZ, 1.0]} />
-            <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+            <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
           </mesh>
         )
       })}
@@ -88,13 +88,13 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
       {/* Glass pane between last post (z=-7) and windshield (z=-10) */}
       <mesh position={[x, 1.57, -8.5]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[2.8, 1.0]} />
-        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+        <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
       </mesh>
 
       {/* Glass pane from first post (z=3) to rear entrance (z=3.25) — short rear pane */}
       <mesh position={[x, 1.57, 3.12]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[0.2, 1.0]} />
-        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+        <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
       </mesh>
 
       {/* Solid upper wall — between top of windows and ceiling */}
@@ -128,10 +128,10 @@ function Dashboard() {
         <meshStandardMaterial color={GREEN} roughness={0.5} />
       </mesh>
 
-      {/* Upper windshield header — glass instead of solid */}
+      {/* Upper windshield header — nearly clear glass */}
       <mesh position={[0, 2.35, 0.01]}>
         <planeGeometry args={[2.2, 0.35]} />
-        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
       </mesh>
 
       {/* Left windshield post */}
@@ -152,16 +152,16 @@ function Dashboard() {
         <meshStandardMaterial color={GREEN} roughness={0.5} />
       </mesh>
 
-      {/* Full windshield glass — single large pane covering the entire front opening */}
+      {/* Full windshield glass — nearly clear so you see the road */}
       <mesh position={[0, 1.57, 0.01]}>
         <planeGeometry args={[2.2, 1.0]} />
-        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
       </mesh>
 
-      {/* Upper glass — between top windshield rail and the sign area */}
+      {/* Upper glass — also clear */}
       <mesh position={[0, 2.25, 0.01]}>
         <planeGeometry args={[2.2, 0.22]} />
-        <meshStandardMaterial color="#b8ccd4" transparent opacity={0.5} roughness={0.3} side={2} />
+        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
       </mesh>
     </group>
   )

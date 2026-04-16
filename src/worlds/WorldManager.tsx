@@ -32,8 +32,8 @@ const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [numb
   terminus:  { pos: [3.2, 1.9, 104.5], look: [0, 1.0, 100] },
 }
 
-const SEATED_POS = new Vector3(0, 1.5, -7.6)
-const SEATED_LOOK = new Vector3(0, 1.8, -11)
+const SEATED_POS = new Vector3(0, 1.7, -9.0)
+const SEATED_LOOK = new Vector3(0, 1.6, -15)
 
 const FLY_SPEED = 2.5 // transition duration in seconds
 

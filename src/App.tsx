@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Scene } from './Scene'
 import { HUD } from './HUD'
-import { useFrame, useThree } from '@react-three/fiber'
-import { Vector3 } from 'three'
+import { useThree } from '@react-three/fiber'
 import { CameraRig } from './scene/CameraRig'
 import { TramExterior } from './scene/TramExterior'
 import { ProjectModal } from './ui/ProjectModal'
 import { FilmGrade } from './FilmGrade'
+import { OrbitControls } from '@react-three/drei'
+import { TOUCH } from 'three'
 import { useStore } from './store'
 
 export default function App() {
@@ -43,8 +44,8 @@ export default function App() {
         shadows
         dpr={[1, 2]}
         camera={{
-          position: boardingDone || prefersReduced ? [0, 1.5, -7.6] : [5.5, 0.8, -2.0],
-          fov: boardingDone || prefersReduced ? 74 : 65,
+          position: boardingDone || prefersReduced ? [0, 1.7, -9.0] : [5.5, 0.8, -2.0],
+          fov: boardingDone || prefersReduced ? 72 : 65,
           near: 0.1,
           far: 250,
         }}
@@ -57,7 +58,7 @@ export default function App() {
         {/* Tram exterior — visible during sidewalk beat */}
         <TramExterior visible={!boardingDone && elapsed < 3.5} />
 
-        {boardingDone && <SeatedCameraWrapper />}
+        {boardingDone && <SeatedOrbit />}
         <Scene />
         <FilmGrade />
       </Canvas>
@@ -139,25 +140,38 @@ function Toast() {
   )
 }
 
-/* ── Lock camera at seated position — disabled when in a world ── */
-function SeatedCameraWrapper() {
+/* ── Seated orbit — look around from the tram seat, disabled in worlds ── */
+function SeatedOrbit() {
   const activeRoom = useStore((s) => s.activeRoom)
-  if (activeRoom) return null // WorldCamera handles it
-  return <SeatedCamera />
-}
-
-function SeatedCamera() {
   const { camera } = useThree()
-  const target = new Vector3(0, 1.8, -11)
   const initialized = useRef(false)
-  useFrame(() => {
-    camera.position.set(0, 1.5, -7.6)
-    camera.lookAt(target)
-    if (!initialized.current) {
-      camera.fov = 74
-      camera.updateProjectionMatrix()
-      initialized.current = true
-    }
-  })
-  return null
+
+  if (!initialized.current && !activeRoom) {
+    camera.position.set(0, 1.7, -9.0)
+    camera.lookAt(0, 1.6, -15)
+    camera.fov = 72
+    camera.updateProjectionMatrix()
+    initialized.current = true
+  }
+
+  if (activeRoom) return null // WorldCamera handles it
+
+  // Driver POV — stable orbit, zoom out to see exterior
+  return (
+    <OrbitControls
+      target={[0, 1.65, -10.5]}
+      minDistance={1.5}
+      maxDistance={15}
+      enablePan={false}
+      enableZoom={true}
+      zoomSpeed={0.6}
+      enableRotate={true}
+      maxPolarAngle={Math.PI * 0.75}
+      minPolarAngle={Math.PI * 0.2}
+      dampingFactor={0.12}
+      enableDamping
+      rotateSpeed={0.35}
+      touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_ROTATE }}
+    />
+  )
 }

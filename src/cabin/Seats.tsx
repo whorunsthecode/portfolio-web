@@ -1,135 +1,188 @@
-import { useMemo } from 'react'
-import * as THREE from 'three'
-
-const WOOD = '#5c3a1e'
-
 /**
- * Procedural diagonal-weave caned rattan texture.
- * Generates a canvas-based texture with interlocking diagonal strips.
+ * Authentic HK tram bench layout — two long benches facing each other
+ * + three individual forward-facing seats at the rear.
+ *
+ * Upper deck coordinates (from CabinShell):
+ *   Floor y=0.5, width=2.3, z-center=-3, length=12.5
+ *   Front wall (Dashboard) at z=-10, rear at z≈3.25
+ *   Window posts from z=3 to z=-7
  */
-function makeCanedTex(size = 128): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')!
 
-  // Base rattan color
-  ctx.fillStyle = '#c4a66a'
-  ctx.fillRect(0, 0, size, size)
+const FLOOR_Y = 0.5
+const CABIN_HALF_WIDTH = 1.15       // 2.3 / 2
+const CABIN_FRONT_Z = -9.25         // z-center - length/2
+const CABIN_REAR_Z = 3.25           // z-center + length/2
 
-  const strip = size / 8
-  const colors = ['#b8965a', '#d4b478', '#a88848', '#c0a060']
+const SEAT_WOOD = '#8a6a3a'
+const SEAT_WOOD_DARK = '#5a4028'
+const SEAT_LEATHER = '#3a2820'
+const SEAT_FRAME = '#2a2828'
+const BRASS = '#c8a048'
 
-  // Diagonal weave pattern
-  for (let pass = 0; pass < 2; pass++) {
-    const angle = pass === 0 ? Math.PI / 4 : -Math.PI / 4
-    ctx.save()
-    ctx.translate(size / 2, size / 2)
-    ctx.rotate(angle)
-    ctx.translate(-size, -size)
+const SEAT_Y = FLOOR_Y + 0.45
+const BACKREST_Y = FLOOR_Y + 0.9
+const RAIL_Y = FLOOR_Y + 1.6
+const SEAT_DEPTH = 0.35
 
-    for (let i = -16; i < 32; i++) {
-      ctx.fillStyle = colors[((i % colors.length) + colors.length) % colors.length]
-      ctx.globalAlpha = pass === 0 ? 0.5 : 0.35
-      ctx.fillRect(i * strip, -size, strip * 0.7, size * 4)
-    }
-    ctx.restore()
-  }
+// Bench region — leave front 2m for driver console, rear 1.5m for boarding + rear seats
+const BENCH_FRONT_Z = CABIN_FRONT_Z + 2.0
+const BENCH_REAR_Z = CABIN_REAR_Z - 1.5
+const BENCH_LENGTH = BENCH_REAR_Z - BENCH_FRONT_Z
 
-  // Subtle noise for realism
-  ctx.globalAlpha = 0.08
-  for (let y = 0; y < size; y += 2) {
-    for (let x = 0; x < size; x += 2) {
-      const v = Math.random() * 255
-      ctx.fillStyle = `rgb(${v},${v},${v})`
-      ctx.fillRect(x, y, 2, 2)
-    }
-  }
-
-  ctx.globalAlpha = 1
-
-  // Weave intersection dots
-  ctx.fillStyle = '#8a7040'
-  ctx.globalAlpha = 0.3
-  for (let y = 0; y < size; y += strip) {
-    for (let x = 0; x < size; x += strip) {
-      ctx.beginPath()
-      ctx.arc(x + strip / 2, y + strip / 2, strip * 0.15, 0, Math.PI * 2)
-      ctx.fill()
-    }
-  }
-
-  const tex = new THREE.CanvasTexture(canvas)
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-  tex.repeat.set(3, 3)
-  return tex
-}
-
-/* ── Single seat ───────────────────────────────────────── */
-function Seat({ position, rattanMap }: { position: [number, number, number]; rattanMap: THREE.Texture }) {
+export function Seats() {
   return (
-    <group position={position}>
-      {/* Wooden slat backrest */}
-      <mesh position={[0, 0.42, -0.18]} castShadow>
-        <boxGeometry args={[0.4, 0.5, 0.03]} />
-        <meshStandardMaterial color={WOOD} roughness={0.85} />
-      </mesh>
-      {/* Backrest slat detail lines */}
-      {[-0.12, 0, 0.12].map((xOff) => (
-        <mesh key={xOff} position={[xOff, 0.42, -0.165]}>
-          <boxGeometry args={[0.02, 0.44, 0.005]} />
-          <meshStandardMaterial color="#4a2a10" roughness={0.9} />
-        </mesh>
-      ))}
+    <group>
+      {/* Long bench — left side, closer to aisle for narrower tram feel */}
+      <LongBench
+        xPosition={-CABIN_HALF_WIDTH + 0.42}
+        zCenter={(BENCH_FRONT_Z + BENCH_REAR_Z) / 2}
+        length={BENCH_LENGTH}
+        facing="right"
+      />
 
-      {/* Rattan cushion */}
-      <mesh position={[0, 0.14, 0]} castShadow>
-        <boxGeometry args={[0.4, 0.06, 0.38]} />
-        <meshStandardMaterial map={rattanMap} roughness={0.75} />
-      </mesh>
+      {/* Long bench — right side */}
+      <LongBench
+        xPosition={CABIN_HALF_WIDTH - 0.42}
+        zCenter={(BENCH_FRONT_Z + BENCH_REAR_Z) / 2}
+        length={BENCH_LENGTH}
+        facing="left"
+      />
 
-      {/* Seat frame (under cushion) */}
-      <mesh position={[0, 0.08, 0]}>
-        <boxGeometry args={[0.42, 0.04, 0.4]} />
-        <meshStandardMaterial color={WOOD} roughness={0.85} />
-      </mesh>
-
-      {/* Legs */}
-      {[
-        [-0.16, 0, 0.14],
-        [0.16, 0, 0.14],
-        [-0.16, 0, -0.14],
-        [0.16, 0, -0.14],
-      ].map(([x, _, z], i) => (
-        <mesh key={i} position={[x, -0.16, z]}>
-          <boxGeometry args={[0.04, 0.44, 0.04]} />
-          <meshStandardMaterial color={WOOD} roughness={0.85} />
-        </mesh>
+      {/* Rear individual forward-facing seats (face -Z) */}
+      {[-0.55, 0, 0.55].map((x, i) => (
+        <ForwardSeat key={`rear-${i}`} xPosition={x} zPosition={CABIN_REAR_Z - 1.0} />
       ))}
     </group>
   )
 }
 
-/* ── All seats: 5 rows × 2 sides ──────────────────────── */
-export function Seats() {
-  const rattanMap = useMemo(() => makeCanedTex(), [])
-
-  const rows = 4
-  const rowSpacing = 1.5
-  const startZ = -7.0  // front row just behind camera at z=-7.6
-  const seatX = 0.7
+function LongBench({
+  xPosition,
+  zCenter,
+  length,
+  facing,
+}: {
+  xPosition: number
+  zCenter: number
+  length: number
+  facing: 'left' | 'right'
+}) {
+  const backrestXOffset = facing === 'right' ? -SEAT_DEPTH / 2 + 0.03 : SEAT_DEPTH / 2 - 0.03
+  const aisleDirection = facing === 'right' ? 0.2 : -0.2
 
   return (
-    <group>
-      {Array.from({ length: rows }, (_, row) => {
-        const z = startZ + row * rowSpacing
+    <group position={[xPosition, 0, zCenter]}>
+      {/* Seat surface */}
+      <mesh position={[0, SEAT_Y, 0]}>
+        <boxGeometry args={[SEAT_DEPTH, 0.06, length]} />
+        <meshStandardMaterial color={SEAT_WOOD} roughness={0.8} />
+      </mesh>
+
+      {/* Wood slat detail */}
+      {[-0.12, -0.04, 0.04, 0.12].map((x, i) => (
+        <mesh key={`slat-${i}`} position={[x, SEAT_Y + 0.032, 0]}>
+          <boxGeometry args={[0.006, 0.003, length - 0.05]} />
+          <meshStandardMaterial color={SEAT_WOOD_DARK} />
+        </mesh>
+      ))}
+
+      {/* Backrest */}
+      <mesh position={[backrestXOffset, BACKREST_Y, 0]}>
+        <boxGeometry args={[0.04, 0.5, length]} />
+        <meshStandardMaterial color={SEAT_WOOD} roughness={0.8} />
+      </mesh>
+
+      {/* Backrest trim */}
+      <mesh position={[backrestXOffset + (facing === 'right' ? 0.022 : -0.022), BACKREST_Y + 0.12, 0]}>
+        <boxGeometry args={[0.005, 0.02, length - 0.05]} />
+        <meshStandardMaterial color={SEAT_WOOD_DARK} />
+      </mesh>
+
+      {/* Metal legs every 1.2m */}
+      {Array.from({ length: Math.floor(length / 1.2) + 1 }).map((_, i) => {
+        const z = -length / 2 + i * 1.2
+        if (Math.abs(z) > length / 2 - 0.1) return null
         return (
-          <group key={row}>
-            <Seat position={[seatX, 0.56, z]} rattanMap={rattanMap} />
-            <Seat position={[-seatX, 0.56, z]} rattanMap={rattanMap} />
+          <mesh key={`leg-${i}`} position={[0, FLOOR_Y + 0.22, z]}>
+            <boxGeometry args={[SEAT_DEPTH - 0.05, 0.44, 0.025]} />
+            <meshStandardMaterial color={SEAT_FRAME} metalness={0.4} roughness={0.6} />
+          </mesh>
+        )
+      })}
+
+      {/* Brass handrail above bench */}
+      <mesh position={[aisleDirection * 1.8, RAIL_Y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.018, 0.018, length - 0.1, 8]} />
+        <meshStandardMaterial color={BRASS} metalness={0.7} roughness={0.3} />
+      </mesh>
+
+      {/* Brass vertical supports */}
+      {Array.from({ length: Math.floor(length / 1.5) + 1 }).map((_, i) => {
+        const z = -length / 2 + 0.4 + i * 1.5
+        if (Math.abs(z) > length / 2 - 0.1) return null
+        return (
+          <mesh key={`sup-${i}`} position={[aisleDirection * 1.8, RAIL_Y + 0.18, z]}>
+            <cylinderGeometry args={[0.014, 0.014, 0.35, 6]} />
+            <meshStandardMaterial color={BRASS} metalness={0.7} roughness={0.3} />
+          </mesh>
+        )
+      })}
+
+      {/* Hanging leather straps every 1m */}
+      {Array.from({ length: Math.floor(length / 1.0) + 1 }).map((_, i) => {
+        const z = -length / 2 + 0.6 + i * 1.0
+        if (Math.abs(z) > length / 2 - 0.3) return null
+        return (
+          <group key={`strap-${i}`} position={[aisleDirection * 1.8, RAIL_Y - 0.08, z]}>
+            <mesh>
+              <boxGeometry args={[0.02, 0.14, 0.004]} />
+              <meshStandardMaterial color={SEAT_LEATHER} roughness={0.85} />
+            </mesh>
+            <mesh position={[0, -0.09, 0]}>
+              <torusGeometry args={[0.035, 0.007, 6, 12]} />
+              <meshStandardMaterial color={SEAT_LEATHER} roughness={0.85} />
+            </mesh>
           </group>
         )
       })}
+    </group>
+  )
+}
+
+function ForwardSeat({
+  xPosition,
+  zPosition,
+}: {
+  xPosition: number
+  zPosition: number
+}) {
+  return (
+    <group position={[xPosition, 0, zPosition]}>
+      {/* Seat cushion */}
+      <mesh position={[0, SEAT_Y, 0]}>
+        <boxGeometry args={[0.42, 0.06, 0.4]} />
+        <meshStandardMaterial color={SEAT_WOOD} roughness={0.8} />
+      </mesh>
+
+      {/* Backrest — on +Z side (behind passenger who faces -Z) */}
+      <mesh position={[0, BACKREST_Y, 0.18]}>
+        <boxGeometry args={[0.42, 0.55, 0.08]} />
+        <meshStandardMaterial color={SEAT_LEATHER} roughness={0.85} />
+      </mesh>
+
+      {/* Backrest frame */}
+      <mesh position={[0, BACKREST_Y, 0.22]}>
+        <boxGeometry args={[0.44, 0.57, 0.03]} />
+        <meshStandardMaterial color={SEAT_WOOD} roughness={0.8} />
+      </mesh>
+
+      {/* Metal legs */}
+      {[-0.16, 0.16].map((x, i) => (
+        <mesh key={`leg-${i}`} position={[x, FLOOR_Y + 0.22, 0]}>
+          <boxGeometry args={[0.02, 0.44, 0.02]} />
+          <meshStandardMaterial color={SEAT_FRAME} metalness={0.4} />
+        </mesh>
+      ))}
     </group>
   )
 }

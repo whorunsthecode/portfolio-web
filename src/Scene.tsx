@@ -4,6 +4,7 @@ import { Road, LaneMarkings } from './Street'
 import { TramCorridor } from './scene/TramCorridor'
 import { Lighting } from './Lighting'
 import { Cabin } from './cabin'
+import { TramExteriorShell } from './scene/Tram'
 import { TenementRow } from './buildings/TenementRow'
 import { Landmarks } from './buildings/landmarks/Landmarks'
 import { TrafficSystem } from './traffic/TrafficSystem'
@@ -26,6 +27,7 @@ export function Scene() {
       <Road />
       <TramCorridor />
       <LaneMarkings />
+      <TramExteriorShell />
       <Cabin />
       <TenementRow />
       <Landmarks />
