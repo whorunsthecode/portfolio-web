@@ -66,14 +66,19 @@ export function OnboardingOverlay() {
         position: 'fixed',
         inset: 0,
         zIndex: 1000,
-        display: 'grid',
-        placeItems: 'center',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
         // Warm film-grade overlay — matches scene's 80s tone
         background:
           'radial-gradient(ellipse at center, rgba(20,16,12,0.7) 0%, rgba(6,4,3,0.92) 100%)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
-        padding: '24px',
+        padding:
+          'max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom))',
         boxSizing: 'border-box',
       }}
     >
@@ -82,6 +87,7 @@ export function OnboardingOverlay() {
         style={{
           maxWidth: 560,
           width: '100%',
+          margin: 'auto',
           background:
             'linear-gradient(180deg, #f5ead0 0%, #ead9b2 100%)',
           color: '#1a1410',
@@ -194,7 +200,7 @@ export function OnboardingOverlay() {
           </span>
         </p>
 
-        {/* Navigation instructions — two columns on wider, stacked on narrow */}
+        {/* Navigation instructions — one tone, one font family, two type sizes */}
         <div
           style={{
             textAlign: 'left',
@@ -204,8 +210,8 @@ export function OnboardingOverlay() {
             padding: '16px 20px',
             margin: '0 0 22px',
             fontFamily: 'Georgia, "Noto Serif TC", serif',
-            fontSize: 'clamp(13px, 1.8vw, 14.5px)',
-            lineHeight: 1.65,
+            fontSize: 'clamp(14px, 1.9vw, 15px)',
+            lineHeight: 1.55,
             color: '#2a1a10',
           }}
         >
@@ -216,7 +222,7 @@ export function OnboardingOverlay() {
               textTransform: 'uppercase',
               color: '#8a6f3a',
               fontFamily: '"Playfair Display", serif',
-              marginBottom: 8,
+              marginBottom: 10,
             }}
           >
             How to ride &nbsp;·&nbsp; 乘車指南
@@ -329,50 +335,17 @@ function ControlRow({
   mobile: string
   label: string
 }) {
-  // Same line on desktop, wrapped on narrow screens via flex
+  // Action label on top, controls beneath in a single muted line.
+  // Collapse duplicate desktop/touch strings so nothing is repeated.
+  const control =
+    desktop === mobile ? desktop : `${desktop} · ${mobile}`
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 10,
-        alignItems: 'baseline',
-        padding: '3px 0',
-      }}
-    >
-      <span
-        style={{
-          fontFamily: '"Playfair Display", Georgia, serif',
-          fontWeight: 700,
-          minWidth: 120,
-          color: '#0d3a1e',
-        }}
-      >
-        {label}
-      </span>
-      <span style={{ opacity: 0.75 }}>
-        <DeviceTag>Desktop</DeviceTag> {desktop}
-        &nbsp;&nbsp;·&nbsp;&nbsp;
-        <DeviceTag>Touch</DeviceTag> {mobile}
-      </span>
+    <div style={{ padding: '6px 0' }}>
+      <div style={{ fontWeight: 600, color: '#2a1a10' }}>{label}</div>
+      <div style={{ color: '#6a4f28', fontSize: '0.9em', marginTop: 1 }}>
+        {control}
+      </div>
     </div>
-  )
-}
-
-function DeviceTag({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        fontSize: 10,
-        letterSpacing: '0.22em',
-        textTransform: 'uppercase',
-        color: '#8a6f3a',
-        fontFamily: '"Playfair Display", serif',
-        marginRight: 2,
-      }}
-    >
-      {children}
-    </span>
   )
 }
 
