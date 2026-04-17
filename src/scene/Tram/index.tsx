@@ -131,75 +131,196 @@ function RoofVentBox() {
  * Matches reference: tram #88 has an open platform opposite the driver end.
  */
 function RearPlatformDoor() {
-  const doorH = LOWER_TOP - LOWER_BOT
+  // 1982-era rear boarding — structural layout mirrors the modern tram
+  // reference photo (two central validator posts with wooden chair-rail
+  // trim flanking them, side sliding doors, "NO STANDING" step text),
+  // but all materials are period-correct: varnished teak wood posts,
+  // brass rails, painted steel, paper farebox. Zero stainless steel,
+  // zero Octopus readers.
+
   const doorCY = (LOWER_TOP + LOWER_BOT) / 2
   const doorZ = Z_REAR - 0.02
-  const doorWidth = 0.85
-  const doorX = HW - 0.5  // passenger side (right hand of rear-facing view)
+  const stepY = LOWER_BOT + 0.05
+  const stepEdgeZ = doorZ + 0.18  // projects onto the step plate
+
+  // Reusable materials (colors inline keep the component self-contained)
+  const WOOD_TEAK = '#6a3a20'       // varnished teak — warm red-brown
+  const WOOD_TEAK_DARK = '#4a2818'  // shadow line / grain
+  const PAINTED_STEEL = '#dcd6c0'   // cream painted steel (period)
+  const BRASS = '#c8a048'
 
   return (
     <group>
-      {[-1, 1].map((side) => {
-        const x = side * doorX
-        return (
-          <group key={`door-${side}`}>
-            {/* Dark door opening frame — suggests interior shadow */}
-            <mesh position={[x, doorCY, doorZ]}>
-              <boxGeometry args={[doorWidth, doorH - 0.15, 0.02]} />
-              <meshStandardMaterial color="#1a1814" roughness={0.9} />
-            </mesh>
-            {/* Inner green door frame — thick border */}
-            {/* Vertical left post */}
-            <mesh position={[x - doorWidth / 2 + 0.025, doorCY, doorZ + 0.015]}>
-              <boxGeometry args={[0.05, doorH - 0.15, 0.04]} />
-              <meshStandardMaterial color={GREEN} roughness={0.55} />
-            </mesh>
-            {/* Vertical right post */}
-            <mesh position={[x + doorWidth / 2 - 0.025, doorCY, doorZ + 0.015]}>
-              <boxGeometry args={[0.05, doorH - 0.15, 0.04]} />
-              <meshStandardMaterial color={GREEN} roughness={0.55} />
-            </mesh>
-            {/* Top header */}
-            <mesh position={[x, doorCY + doorH / 2 - 0.1, doorZ + 0.015]}>
-              <boxGeometry args={[doorWidth, 0.06, 0.04]} />
-              <meshStandardMaterial color={GREEN} roughness={0.55} />
-            </mesh>
+      {/* ─── LEFT side sliding door panel (hinged open) ─────── */}
+      <SideSlidingDoor x={-HW + 0.15} doorCY={doorCY} doorZ={doorZ} openAngle={-Math.PI / 2.2} />
 
-            {/* Brass grab handles — vertical, one each side of opening */}
-            <mesh position={[x - doorWidth / 2 - 0.04, doorCY + 0.1, doorZ + 0.04]}>
-              <cylinderGeometry args={[0.014, 0.014, 0.9, 8]} />
-              <meshStandardMaterial color="#c8a048" metalness={0.75} roughness={0.3} />
-            </mesh>
-            <mesh position={[x + doorWidth / 2 + 0.04, doorCY + 0.1, doorZ + 0.04]}>
-              <cylinderGeometry args={[0.014, 0.014, 0.9, 8]} />
-              <meshStandardMaterial color="#c8a048" metalness={0.75} roughness={0.3} />
-            </mesh>
+      {/* ─── RIGHT side sliding door panel (hinged open) ────── */}
+      <SideSlidingDoor x={HW - 0.15} doorCY={doorCY} doorZ={doorZ} openAngle={Math.PI / 2.2} />
 
-            {/* Lower boarding step — cream/metal plate */}
-            <mesh position={[x, LOWER_BOT + 0.05, doorZ + 0.08]}>
-              <boxGeometry args={[doorWidth + 0.04, 0.04, 0.15]} />
-              <meshStandardMaterial color="#5a5a55" metalness={0.5} roughness={0.5} />
-            </mesh>
-            {/* Step edge — safety yellow */}
-            <mesh position={[x, LOWER_BOT + 0.07, doorZ + 0.155]}>
-              <boxGeometry args={[doorWidth + 0.04, 0.01, 0.02]} />
-              <meshStandardMaterial color="#e8c048" roughness={0.7} />
-            </mesh>
+      {/* ─── Central dual turnstile posts ───────────────────── */}
+      {[-0.22, 0.22].map((px, i) => (
+        <group key={`post-${i}`} position={[px, 0, doorZ + 0.35]}>
+          {/* Teak wood post — main vertical */}
+          <mesh position={[0, doorCY, 0]}>
+            <boxGeometry args={[0.08, LOWER_TOP - LOWER_BOT - 0.1, 0.08]} />
+            <meshStandardMaterial color={WOOD_TEAK} roughness={0.5} />
+          </mesh>
+          {/* Brass top cap */}
+          <mesh position={[0, LOWER_TOP - 0.08, 0]}>
+            <boxGeometry args={[0.1, 0.06, 0.1]} />
+            <meshStandardMaterial color={BRASS} metalness={0.75} roughness={0.3} />
+          </mesh>
+          {/* Brass base cap — anchors to floor */}
+          <mesh position={[0, LOWER_BOT + 0.06, 0]}>
+            <boxGeometry args={[0.12, 0.08, 0.12]} />
+            <meshStandardMaterial color={BRASS} metalness={0.75} roughness={0.3} />
+          </mesh>
+          {/* Thin grain shadow line — adds wood-grain feel */}
+          <mesh position={[0, doorCY, 0.041]}>
+            <boxGeometry args={[0.02, LOWER_TOP - LOWER_BOT - 0.2, 0.002]} />
+            <meshStandardMaterial color={WOOD_TEAK_DARK} roughness={0.9} />
+          </mesh>
+        </group>
+      ))}
 
-            {/* Small "入 ENTER" sign above door */}
-            <Text
-              position={[x, doorCY + doorH / 2 - 0.18, doorZ + 0.05]}
-              fontSize={0.07}
-              color={CREAM}
-              anchorX="center"
-              anchorY="middle"
-              fontWeight="bold"
-            >
-              入 ENTER
+      {/* ─── Horizontal teak chair-rail panels flanking posts ── */}
+      {[-1, 1].map((side) => (
+        <group key={`rail-${side}`}>
+          {/* Chair rail panel at waist height — teak */}
+          <mesh position={[side * 0.55, doorCY - 0.05, doorZ + 0.35]}>
+            <boxGeometry args={[0.45, 0.32, 0.06]} />
+            <meshStandardMaterial color={WOOD_TEAK} roughness={0.5} />
+          </mesh>
+          {/* Darker trim line at top + bottom of panel */}
+          <mesh position={[side * 0.55, doorCY + 0.11, doorZ + 0.381]}>
+            <boxGeometry args={[0.46, 0.02, 0.002]} />
+            <meshStandardMaterial color={WOOD_TEAK_DARK} roughness={0.8} />
+          </mesh>
+          <mesh position={[side * 0.55, doorCY - 0.21, doorZ + 0.381]}>
+            <boxGeometry args={[0.46, 0.02, 0.002]} />
+            <meshStandardMaterial color={WOOD_TEAK_DARK} roughness={0.8} />
+          </mesh>
+
+          {/* Brass grab handrail running along the exterior of each door opening */}
+          <mesh position={[side * (HW - 0.04), doorCY, doorZ + 0.06]}>
+            <cylinderGeometry args={[0.018, 0.018, LOWER_TOP - LOWER_BOT - 0.3, 10]} />
+            <meshStandardMaterial color={BRASS} metalness={0.75} roughness={0.3} />
+          </mesh>
+          {/* Little yellow painted "IN ONLY" warning plate beside each opening */}
+          <group position={[side * (HW + 0.008), doorCY + 0.35, doorZ - 0.2]} rotation={[0, side === 1 ? -Math.PI / 2 : Math.PI / 2, 0]}>
+            <mesh>
+              <planeGeometry args={[0.14, 0.22]} />
+              <meshStandardMaterial color="#f8dd66" roughness={0.8} side={DoubleSide} />
+            </mesh>
+            <Text position={[0, 0.04, 0.002]} fontSize={0.032} color="#1a1a14" anchorX="center" anchorY="middle" fontWeight="bold">
+              入
+            </Text>
+            <Text position={[0, -0.02, 0.002]} fontSize={0.022} color="#1a1a14" anchorX="center" anchorY="middle">
+              IN
+            </Text>
+            <Text position={[0, -0.06, 0.002]} fontSize={0.022} color="#1a1a14" anchorX="center" anchorY="middle">
+              ONLY
             </Text>
           </group>
-        )
-      })}
+        </group>
+      ))}
+
+      {/* ─── Painted steel boarding step + yellow edge ─────── */}
+      <mesh position={[0, stepY, doorZ + 0.14]}>
+        <boxGeometry args={[W - 0.1, 0.04, 0.32]} />
+        <meshStandardMaterial color={PAINTED_STEEL} metalness={0.15} roughness={0.7} />
+      </mesh>
+      {/* Safety yellow front edge strip */}
+      <mesh position={[0, stepY + 0.021, stepEdgeZ]}>
+        <boxGeometry args={[W - 0.1, 0.005, 0.04]} />
+        <meshStandardMaterial color="#e8c048" roughness={0.7} />
+      </mesh>
+
+      {/* ─── "不准站立 NO STANDING" painted on step ─────────── */}
+      <Text
+        position={[0, stepY + 0.024, doorZ + 0.14]}
+        rotation={[-Math.PI / 2, 0, Math.PI]}
+        fontSize={0.055}
+        color="#c89028"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+      >
+        不准站立  NO STANDING
+      </Text>
+
+      {/* ─── Paper farebox (cash) on left post — 1982 style ──── */}
+      <group position={[-0.22, LOWER_BOT + 0.9, doorZ + 0.45]}>
+        <mesh>
+          <boxGeometry args={[0.14, 0.22, 0.12]} />
+          <meshStandardMaterial color="#2a5a3a" roughness={0.8} />
+        </mesh>
+        {/* Coin slot */}
+        <mesh position={[0, 0.04, 0.061]}>
+          <boxGeometry args={[0.08, 0.012, 0.003]} />
+          <meshStandardMaterial color="#0a0a0a" roughness={0.9} />
+        </mesh>
+        {/* Small "收費 FARE" label */}
+        <Text position={[0, -0.04, 0.062]} fontSize={0.018} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
+          收費 FARE
+        </Text>
+        <Text position={[0, -0.07, 0.062]} fontSize={0.022} color="#f8dd66" anchorX="center" anchorY="middle" fontWeight="bold">
+          $1.20
+        </Text>
+      </group>
+
+      {/* ─── Interior dark shadow inside the boarding bay ─── */}
+      <mesh position={[0, doorCY, doorZ + 0.55]}>
+        <boxGeometry args={[W - 0.5, LOWER_TOP - LOWER_BOT - 0.15, 0.02]} />
+        <meshStandardMaterial color="#1a1410" roughness={0.95} />
+      </mesh>
+    </group>
+  )
+}
+
+/**
+ * A single side sliding-door panel on the rear boarding bay.
+ * Rotates open around the door-jamb hinge (positive or negative Y),
+ * exposing the validator posts inside. Glass panel on the upper half,
+ * painted green lower half, brass handle.
+ */
+function SideSlidingDoor({
+  x,
+  doorCY,
+  doorZ,
+  openAngle,
+}: {
+  x: number
+  doorCY: number
+  doorZ: number
+  openAngle: number
+}) {
+  const doorH = LOWER_TOP - LOWER_BOT - 0.1
+  const doorW = 0.7
+  return (
+    <group position={[x, doorCY, doorZ + 0.02]} rotation={[0, openAngle, 0]}>
+      {/* Door frame — green painted steel */}
+      <mesh position={[doorW / 2, 0, 0]}>
+        <boxGeometry args={[doorW, doorH, 0.04]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} />
+      </mesh>
+      {/* Upper glass panel */}
+      <mesh position={[doorW / 2, doorH * 0.15, 0.022]}>
+        <planeGeometry args={[doorW - 0.1, doorH * 0.55]} />
+        <meshPhysicalMaterial
+          color="#c8dce0"
+          transparent
+          opacity={0.25}
+          transmission={0.6}
+          roughness={0.08}
+          side={DoubleSide}
+        />
+      </mesh>
+      {/* Brass vertical handle */}
+      <mesh position={[doorW - 0.08, 0, 0.03]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.6, 8]} />
+        <meshStandardMaterial color="#c8a048" metalness={0.75} roughness={0.3} />
+      </mesh>
     </group>
   )
 }
