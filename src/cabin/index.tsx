@@ -7,6 +7,7 @@ import { DestinationBlind } from './DestinationBlind'
 import { LowerDeckShell } from '../scene/LowerDeckShell'
 import { SpiralStaircase } from '../scene/SpiralStaircase'
 import { UpperDeck } from './UpperDeck'
+import { FrontExitPath } from './FrontExitPath'
 
 export function Cabin() {
   return (
@@ -15,6 +16,7 @@ export function Cabin() {
       <CabinShell />
       <Seats />
       <DriverCab />
+      <FrontExitPath />
       <TramPassengers />
       <CabinDetails />
       <DestinationBlind />
