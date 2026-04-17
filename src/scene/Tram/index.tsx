@@ -35,12 +35,35 @@ export function TramExteriorShell() {
   return (
     <group>
       <LowerDeckExterior />
+      <BeltLine />
       <UpperDeckExterior />
       <RoofExterior />
       <FrontFace />
       <RearFace />
       <Undercarriage />
       <TrolleyPole />
+    </group>
+  )
+}
+
+/* Cream belt-line at deck boundary — the visual break that says "double-decker" */
+function BeltLine() {
+  const beltY = 0.5
+  const beltH = 0.14
+  const beltW = W + 0.08  // ledge overhang, clearly past deck sides
+  const beltLen = Z_LEN + 0.12 // overhang past front/rear
+  return (
+    <group>
+      {/* Main cream belt — wraps all four sides */}
+      <mesh position={[0, beltY, Z_CENTER]}>
+        <boxGeometry args={[beltW, beltH, beltLen]} />
+        <meshStandardMaterial color={CREAM} roughness={0.75} />
+      </mesh>
+      {/* Thin dark pinstripe along bottom edge for definition */}
+      <mesh position={[0, beltY - beltH / 2 + 0.012, Z_CENTER]}>
+        <boxGeometry args={[beltW + 0.004, 0.024, beltLen + 0.004]} />
+        <meshStandardMaterial color={FRAME} roughness={0.7} />
+      </mesh>
     </group>
   )
 }
@@ -154,9 +177,9 @@ function LowerDeckExterior() {
   const h = LOWER_TOP - LOWER_BOT  // 2.2
   const cy = (LOWER_BOT + LOWER_TOP) / 2
 
-  // Green body is: bottom strip + top strip + vertical posts. Windows fill the gaps.
-  const bottomStripH = 0.5   // solid green below windows
-  const topStripH = 0.15     // thin green band at top (where upper deck floor meets)
+  // Cream skirt below windows, thin green trim above. Windows fill the middle band.
+  const bottomStripH = 0.85  // CREAM skirt — taller so windows sit at realistic eye level
+  const topStripH = 0.22     // thin green trim band at top (meets cream belt-line at y=0.5)
   const windowH = h - bottomStripH - topStripH
   const windowCY = LOWER_BOT + bottomStripH + windowH / 2
 
@@ -167,10 +190,10 @@ function LowerDeckExterior() {
         const rot: [number, number, number] = [0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]
         return (
           <group key={`lower-${side}`}>
-            {/* Bottom solid strip — green (box for all-angle visibility) */}
+            {/* Bottom solid strip — CREAM skirt below windows */}
             <mesh position={[x, LOWER_BOT + bottomStripH / 2, Z_CENTER]}>
               <boxGeometry args={[0.07, bottomStripH, Z_LEN]} />
-              <meshStandardMaterial color={GREEN} roughness={0.55} metalness={0.15} />
+              <meshStandardMaterial color={CREAM} roughness={0.75} />
             </mesh>
 
             {/* Top thin strip — green */}
