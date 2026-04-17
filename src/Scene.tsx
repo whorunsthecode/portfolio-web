@@ -7,6 +7,7 @@ import { Cabin } from './cabin'
 import { TramExteriorShell } from './scene/Tram'
 import { TenementRow } from './buildings/TenementRow'
 import { Landmarks } from './buildings/landmarks/Landmarks'
+import { HKSigns } from './buildings/HKSigns'
 import { TrafficSystem } from './traffic/TrafficSystem'
 import { Pedestrians } from './traffic/Pedestrians'
 import { useStore } from './store'
@@ -33,6 +34,7 @@ export function Scene() {
       <Cabin />
       <TenementRow />
       <Landmarks />
+      <HKSigns />
       <TrafficSystem />
       <Pedestrians />
       <RouteTracker />
