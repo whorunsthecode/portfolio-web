@@ -49,12 +49,22 @@ interface Ped {
   hasBag: boolean
 }
 
-const SIDEWALK_CENTER_X = 7.25
-const SIDEWALK_HALF_WIDTH = 1.5   // ±1.5 jitter within the sidewalk
+// Sidewalk goes x=±5.5 to ±9. Landmarks (SheungWanStalls, SaiYingPunShelter)
+// protrude into the outer half of the sidewalk at x=±8, so we keep peds on
+// the INNER HALF (closer to the curb) to avoid clipping them.
+const SIDEWALK_INNER_X = 5.9   // just past curb at ±5.65
+const SIDEWALK_OUTER_X = 7.1   // well clear of x=±8 landmark footprints
+const SIDEWALK_CENTER_X = (SIDEWALK_INNER_X + SIDEWALK_OUTER_X) / 2  // 6.5
+const SIDEWALK_HALF_WIDTH = (SIDEWALK_OUTER_X - SIDEWALK_INNER_X) / 2  // 0.6
 const PEDS_PER_SIDE = 12
 const Z_MIN = -220
 const Z_MAX = 70
 const Z_RANGE = Z_MAX - Z_MIN
+
+// World scroll speed — matches Landmarks.tsx SCROLL_SPEED so peds move
+// past the camera at the same rate as buildings, instead of floating
+// relative to the scene.
+const WORLD_SCROLL_SPEED = 6
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min)
@@ -106,16 +116,23 @@ export function Pedestrians() {
     const t = state.clock.elapsedTime
     for (let i = 0; i < pedsRef.current.length; i++) {
       const p = pedsRef.current[i]
-      // +Z world-space means "toward camera". direction +1 = toward camera.
-      p.z += p.direction * p.speed * delta
+      // World scrolls peds toward camera (+Z). The pedestrian's personal
+      // walking speed adds/subtracts depending on which way they face.
+      // direction +1 = walking toward camera, accelerating them;
+      // direction -1 = walking away, slightly slower than world scroll.
+      const worldZ = WORLD_SCROLL_SPEED * delta
+      const personal = p.direction * p.speed * delta
+      p.z += worldZ + personal * 0.3  // scaled down so walking is subtle vs scroll
 
       // Recycle when off the far end in either direction
-      if (p.z > Z_MAX) p.z = Z_MIN
-      if (p.z < Z_MIN) p.z = Z_MAX
+      if (p.z > Z_MAX) p.z = Z_MIN + (p.z - Z_MAX)
+      if (p.z < Z_MIN) p.z = Z_MAX - (Z_MIN - p.z)
 
       const g = groupRefs.current[i]
       if (!g) continue
-      const x = p.side * (SIDEWALK_CENTER_X + p.xJitter * 0.3)
+      // Narrow jitter: peds stay near curb (closer to road), away from
+      // x=±8 landmark footprints (stalls, shelter) that invade the sidewalk.
+      const x = p.side * (SIDEWALK_CENTER_X + p.xJitter)
       g.position.set(x, 0.12, p.z)
       // Face walking direction (local +Z is forward for the group)
       g.rotation.y = p.direction === 1 ? 0 : Math.PI

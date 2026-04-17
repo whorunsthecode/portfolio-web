@@ -223,49 +223,49 @@ function SideBrandingPanels() {
         const x = side * (HW + 0.02)  // flush against the body
         return (
           <group key={`brand-${side}`}>
-            {/* "HK Tram Green" large text */}
+            {/* "HK Tram Green" main text — sized to fit the skirt */}
             <Text
-              position={[x, brandY + 0.04, brandZ]}
+              position={[x, brandY + 0.02, brandZ]}
               rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.14}
+              fontSize={0.065}
               color={CREAM}
               anchorX="center"
               anchorY="middle"
               fontWeight="bold"
-              letterSpacing={0.04}
+              letterSpacing={0.02}
             >
               HK Tram Green
             </Text>
             {/* Smaller "Color created by" line */}
             <Text
-              position={[x, brandY - 0.09, brandZ]}
+              position={[x, brandY - 0.045, brandZ]}
               rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.055}
+              fontSize={0.028}
               color={CREAM}
               anchorX="center"
               anchorY="middle"
-              letterSpacing={0.12}
+              letterSpacing={0.08}
             >
               Color created by
             </Text>
-            {/* PANTONE wordmark — bolder */}
+            {/* PANTONE wordmark */}
             <Text
-              position={[x, brandY - 0.18, brandZ]}
+              position={[x, brandY - 0.095, brandZ]}
               rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.085}
+              fontSize={0.04}
               color={CREAM}
               anchorX="center"
               anchorY="middle"
               fontWeight="bold"
-              letterSpacing={0.2}
+              letterSpacing={0.16}
             >
               PANTONE
             </Text>
             {/* Tiny PANTONE chip icon to the right of wordmark */}
             <mesh
-              position={[x + side * 0.38, brandY - 0.18, brandZ]}
+              position={[x + side * 0.19, brandY - 0.095, brandZ]}
             >
-              <boxGeometry args={[0.02, 0.1, 0.07]} />
+              <boxGeometry args={[0.015, 0.05, 0.04]} />
               <meshStandardMaterial color={GREEN} roughness={0.5} />
             </mesh>
           </group>
@@ -306,29 +306,29 @@ function SideDestinationBoards() {
               <boxGeometry args={[0.035, 0.02, boardLen + 0.02]} />
               <meshStandardMaterial color={FRAME} roughness={0.7} />
             </mesh>
-            {/* Chinese destination — 屈地街 */}
+            {/* Chinese destination — 屈地街, offset RIGHT of the route box */}
             <Text
-              position={[x + side * 0.02, boardY + 0.04, boardZ]}
+              position={[x + side * 0.02, boardY + 0.035, boardZ + 0.6]}
               rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.085}
+              fontSize={0.075}
               color="#0d3a1e"
               anchorX="center"
               anchorY="middle"
               fontWeight="bold"
-              letterSpacing={0.08}
+              letterSpacing={0.06}
             >
               屈地街
             </Text>
-            {/* English destination — WHITTY ST */}
+            {/* English destination — WHITTY STREET, fits within board length */}
             <Text
-              position={[x + side * 0.02, boardY - 0.06, boardZ]}
+              position={[x + side * 0.02, boardY - 0.055, boardZ + 0.6]}
               rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.065}
+              fontSize={0.045}
               color="#0d3a1e"
               anchorX="center"
               anchorY="middle"
               fontWeight="bold"
-              letterSpacing={0.15}
+              letterSpacing={0.04}
             >
               WHITTY STREET
             </Text>
@@ -720,38 +720,45 @@ function FrontFace() {
         <meshPhysicalMaterial color="#e8f0f4" transparent opacity={0.1} transmission={0.9} roughness={0.03} side={DoubleSide} />
       </mesh>
 
-      {/* Destination board */}
-      <mesh position={[0, LOWER_TOP - 0.14, z - 0.005]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[1.4, 0.18]} />
-        <meshStandardMaterial color="#d8e8f0" roughness={0.7} side={FrontSide} />
+      {/*
+       * Destination board & route plate need to sit CLEAR of the green
+       * front-top-strip mesh, which lives at z=Z_FRONT with depth 0.06
+       * (spans z=-10.03 to -9.97). Previously z-=0.005 put them INSIDE
+       * that box — invisible. Pushing them out by 0.10 puts them clearly
+       * in front of the tram.
+       */}
+      {/* Destination board — cream illuminated plate */}
+      <mesh position={[0, LOWER_TOP - 0.14, Z_FRONT - 0.1]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[1.1, 0.2]} />
+        <meshStandardMaterial color="#f0e6c8" roughness={0.6} emissive="#7a6c48" emissiveIntensity={0.18} side={FrontSide} />
       </mesh>
-      <Text position={[0, LOWER_TOP - 0.14, z - 0.01]} rotation={[0, Math.PI, 0]}
-        fontSize={0.065} color="#1a2818" anchorX="center" anchorY="middle" fontWeight="bold">
+      <Text position={[0, LOWER_TOP - 0.14, Z_FRONT - 0.101]} rotation={[0, Math.PI, 0]}
+        fontSize={0.07} color="#0d3a1e" anchorX="center" anchorY="middle" fontWeight="bold">
         屈地街 WHITTY ST
       </Text>
 
       {/* Front route plate — chunky yellow box with black border + red "88" numerals */}
-      <group position={[-0.72, LOWER_TOP - 0.14, z - 0.012]} rotation={[0, Math.PI, 0]}>
+      <group position={[-0.72, LOWER_TOP - 0.14, Z_FRONT - 0.1]} rotation={[0, Math.PI, 0]}>
         {/* Black frame */}
         <mesh>
-          <boxGeometry args={[0.32, 0.26, 0.015]} />
+          <boxGeometry args={[0.32, 0.26, 0.02]} />
           <meshStandardMaterial color="#1a1a18" roughness={0.6} />
         </mesh>
         {/* Yellow illuminated face */}
-        <mesh position={[0, 0, -0.008]}>
+        <mesh position={[0, 0, -0.011]}>
           <boxGeometry args={[0.28, 0.22, 0.01]} />
           <meshBasicMaterial color="#f8dd66" />
         </mesh>
         {/* Red "88" numerals */}
-        <Text position={[0, 0, -0.016]} fontSize={0.16} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
+        <Text position={[0, 0, -0.02]} fontSize={0.17} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
           88
         </Text>
       </group>
 
       {/* Fleet number "088" — bigger, on upper corners of front face (reference #110 style) */}
       {[-0.88, 0.88].map((x, i) => (
-        <Text key={`ffl-${i}`} position={[x, UPPER_TOP - 0.14, z - 0.012]} rotation={[0, Math.PI, 0]}
-          fontSize={0.12} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
+        <Text key={`ffl-${i}`} position={[x, UPPER_TOP - 0.14, Z_FRONT - 0.05]} rotation={[0, Math.PI, 0]}
+          fontSize={0.1} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
           088
         </Text>
       ))}
@@ -839,25 +846,25 @@ function RearFace() {
         </mesh>
       ))}
 
-      {/* Rear route plate — matches front (HK trams have route number on both ends) */}
-      <group position={[-0.72, LOWER_TOP - 0.14, z + 0.012]}>
+      {/* Rear route plate — pushed clear of the rear green strip */}
+      <group position={[-0.72, LOWER_TOP - 0.14, Z_REAR + 0.1]}>
         <mesh>
-          <boxGeometry args={[0.32, 0.26, 0.015]} />
+          <boxGeometry args={[0.32, 0.26, 0.02]} />
           <meshStandardMaterial color="#1a1a18" roughness={0.6} />
         </mesh>
-        <mesh position={[0, 0, 0.008]}>
+        <mesh position={[0, 0, 0.011]}>
           <boxGeometry args={[0.28, 0.22, 0.01]} />
           <meshBasicMaterial color="#f8dd66" />
         </mesh>
-        <Text position={[0, 0, 0.016]} fontSize={0.16} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
+        <Text position={[0, 0, 0.02]} fontSize={0.17} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
           88
         </Text>
       </group>
 
       {/* Rear fleet number "088" on upper corners */}
       {[-0.88, 0.88].map((x, i) => (
-        <Text key={`rfl-${i}`} position={[x, UPPER_TOP - 0.14, z + 0.012]}
-          fontSize={0.12} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
+        <Text key={`rfl-${i}`} position={[x, UPPER_TOP - 0.14, Z_REAR + 0.05]}
+          fontSize={0.1} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
           088
         </Text>
       ))}
