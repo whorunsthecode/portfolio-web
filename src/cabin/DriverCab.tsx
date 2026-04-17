@@ -3,7 +3,17 @@
  * Positioned at the FRONT (-Z end) of the upper deck cabin.
  *
  * Upper deck: floor y=0.5, front wall (Dashboard) at z=-10
+ *
+ * Clickable DriverBadge: a small brass envelope plaque on the
+ * dashboard top. Only the ~10x7cm badge geometry receives pointer
+ * events — the rest of the cabin is pass-through so OrbitControls
+ * still gets drag events everywhere else.
  */
+
+import { useState } from 'react'
+import { Text } from '@react-three/drei'
+import type { ThreeEvent } from '@react-three/fiber'
+import { useStore } from '../store'
 
 const FLOOR_Y = 0.5
 const CABIN_FRONT_Z = -10
@@ -135,6 +145,79 @@ export function DriverCab() {
         <cylinderGeometry args={[0.014, 0.014, 0.3, 6]} />
         <meshStandardMaterial color={BRASS} metalness={0.7} roughness={0.3} />
       </mesh>
+
+      {/* Brass "Talk to the driver" contact badge on the console top */}
+      <DriverBadge
+        position={[driverX + 0.35, FLOOR_Y + 1.03, consoleZ - 0.05]}
+      />
+    </group>
+  )
+}
+
+/**
+ * Small brass envelope plaque on the driver console top. Clicking it
+ * opens the retro Driver contact card overlay. Intentionally tiny
+ * (~10×7cm) so its hitbox doesn't interfere with OrbitControls drag.
+ */
+function DriverBadge({ position }: { position: [number, number, number] }) {
+  const setShowDriverCard = useStore((s) => s.setShowDriverCard)
+  const [hovered, setHovered] = useState(false)
+
+  const handleEnter = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+    setHovered(true)
+    document.body.style.cursor = 'pointer'
+  }
+  const handleLeave = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+    setHovered(false)
+    document.body.style.cursor = ''
+  }
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation()
+    setShowDriverCard(true)
+  }
+
+  return (
+    <group position={position} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* Brass plaque — the ONLY thing here receiving pointer events */}
+      <mesh
+        onPointerOver={handleEnter}
+        onPointerOut={handleLeave}
+        onClick={handleClick}
+      >
+        <planeGeometry args={[0.11, 0.075]} />
+        <meshStandardMaterial
+          color={BRASS}
+          metalness={0.75}
+          roughness={hovered ? 0.22 : 0.32}
+          emissive={BRASS}
+          emissiveIntensity={hovered ? 0.55 : 0.12}
+        />
+      </mesh>
+      {/* Dark engraved envelope glyph */}
+      <Text
+        position={[0, 0.005, 0.001]}
+        fontSize={0.045}
+        color="#1a1410"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+      >
+        ✉
+      </Text>
+      {/* Tiny "司機" caption under the envelope */}
+      <Text
+        position={[0, -0.028, 0.001]}
+        fontSize={0.012}
+        color="#1a1410"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+        letterSpacing={0.2}
+      >
+        司機 DRIVER
+      </Text>
     </group>
   )
 }
