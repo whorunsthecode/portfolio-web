@@ -1,5 +1,5 @@
 import { MuseumRoom } from './MuseumRoom'
-import { Paintings } from './Paintings'
+import { Paintings, MuseumBench } from './Paintings'
 import { GestureGalleryExhibit } from './GestureGalleryExhibit'
 import { MuseumLighting } from './MuseumLighting'
 import { TrackLights } from './TrackLights'
@@ -14,6 +14,9 @@ export function Museum() {
       <TrackLights />
       <MuseumRoom />
       <Paintings />
+      {/* Viewing bench — positioned between the VelvetRope exhibit and
+          the back wall so visitors can sit and look at the paintings */}
+      <MuseumBench />
       <GestureGalleryExhibit />
       <VelvetRope />
       <GuardChair />
