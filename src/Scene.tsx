@@ -8,6 +8,7 @@ import { TramExteriorShell } from './scene/Tram'
 import { TenementRow } from './buildings/TenementRow'
 import { Landmarks } from './buildings/landmarks/Landmarks'
 import { HKSigns } from './buildings/HKSigns'
+import { BambooScaffold } from './buildings/BambooScaffold'
 import { TrafficSystem } from './traffic/TrafficSystem'
 import { Pedestrians } from './traffic/Pedestrians'
 import { useStore } from './store'
@@ -35,6 +36,7 @@ export function Scene() {
       <TenementRow />
       <Landmarks />
       <HKSigns />
+      <BambooScaffold />
       <TrafficSystem />
       <Pedestrians />
       <RouteTracker />
