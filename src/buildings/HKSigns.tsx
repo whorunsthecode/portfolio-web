@@ -133,7 +133,8 @@ function VerticalHanger({
         />
       </mesh>
 
-      {/* Vertical stack of Chinese characters */}
+      {/* Vertical stack of Chinese characters — one Text per char so
+          anchoring is clean and the plane always faces the road. */}
       {chars.map((ch, i) => {
         const charSize = Math.min(width * 0.75, height / chars.length * 0.72)
         const charY = y + (height / 2) - (i + 0.5) * (height / chars.length)
@@ -152,19 +153,6 @@ function VerticalHanger({
           </Text>
         )
       })}
-
-      {/* Opposite-side sign face + text so it reads from both directions */}
-      <Text
-        position={[signX + side * -0.027, y, 0]}
-        rotation={[0, rotY + Math.PI, 0]}
-        fontSize={Math.min(width * 0.75, height / chars.length * 0.72)}
-        color={color.text}
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
-      >
-        {chars.join('\n')}
-      </Text>
 
       {/* Reference buildingX in an effect-free expression so the linter
           doesn't flag the variable as unused — it documents the outer
