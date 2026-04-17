@@ -520,15 +520,25 @@ interface SeatAssignment {
 }
 
 // Place 6 passengers on the long benches facing INWARD toward the aisle.
-// Left bench x ≈ -0.93 → face +X (right) → angle = -π/2
-// Right bench x ≈ 0.93 → face -X (left) → angle = +π/2
+// Passenger figures are modeled with local +Z as their FRONT (glasses,
+// tie, shirt collar are all at +Z on the body). The Y-rotation convention
+// in three.js is: a rotation of +π/2 around Y maps local +Z to world +X.
+//
+// So a passenger at the LEFT bench (x=-0.73) whose front should point
+// toward the aisle (+X) needs facingAngle = +π/2. Previous values had
+// the signs swapped, making passengers face the windows instead of each
+// other — user reported "passengers still facing toward the windows
+// when it is not physically possible."
+//
+// Left bench  x = -0.73 → face +X (aisle) → facingAngle = +π/2
+// Right bench x = +0.73 → face -X (aisle) → facingAngle = -π/2
 const ASSIGNMENTS: SeatAssignment[] = [
-  { variant: 0, x: -0.73, z: -6.5, facingAngle: -Math.PI / 2 },  // Office male — left bench
-  { variant: 1, x: 0.73, z: -5.5, facingAngle: Math.PI / 2 },    // Office female — right bench
-  { variant: 2, x: -0.73, z: -4.0, facingAngle: -Math.PI / 2 },  // Schoolboy — left bench
-  { variant: 3, x: 0.73, z: -3.0, facingAngle: Math.PI / 2 },    // Schoolgirl — right bench
-  { variant: 4, x: -0.73, z: -1.5, facingAngle: -Math.PI / 2 },  // Auntie — left bench
-  { variant: 5, x: 0.73, z: -1.0, facingAngle: Math.PI / 2 },    // Tourist — right bench
+  { variant: 0, x: -0.73, z: -6.5, facingAngle: Math.PI / 2 },    // Office male — left bench, faces aisle
+  { variant: 1, x: 0.73,  z: -5.5, facingAngle: -Math.PI / 2 },   // Office female — right bench, faces aisle
+  { variant: 2, x: -0.73, z: -4.0, facingAngle: Math.PI / 2 },    // Schoolboy — left bench, faces aisle
+  { variant: 3, x: 0.73,  z: -3.0, facingAngle: -Math.PI / 2 },   // Schoolgirl — right bench, faces aisle
+  { variant: 4, x: -0.73, z: -1.5, facingAngle: Math.PI / 2 },    // Auntie — left bench, faces aisle
+  { variant: 5, x: 0.73,  z: -1.0, facingAngle: -Math.PI / 2 },   // Tourist — right bench, faces aisle
 ]
 
 const SEAT_Y = 0.95 // bench seat surface (FLOOR_Y 0.5 + SEAT_Y offset 0.45)
