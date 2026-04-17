@@ -31,9 +31,23 @@ const LOWER_TOP = 0.5
 const UPPER_TOP = 2.55
 const ROOF_Y = 2.65
 
+/**
+ * Shift the entire exterior shell up by 1.8m so the lower deck sits
+ * ABOVE the road (y=0.05) instead of 1.7m underground. This is the fix
+ * that makes the tram read as a double-decker: previously only the upper
+ * deck (y=0.5–2.55) was above ground, the lower deck was buried.
+ *
+ * After shift:
+ *   lower deck: y=0.1 -> 2.3  (2.2m tall, sits on road)
+ *   cream waistline stripe: y=2.15 -> 2.3
+ *   upper deck: y=2.3 -> 4.35
+ *   roof: y=4.45
+ */
+const Y_OFFSET = 1.8
+
 export function TramExteriorShell() {
   return (
-    <group>
+    <group position={[0, Y_OFFSET, 0]}>
       <LowerDeckExterior />
       <UpperDeckExterior />
       <RoofExterior />
