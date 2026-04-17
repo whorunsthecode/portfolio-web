@@ -51,11 +51,226 @@ export function TramExteriorShell() {
       <LowerDeckExterior />
       <UpperDeckExterior />
       <RoofExterior />
+      <RoofVentBox />
       <FrontFace />
       <RearFace />
+      <RearPlatformDoor />
       <SideDestinationBoards />
+      <SideBrandingPanels />
       <Undercarriage />
       <TrolleyPole />
+    </group>
+  )
+}
+
+/**
+ * Roof ventilation/monitor box — the raised rectangular structure on the
+ * roof of reference HK trams (houses ventilation + clerestory windows).
+ * Distinctive silhouette detail that makes the tram unmistakable.
+ */
+function RoofVentBox() {
+  const ventY = ROOF_Y + 0.12
+  const ventH = 0.22
+  const ventW = W - 0.5
+  const ventLen = Z_LEN - 2.0
+
+  return (
+    <group>
+      {/* Main vent housing — cream/tan matching the roof */}
+      <mesh position={[0, ventY + ventH / 2, Z_CENTER]}>
+        <boxGeometry args={[ventW, ventH, ventLen]} />
+        <meshStandardMaterial color="#c8bda8" roughness={0.75} />
+      </mesh>
+      {/* Green trim rail along the top edge */}
+      <mesh position={[0, ventY + ventH + 0.02, Z_CENTER]}>
+        <boxGeometry args={[ventW + 0.04, 0.04, ventLen + 0.04]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} />
+      </mesh>
+      {/* Darker trim strip along the bottom of the box (base shadow) */}
+      <mesh position={[0, ventY + 0.02, Z_CENTER]}>
+        <boxGeometry args={[ventW + 0.02, 0.02, ventLen + 0.02]} />
+        <meshStandardMaterial color="#8a7f6a" roughness={0.8} />
+      </mesh>
+      {/* Clerestory slat vents on both sides of the box (tiny horizontal strips) */}
+      {[-1, 1].map((side) => (
+        <group key={`vent-${side}`}>
+          {Array.from({ length: 12 }, (_, i) => {
+            const z = -ventLen / 2 + 0.6 + i * (ventLen - 1.2) / 11
+            return (
+              <mesh
+                key={`slat-${side}-${i}`}
+                position={[side * ventW / 2 + side * 0.005, ventY + ventH * 0.45, z]}
+              >
+                <boxGeometry args={[0.012, 0.05, 0.18]} />
+                <meshStandardMaterial color={FRAME} roughness={0.65} />
+              </mesh>
+            )
+          })}
+        </group>
+      ))}
+      {/* Roof-mounted fan housings (two raised domes) */}
+      {[-ventLen / 3, ventLen / 3].map((fz, i) => (
+        <group key={`fan-${i}`} position={[0, ventY + ventH + 0.05, fz]}>
+          <mesh>
+            <cylinderGeometry args={[0.16, 0.18, 0.06, 16]} />
+            <meshStandardMaterial color="#8a7f6a" roughness={0.75} metalness={0.15} />
+          </mesh>
+          <mesh position={[0, 0.04, 0]}>
+            <cylinderGeometry args={[0.12, 0.14, 0.02, 16]} />
+            <meshStandardMaterial color="#4a4238" roughness={0.6} metalness={0.3} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+/**
+ * Rear platform door frame — open boarding platform at the rear of the
+ * tram (where passengers enter). Grab handles + step visible.
+ * Matches reference: tram #88 has an open platform opposite the driver end.
+ */
+function RearPlatformDoor() {
+  const doorH = LOWER_TOP - LOWER_BOT
+  const doorCY = (LOWER_TOP + LOWER_BOT) / 2
+  const doorZ = Z_REAR - 0.02
+  const doorWidth = 0.85
+  const doorX = HW - 0.5  // passenger side (right hand of rear-facing view)
+
+  return (
+    <group>
+      {[-1, 1].map((side) => {
+        const x = side * doorX
+        return (
+          <group key={`door-${side}`}>
+            {/* Dark door opening frame — suggests interior shadow */}
+            <mesh position={[x, doorCY, doorZ]}>
+              <boxGeometry args={[doorWidth, doorH - 0.15, 0.02]} />
+              <meshStandardMaterial color="#1a1814" roughness={0.9} />
+            </mesh>
+            {/* Inner green door frame — thick border */}
+            {/* Vertical left post */}
+            <mesh position={[x - doorWidth / 2 + 0.025, doorCY, doorZ + 0.015]}>
+              <boxGeometry args={[0.05, doorH - 0.15, 0.04]} />
+              <meshStandardMaterial color={GREEN} roughness={0.55} />
+            </mesh>
+            {/* Vertical right post */}
+            <mesh position={[x + doorWidth / 2 - 0.025, doorCY, doorZ + 0.015]}>
+              <boxGeometry args={[0.05, doorH - 0.15, 0.04]} />
+              <meshStandardMaterial color={GREEN} roughness={0.55} />
+            </mesh>
+            {/* Top header */}
+            <mesh position={[x, doorCY + doorH / 2 - 0.1, doorZ + 0.015]}>
+              <boxGeometry args={[doorWidth, 0.06, 0.04]} />
+              <meshStandardMaterial color={GREEN} roughness={0.55} />
+            </mesh>
+
+            {/* Brass grab handles — vertical, one each side of opening */}
+            <mesh position={[x - doorWidth / 2 - 0.04, doorCY + 0.1, doorZ + 0.04]}>
+              <cylinderGeometry args={[0.014, 0.014, 0.9, 8]} />
+              <meshStandardMaterial color="#c8a048" metalness={0.75} roughness={0.3} />
+            </mesh>
+            <mesh position={[x + doorWidth / 2 + 0.04, doorCY + 0.1, doorZ + 0.04]}>
+              <cylinderGeometry args={[0.014, 0.014, 0.9, 8]} />
+              <meshStandardMaterial color="#c8a048" metalness={0.75} roughness={0.3} />
+            </mesh>
+
+            {/* Lower boarding step — cream/metal plate */}
+            <mesh position={[x, LOWER_BOT + 0.05, doorZ + 0.08]}>
+              <boxGeometry args={[doorWidth + 0.04, 0.04, 0.15]} />
+              <meshStandardMaterial color="#5a5a55" metalness={0.5} roughness={0.5} />
+            </mesh>
+            {/* Step edge — safety yellow */}
+            <mesh position={[x, LOWER_BOT + 0.07, doorZ + 0.155]}>
+              <boxGeometry args={[doorWidth + 0.04, 0.01, 0.02]} />
+              <meshStandardMaterial color="#e8c048" roughness={0.7} />
+            </mesh>
+
+            {/* Small "入 ENTER" sign above door */}
+            <Text
+              position={[x, doorCY + doorH / 2 - 0.18, doorZ + 0.05]}
+              fontSize={0.07}
+              color={CREAM}
+              anchorX="center"
+              anchorY="middle"
+              fontWeight="bold"
+            >
+              入 ENTER
+            </Text>
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
+/**
+ * Side branding panels — "HK Tram Green / Color created by PANTONE" panel
+ * on the lower-deck side cream skirt, matching reference tram #88.
+ * This is THE detail that screams "we built this to match a real photo."
+ */
+function SideBrandingPanels() {
+  // Position: lower-deck skirt, centered vertically below the windows
+  // Lower-deck window vertical range per current code: ~y=-1.05 to y=0.28
+  // Skirt below: y=-1.7 to y=-1.05 approx
+  const brandY = LOWER_BOT + 0.3
+  const brandLen = 2.2
+  const brandZ = Z_CENTER - 1.5  // offset toward the front-middle area
+
+  return (
+    <group>
+      {[-1, 1].map((side) => {
+        const x = side * (HW + 0.02)  // flush against the body
+        return (
+          <group key={`brand-${side}`}>
+            {/* "HK Tram Green" large text */}
+            <Text
+              position={[x, brandY + 0.04, brandZ]}
+              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              fontSize={0.14}
+              color={CREAM}
+              anchorX="center"
+              anchorY="middle"
+              fontWeight="bold"
+              letterSpacing={0.04}
+            >
+              HK Tram Green
+            </Text>
+            {/* Smaller "Color created by" line */}
+            <Text
+              position={[x, brandY - 0.09, brandZ]}
+              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              fontSize={0.055}
+              color={CREAM}
+              anchorX="center"
+              anchorY="middle"
+              letterSpacing={0.12}
+            >
+              Color created by
+            </Text>
+            {/* PANTONE wordmark — bolder */}
+            <Text
+              position={[x, brandY - 0.18, brandZ]}
+              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              fontSize={0.085}
+              color={CREAM}
+              anchorX="center"
+              anchorY="middle"
+              fontWeight="bold"
+              letterSpacing={0.2}
+            >
+              PANTONE
+            </Text>
+            {/* Tiny PANTONE chip icon to the right of wordmark */}
+            <mesh
+              position={[x + side * 0.38, brandY - 0.18, brandZ]}
+            >
+              <boxGeometry args={[0.02, 0.1, 0.07]} />
+              <meshStandardMaterial color={GREEN} roughness={0.5} />
+            </mesh>
+          </group>
+        )
+      })}
     </group>
   )
 }
