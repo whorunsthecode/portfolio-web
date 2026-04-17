@@ -146,16 +146,13 @@ export function DriverCab() {
         )
       })}
 
-      {/* ── CONTACT BADGE — uses NESTED TRANSFORM GROUPS so three.js
-            handles the rotation math, avoiding the sign-error trap
-            that was putting the badge INSIDE the dashboard mesh in the
-            previous two attempts. Structure:
-            1) outer group at dashboard position with dashTilt rotation
-            2) inner group steps DOWN the dashboard face in local -Y
-            3) the badge itself lifts OUT along local +Z (surface normal)
-         */}
+      {/* ── CONTACT BADGE — positioned BELOW the "88 WHITTY" LED route
+            display per user request. x=+0.33 matches the LED display's
+            x offset; y offset of -0.16 in local dashboard space drops
+            the badge below the display; z=+0.08 lifts it proud of the
+            dashboard face along the surface normal. */}
       <group position={[driverX, dashY, dashZ]} rotation={[dashTilt, 0, 0]}>
-        <group position={[0, -0.13, 0]}>
+        <group position={[0.33, -0.16, 0]}>
           <DriverBadge
             position={[0, 0, 0.08]}
             rotation={[0, 0, 0]}

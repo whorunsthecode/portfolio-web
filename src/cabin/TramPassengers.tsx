@@ -404,31 +404,71 @@ export function Auntie() {
       </mesh>
       {/* Loose black pants */}
       <SeatedLegs color="#2a2a2a" radius={0.07} spread={0.14} />
-      {/* 紅白藍 bag — THE iconic HK object, at her feet */}
-      <group position={[0, -0.45, 0.35]}>
+      {/* 紅白藍 bag — THE iconic HK object, now with proper VERTICAL
+          stripes (not horizontal) + red border piping + twin rope
+          handles, matching the real woven-plastic tote. Sits at her
+          feet between her and the aisle. */}
+      <group position={[0, -0.45, 0.32]}>
+        {/* White woven body */}
         <mesh>
-          <boxGeometry args={[0.3, 0.35, 0.2]} />
-          <meshStandardMaterial color="#ffffff" roughness={0.8} />
+          <boxGeometry args={[0.3, 0.36, 0.18]} />
+          <meshStandardMaterial color="#f4f4ea" roughness={0.85} />
         </mesh>
-        {/* Red stripe */}
-        <mesh position={[0, 0.08, 0.101]}>
-          <planeGeometry args={[0.3, 0.1]} />
-          <meshStandardMaterial color="#c82820" roughness={0.8} />
+        {/* Vertical stripes — red and blue alternating on FRONT face */}
+        {[
+          { x: -0.12, color: '#1a3a8a' },   // blue
+          { x: -0.07, color: '#c82820' },   // red
+          { x: -0.02, color: '#1a3a8a' },   // blue
+          { x:  0.03, color: '#c82820' },   // red
+          { x:  0.08, color: '#1a3a8a' },   // blue
+          { x:  0.13, color: '#c82820' },   // red
+        ].map((s, i) => (
+          <mesh key={`front-${i}`} position={[s.x, 0, 0.0911]}>
+            <planeGeometry args={[0.03, 0.34]} />
+            <meshStandardMaterial color={s.color} roughness={0.85} />
+          </mesh>
+        ))}
+        {/* Same vertical stripes on BACK face */}
+        {[
+          { x: -0.12, color: '#1a3a8a' },
+          { x: -0.07, color: '#c82820' },
+          { x: -0.02, color: '#1a3a8a' },
+          { x:  0.03, color: '#c82820' },
+          { x:  0.08, color: '#1a3a8a' },
+          { x:  0.13, color: '#c82820' },
+        ].map((s, i) => (
+          <mesh key={`back-${i}`} position={[s.x, 0, -0.0911]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[0.03, 0.34]} />
+            <meshStandardMaterial color={s.color} roughness={0.85} />
+          </mesh>
+        ))}
+        {/* Red border piping — top */}
+        <mesh position={[0, 0.183, 0]}>
+          <boxGeometry args={[0.31, 0.015, 0.19]} />
+          <meshStandardMaterial color="#c82820" roughness={0.75} />
         </mesh>
-        {/* Blue stripe */}
-        <mesh position={[0, -0.08, 0.101]}>
-          <planeGeometry args={[0.3, 0.1]} />
-          <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
+        {/* Red border piping — bottom */}
+        <mesh position={[0, -0.183, 0]}>
+          <boxGeometry args={[0.31, 0.015, 0.19]} />
+          <meshStandardMaterial color="#c82820" roughness={0.75} />
         </mesh>
-        {/* Opposite side stripes */}
-        <mesh position={[0, 0.08, -0.101]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[0.3, 0.1]} />
-          <meshStandardMaterial color="#c82820" roughness={0.8} />
+        {/* Red side piping — left */}
+        <mesh position={[-0.153, 0, 0]}>
+          <boxGeometry args={[0.013, 0.38, 0.19]} />
+          <meshStandardMaterial color="#c82820" roughness={0.75} />
         </mesh>
-        <mesh position={[0, -0.08, -0.101]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[0.3, 0.1]} />
-          <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
+        {/* Red side piping — right */}
+        <mesh position={[0.153, 0, 0]}>
+          <boxGeometry args={[0.013, 0.38, 0.19]} />
+          <meshStandardMaterial color="#c82820" roughness={0.75} />
         </mesh>
+        {/* Twin blue rope handle loops on top */}
+        {[-0.08, 0.08].map((hx, i) => (
+          <mesh key={`handle-${i}`} position={[hx, 0.24, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[0.055, 0.01, 6, 14]} />
+            <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
+          </mesh>
+        ))}
       </group>
     </group>
   )
@@ -845,7 +885,12 @@ const ASSIGNMENTS: SeatAssignment[] = [
   { variant: 5, x: 0.73,  z: -1.5, facingAngle: -Math.PI / 2 },   // Tourist with Walkman — right bench
 ]
 
-const SEAT_Y = 0.95 // bench seat surface (FLOOR_Y 0.5 + SEAT_Y offset 0.45)
+// Bench seat top is at world y=0.98 (SEAT_Y 0.95 + half of 0.06 thickness).
+// Passenger's local origin sits at the HIP with thighs horizontal at y=0 and
+// shins hanging down from y=−0.02 to y=−0.4. Putting the hip origin at seat
+// top meant the thighs rendered ~5cm INSIDE the bench and the shins/shoes
+// poked through the bench front panel. Lift the hip to bench-top + clearance.
+const SEAT_Y = 1.08
 
 export function AnimatedPassenger({
   variant,
