@@ -75,7 +75,16 @@ function UpperDeckExterior() {
   const winH = winTop - winBottom
   const winCY = (winBottom + winTop) / 2
 
-  const postZs = [3.5, 1.2, -1.1, -3.4, -5.7, -8.0, -9.5]
+  // 10 narrow windows matching reference #88 — evenly spaced along tram length
+  const N_WINDOWS = 10
+  const winStripStart = Z_FRONT + 0.6
+  const winStripEnd = Z_REAR - 0.6
+  const winStripLen = winStripEnd - winStripStart
+  const postSpacing = winStripLen / N_WINDOWS
+  const postZs = Array.from({ length: N_WINDOWS + 1 }, (_, i) => winStripStart + i * postSpacing)
+
+  // Horizontal sliding-window mullion splits each pane into upper (fixed) and lower (sliding) halves
+  const mullionY = winCY + winH * 0.12   // slightly above center, matching real HK trams
 
   return (
     <group>
@@ -85,89 +94,164 @@ function UpperDeckExterior() {
           <group key={`upper-${side}`}>
             {/* Bottom solid green belt — thick, above cream waistline */}
             <mesh position={[x, botBandY, Z_CENTER]}>
-              <boxGeometry args={[0.08, botBandH, uLen]} />
+              <boxGeometry args={[0.1, botBandH, uLen]} />
               <meshStandardMaterial color={GREEN} roughness={0.55} />
+            </mesh>
+            {/* Subtle sill shadow under windows — adds depth */}
+            <mesh position={[x + side * 0.01, winBottom + 0.02, Z_CENTER]}>
+              <boxGeometry args={[0.02, 0.04, uLen]} />
+              <meshStandardMaterial color="#083820" roughness={0.8} />
             </mesh>
 
             {/* Top solid green band — roof header */}
             <mesh position={[x, topBandY, Z_CENTER]}>
-              <boxGeometry args={[0.08, topBandH, uLen]} />
+              <boxGeometry args={[0.1, topBandH, uLen]} />
               <meshStandardMaterial color={GREEN} roughness={0.55} />
             </mesh>
+            {/* Cream trim strip along top edge of upper deck (classic HK tram accent) */}
+            <mesh position={[x + side * 0.005, UPPER_TOP - 0.05, Z_CENTER]}>
+              <boxGeometry args={[0.03, 0.06, uLen]} />
+              <meshStandardMaterial color={CREAM} roughness={0.75} />
+            </mesh>
 
-            {/* THICK green posts between windows — now 0.18m wide for solid look */}
+            {/* Thick green posts between windows — chunky with slight inset */}
             {postZs.map((pz) => (
-              <mesh key={`up-${pz}`} position={[x, winCY, pz]}>
-                <boxGeometry args={[0.08, winH, 0.18]} />
-                <meshStandardMaterial color={GREEN} roughness={0.55} />
-              </mesh>
+              <group key={`up-${pz}`}>
+                <mesh position={[x, winCY, pz]}>
+                  <boxGeometry args={[0.1, winH, 0.16]} />
+                  <meshStandardMaterial color={GREEN} roughness={0.55} />
+                </mesh>
+                {/* Subtle dark inset shadow on inner side of post */}
+                <mesh position={[x + side * -0.02, winCY, pz]}>
+                  <boxGeometry args={[0.02, winH - 0.05, 0.12]} />
+                  <meshStandardMaterial color="#062a18" roughness={0.7} />
+                </mesh>
+              </group>
             ))}
 
-            {/* Dark tinted glass panes between posts — no longer transparent to the sky */}
+            {/* TRANSLUCENT TINTED glass panes — you can see silhouettes inside (like lower deck) */}
             {postZs.slice(0, -1).map((pz, i) => {
               const nz = postZs[i + 1]
               const mid = (pz + nz) / 2
-              const span = Math.abs(pz - nz) - 0.2
+              const span = Math.abs(pz - nz) - 0.18
               return (
-                <mesh key={`ug-${i}`} position={[x, winCY, mid]}>
-                  <boxGeometry args={[0.05, winH - 0.06, span]} />
-                  <meshStandardMaterial color="#1a3a3a" roughness={0.3} metalness={0.2} />
-                </mesh>
+                <group key={`ug-${i}`}>
+                  {/* Glass pane — translucent, see-through */}
+                  <mesh position={[x + side * 0.002, winCY, mid]} rotation={[0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]}>
+                    <planeGeometry args={[span, winH - 0.08]} />
+                    <meshPhysicalMaterial
+                      color="#c8dce0"
+                      transparent
+                      opacity={0.22}
+                      transmission={0.65}
+                      roughness={0.08}
+                      metalness={0.05}
+                      thickness={0.03}
+                      side={DoubleSide}
+                    />
+                  </mesh>
+                  {/* Horizontal sliding-window mullion — the ICONIC HK tram detail */}
+                  <mesh position={[x + side * 0.008, mullionY, mid]}>
+                    <boxGeometry args={[0.025, 0.03, span + 0.04]} />
+                    <meshStandardMaterial color={FRAME} roughness={0.6} metalness={0.2} />
+                  </mesh>
+                  {/* Thin bottom sill rail inside the frame */}
+                  <mesh position={[x + side * 0.008, winBottom + 0.05, mid]}>
+                    <boxGeometry args={[0.025, 0.02, span + 0.04]} />
+                    <meshStandardMaterial color={GREEN} roughness={0.5} />
+                  </mesh>
+                </group>
               )
             })}
           </group>
         )
       })}
 
-      {/* Front upper — top green band */}
+      {/* ── Front upper face ── */}
       <mesh position={[0, topBandY, Z_FRONT]}>
         <boxGeometry args={[uw, topBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {/* Front upper bottom band — solid GREEN (waistline is below) */}
       <mesh position={[0, botBandY, Z_FRONT]}>
         <boxGeometry args={[uw, botBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {/* Front corner pillars + 2 inner mullions = 3 windows */}
+      {/* 4 front corner/mullion posts creating 3 upper-front windows (reference #88) */}
       {[-uhw + 0.1, -uw / 6, uw / 6, uhw - 0.1].map((px, i) => (
         <mesh key={`fup-${i}`} position={[px, winCY, Z_FRONT]}>
           <boxGeometry args={[i === 0 || i === 3 ? 0.2 : 0.12, winH, 0.07]} />
           <meshStandardMaterial color={GREEN} roughness={0.55} />
         </mesh>
       ))}
-      {/* 3 separate dark glass panes */}
+      {/* 3 translucent tinted upper-front windows (not opaque anymore) */}
       {[-uw / 3, 0, uw / 3].map((px, i) => (
-        <mesh key={`fug-${i}`} position={[px, winCY, Z_FRONT - 0.03]}>
-          <boxGeometry args={[uw / 3 - 0.16, winH - 0.06, 0.02]} />
-          <meshStandardMaterial color="#1a3a3a" roughness={0.3} metalness={0.2} />
-        </mesh>
+        <group key={`fug-${i}`}>
+          <mesh position={[px, winCY, Z_FRONT - 0.02]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[uw / 3 - 0.16, winH - 0.06]} />
+            <meshPhysicalMaterial
+              color="#c8dce0"
+              transparent
+              opacity={0.22}
+              transmission={0.65}
+              roughness={0.08}
+              thickness={0.03}
+              side={DoubleSide}
+            />
+          </mesh>
+          {/* Horizontal sliding mullion */}
+          <mesh position={[px, mullionY, Z_FRONT - 0.025]}>
+            <boxGeometry args={[uw / 3 - 0.12, 0.03, 0.025]} />
+            <meshStandardMaterial color={FRAME} roughness={0.6} />
+          </mesh>
+        </group>
       ))}
+      {/* Cream trim strip at upper-front top edge */}
+      <mesh position={[0, UPPER_TOP - 0.05, Z_FRONT - 0.005]}>
+        <boxGeometry args={[uw, 0.06, 0.03]} />
+        <meshStandardMaterial color={CREAM} roughness={0.75} />
+      </mesh>
 
-      {/* Rear upper — top green band */}
+      {/* ── Rear upper face ── */}
       <mesh position={[0, topBandY, Z_REAR]}>
         <boxGeometry args={[uw, topBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {/* Rear upper bottom band — solid GREEN */}
       <mesh position={[0, botBandY, Z_REAR]}>
         <boxGeometry args={[uw, botBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {/* Rear corner pillars + 2 inner mullions */}
       {[-uhw + 0.1, -uw / 6, uw / 6, uhw - 0.1].map((px, i) => (
         <mesh key={`rup-${i}`} position={[px, winCY, Z_REAR]}>
           <boxGeometry args={[i === 0 || i === 3 ? 0.2 : 0.12, winH, 0.07]} />
           <meshStandardMaterial color={GREEN} roughness={0.55} />
         </mesh>
       ))}
-      {/* 3 rear dark glass panes */}
+      {/* 3 translucent tinted rear-upper windows */}
       {[-uw / 3, 0, uw / 3].map((px, i) => (
-        <mesh key={`rug-${i}`} position={[px, winCY, Z_REAR + 0.03]}>
-          <boxGeometry args={[uw / 3 - 0.16, winH - 0.06, 0.02]} />
-          <meshStandardMaterial color="#1a3a3a" roughness={0.3} metalness={0.2} />
-        </mesh>
+        <group key={`rug-${i}`}>
+          <mesh position={[px, winCY, Z_REAR + 0.02]}>
+            <planeGeometry args={[uw / 3 - 0.16, winH - 0.06]} />
+            <meshPhysicalMaterial
+              color="#c8dce0"
+              transparent
+              opacity={0.22}
+              transmission={0.65}
+              roughness={0.08}
+              thickness={0.03}
+              side={DoubleSide}
+            />
+          </mesh>
+          <mesh position={[px, mullionY, Z_REAR + 0.025]}>
+            <boxGeometry args={[uw / 3 - 0.12, 0.03, 0.025]} />
+            <meshStandardMaterial color={FRAME} roughness={0.6} />
+          </mesh>
+        </group>
       ))}
+      {/* Cream trim at rear-upper top edge */}
+      <mesh position={[0, UPPER_TOP - 0.05, Z_REAR + 0.005]}>
+        <boxGeometry args={[uw, 0.06, 0.03]} />
+        <meshStandardMaterial color={CREAM} roughness={0.75} />
+      </mesh>
 
       <mesh position={[0, ROOF_Y + 0.15, Z_FRONT + 0.5]}>
         <boxGeometry args={[0.35, 0.25, 0.04]} />
