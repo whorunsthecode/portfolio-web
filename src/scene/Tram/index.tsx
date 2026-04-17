@@ -15,7 +15,7 @@
 import { Text } from '@react-three/drei'
 import { FrontSide, DoubleSide } from 'three'
 
-const GREEN = '#1a5838'
+const GREEN = '#0d6b3a' // HK Tram Pantone green — signature livery color
 const CREAM = '#f0e6c8'
 const FRAME = '#1a1a18'
 
@@ -35,7 +35,6 @@ export function TramExteriorShell() {
   return (
     <group>
       <LowerDeckExterior />
-      <BeltLine />
       <UpperDeckExterior />
       <RoofExterior />
       <FrontFace />
@@ -46,36 +45,15 @@ export function TramExteriorShell() {
   )
 }
 
-/* Cream belt-line at deck boundary — the visual break that says "double-decker" */
-function BeltLine() {
-  const beltY = 0.5
-  const beltH = 0.14
-  const beltW = W + 0.08  // ledge overhang, clearly past deck sides
-  const beltLen = Z_LEN + 0.12 // overhang past front/rear
-  return (
-    <group>
-      {/* Main cream belt — wraps all four sides */}
-      <mesh position={[0, beltY, Z_CENTER]}>
-        <boxGeometry args={[beltW, beltH, beltLen]} />
-        <meshStandardMaterial color={CREAM} roughness={0.75} />
-      </mesh>
-      {/* Thin dark pinstripe along bottom edge for definition */}
-      <mesh position={[0, beltY - beltH / 2 + 0.012, Z_CENTER]}>
-        <boxGeometry args={[beltW + 0.004, 0.024, beltLen + 0.004]} />
-        <meshStandardMaterial color={FRAME} roughness={0.7} />
-      </mesh>
-    </group>
-  )
-}
-
-/* Upper deck exterior — thick green frame (bands + posts) with transparent glass. */
+/* Upper deck exterior — SOLID green walls with window cutouts (like real HK tram). */
 function UpperDeckExterior() {
   const uw = W - 0.04
   const uhw = uw / 2
   const uLen = Z_LEN - 0.5
 
-  const botBandH = 0.5
-  const topBandH = 0.45
+  // Solid green takes up top + bottom; windows are a shorter band in between
+  const botBandH = 0.55  // solid green belt above the cream waistline
+  const topBandH = 0.45  // solid green roof band
   const botBandY = LOWER_TOP + botBandH / 2
   const topBandY = UPPER_TOP - topBandH / 2
   const winBottom = LOWER_TOP + botBandH
@@ -89,35 +67,37 @@ function UpperDeckExterior() {
     <group>
       {[-1, 1].map((side) => {
         const x = side * uhw
-        const rot: [number, number, number] = [0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]
         return (
           <group key={`upper-${side}`}>
-            {/* Upper deck bottom band — CREAM so it forms the visible waistline between decks */}
+            {/* Bottom solid green belt — thick, above cream waistline */}
             <mesh position={[x, botBandY, Z_CENTER]}>
               <boxGeometry args={[0.08, botBandH, uLen]} />
-              <meshStandardMaterial color={CREAM} roughness={0.75} />
+              <meshStandardMaterial color={GREEN} roughness={0.55} />
             </mesh>
 
+            {/* Top solid green band — roof header */}
             <mesh position={[x, topBandY, Z_CENTER]}>
               <boxGeometry args={[0.08, topBandH, uLen]} />
               <meshStandardMaterial color={GREEN} roughness={0.55} />
             </mesh>
 
+            {/* THICK green posts between windows — now 0.18m wide for solid look */}
             {postZs.map((pz) => (
               <mesh key={`up-${pz}`} position={[x, winCY, pz]}>
-                <boxGeometry args={[0.08, winH, 0.1]} />
+                <boxGeometry args={[0.08, winH, 0.18]} />
                 <meshStandardMaterial color={GREEN} roughness={0.55} />
               </mesh>
             ))}
 
+            {/* Dark tinted glass panes between posts — no longer transparent to the sky */}
             {postZs.slice(0, -1).map((pz, i) => {
               const nz = postZs[i + 1]
               const mid = (pz + nz) / 2
-              const span = Math.abs(pz - nz) - 0.14
+              const span = Math.abs(pz - nz) - 0.2
               return (
-                <mesh key={`ug-${i}`} position={[x + side * 0.01, winCY, mid]} rotation={rot}>
-                  <planeGeometry args={[span, winH - 0.04]} />
-                  <meshPhysicalMaterial color="#a8c8d0" transparent opacity={0.2} transmission={0.6} roughness={0.08} side={DoubleSide} />
+                <mesh key={`ug-${i}`} position={[x, winCY, mid]}>
+                  <boxGeometry args={[0.05, winH - 0.06, span]} />
+                  <meshStandardMaterial color="#1a3a3a" roughness={0.3} metalness={0.2} />
                 </mesh>
               )
             })}
@@ -125,47 +105,55 @@ function UpperDeckExterior() {
         )
       })}
 
-      {/* Front upper */}
+      {/* Front upper — top green band */}
       <mesh position={[0, topBandY, Z_FRONT]}>
         <boxGeometry args={[uw, topBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {/* Front upper bottom band — CREAM so the waistline wraps around */}
+      {/* Front upper bottom band — solid GREEN (waistline is below) */}
       <mesh position={[0, botBandY, Z_FRONT]}>
         <boxGeometry args={[uw, botBandH, 0.07]} />
-        <meshStandardMaterial color={CREAM} roughness={0.75} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {[-uhw + 0.1, uhw - 0.1].map((px, i) => (
+      {/* Front corner pillars + 2 inner mullions = 3 windows */}
+      {[-uhw + 0.1, -uw / 6, uw / 6, uhw - 0.1].map((px, i) => (
         <mesh key={`fup-${i}`} position={[px, winCY, Z_FRONT]}>
-          <boxGeometry args={[0.2, winH, 0.07]} />
+          <boxGeometry args={[i === 0 || i === 3 ? 0.2 : 0.12, winH, 0.07]} />
           <meshStandardMaterial color={GREEN} roughness={0.55} />
         </mesh>
       ))}
-      <mesh position={[0, winCY, Z_FRONT - 0.04]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[uw - 0.45, winH - 0.04]} />
-        <meshPhysicalMaterial color="#e8f0f4" transparent opacity={0.1} transmission={0.9} roughness={0.03} side={DoubleSide} />
-      </mesh>
+      {/* 3 separate dark glass panes */}
+      {[-uw / 3, 0, uw / 3].map((px, i) => (
+        <mesh key={`fug-${i}`} position={[px, winCY, Z_FRONT - 0.03]}>
+          <boxGeometry args={[uw / 3 - 0.16, winH - 0.06, 0.02]} />
+          <meshStandardMaterial color="#1a3a3a" roughness={0.3} metalness={0.2} />
+        </mesh>
+      ))}
 
-      {/* Rear upper */}
+      {/* Rear upper — top green band */}
       <mesh position={[0, topBandY, Z_REAR]}>
         <boxGeometry args={[uw, topBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {/* Rear upper bottom band — CREAM so the waistline wraps around */}
+      {/* Rear upper bottom band — solid GREEN */}
       <mesh position={[0, botBandY, Z_REAR]}>
         <boxGeometry args={[uw, botBandH, 0.07]} />
-        <meshStandardMaterial color={CREAM} roughness={0.75} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
-      {[-uhw + 0.1, uhw - 0.1].map((px, i) => (
+      {/* Rear corner pillars + 2 inner mullions */}
+      {[-uhw + 0.1, -uw / 6, uw / 6, uhw - 0.1].map((px, i) => (
         <mesh key={`rup-${i}`} position={[px, winCY, Z_REAR]}>
-          <boxGeometry args={[0.2, winH, 0.07]} />
+          <boxGeometry args={[i === 0 || i === 3 ? 0.2 : 0.12, winH, 0.07]} />
           <meshStandardMaterial color={GREEN} roughness={0.55} />
         </mesh>
       ))}
-      <mesh position={[0, winCY, Z_REAR + 0.04]}>
-        <planeGeometry args={[uw - 0.45, winH - 0.04]} />
-        <meshPhysicalMaterial color="#a8c8d0" transparent opacity={0.2} transmission={0.6} roughness={0.08} side={DoubleSide} />
-      </mesh>
+      {/* 3 rear dark glass panes */}
+      {[-uw / 3, 0, uw / 3].map((px, i) => (
+        <mesh key={`rug-${i}`} position={[px, winCY, Z_REAR + 0.03]}>
+          <boxGeometry args={[uw / 3 - 0.16, winH - 0.06, 0.02]} />
+          <meshStandardMaterial color="#1a3a3a" roughness={0.3} metalness={0.2} />
+        </mesh>
+      ))}
 
       <mesh position={[0, ROOF_Y + 0.15, Z_FRONT + 0.5]}>
         <boxGeometry args={[0.35, 0.25, 0.04]} />
@@ -180,9 +168,9 @@ function LowerDeckExterior() {
   const h = LOWER_TOP - LOWER_BOT  // 2.2
   const cy = (LOWER_BOT + LOWER_TOP) / 2
 
-  // Cream skirt below windows, thin green trim above. Windows fill the middle band.
-  const bottomStripH = 0.85  // CREAM skirt — taller so windows sit at realistic eye level
-  const topStripH = 0.22     // thin green trim band at top (meets cream belt-line at y=0.5)
+  // Mostly GREEN body (signature HK tram look). Thin cream stripe at deck divider only.
+  const bottomStripH = 0.5   // GREEN skirt below windows
+  const topStripH = 0.15     // thin CREAM waistline stripe at deck boundary
   const windowH = h - bottomStripH - topStripH
   const windowCY = LOWER_BOT + bottomStripH + windowH / 2
 
@@ -193,13 +181,13 @@ function LowerDeckExterior() {
         const rot: [number, number, number] = [0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]
         return (
           <group key={`lower-${side}`}>
-            {/* Bottom solid strip — CREAM skirt below windows */}
+            {/* Bottom solid strip — GREEN skirt below windows (signature tram color) */}
             <mesh position={[x, LOWER_BOT + bottomStripH / 2, Z_CENTER]}>
               <boxGeometry args={[0.07, bottomStripH, Z_LEN]} />
-              <meshStandardMaterial color={CREAM} roughness={0.75} />
+              <meshStandardMaterial color={GREEN} roughness={0.55} metalness={0.15} />
             </mesh>
 
-            {/* Top thin strip — CREAM (extends the waistline down below the deck divider) */}
+            {/* Top thin strip — CREAM waistline at deck divider */}
             <mesh position={[x, LOWER_TOP - topStripH / 2, Z_CENTER]}>
               <boxGeometry args={[0.07, topStripH, Z_LEN]} />
               <meshStandardMaterial color={CREAM} roughness={0.75} />
