@@ -18,9 +18,10 @@
  * always fit; gray painted-steel panels are period-correct.
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Text } from '@react-three/drei'
-import type { ThreeEvent } from '@react-three/fiber'
+import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import * as THREE from 'three'
 import { useStore } from '../store'
 
 const FLOOR_Y = 0.5
@@ -580,6 +581,16 @@ function DriverBadge({
 }) {
   const setShowDriverCard = useStore((s) => s.setShowDriverCard)
   const [hovered, setHovered] = useState(false)
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null)
+
+  // Always-on breathing pulse so touch users (no hover) still notice the
+  // badge. Hover boosts above the pulse peak on desktop.
+  useFrame((state) => {
+    if (!materialRef.current) return
+    const t = state.clock.elapsedTime
+    const pulse = 0.32 + 0.22 * Math.sin(t * 2.2)
+    materialRef.current.emissiveIntensity = hovered ? 0.85 : pulse
+  })
 
   const handleEnter = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
@@ -608,11 +619,12 @@ function DriverBadge({
       >
         <planeGeometry args={[0.12, 0.08]} />
         <meshStandardMaterial
+          ref={materialRef}
           color={BRASS}
           metalness={0.75}
-          roughness={hovered ? 0.22 : 0.32}
+          roughness={hovered ? 0.22 : 0.3}
           emissive={BRASS}
-          emissiveIntensity={hovered ? 0.55 : 0.18}
+          emissiveIntensity={0.3}
         />
       </mesh>
       {/* Engraved envelope glyph */}
