@@ -18,9 +18,11 @@
  * always fit; gray painted-steel panels are period-correct.
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Text } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import type { ThreeEvent } from '@react-three/fiber'
+import * as THREE from 'three'
 import { useStore } from '../store'
 
 const FLOOR_Y = 0.5
@@ -146,28 +148,22 @@ export function DriverCab() {
         )
       })}
 
-      {/* ── CONTACT BADGE — floats PROUD of the sloped dashboard face
-            (previous version at +0.011 was burying inside the dash
-            geometry, making the badge invisible). Now offset +0.05
-            normal-to-dashboard so it clearly sits on top. */}
-      {(() => {
-        const dashCos = Math.cos(dashTilt)
-        const dashSin = Math.sin(-dashTilt)
-        // Position ON the dashboard face, below the warning-light row
-        const downY = -0.13
-        const faceY = dashY + downY * dashCos
-        const faceZ = dashZ + downY * dashSin
-        // Push the badge out along the dashboard surface normal
-        const normalLift = 0.05
-        const liftZ = normalLift * Math.cos(dashTilt)
-        const liftY = normalLift * Math.sin(-dashTilt)
-        return (
+      {/* ── CONTACT BADGE — uses NESTED TRANSFORM GROUPS so three.js
+            handles the rotation math, avoiding the sign-error trap
+            that was putting the badge INSIDE the dashboard mesh in the
+            previous two attempts. Structure:
+            1) outer group at dashboard position with dashTilt rotation
+            2) inner group steps DOWN the dashboard face in local -Y
+            3) the badge itself lifts OUT along local +Z (surface normal)
+         */}
+      <group position={[driverX, dashY, dashZ]} rotation={[dashTilt, 0, 0]}>
+        <group position={[0, -0.13, 0]}>
           <DriverBadge
-            position={[driverX + 0.0, faceY + liftY, faceZ + liftZ]}
-            rotation={[dashTilt, 0, 0]}
+            position={[0, 0, 0.08]}
+            rotation={[0, 0, 0]}
           />
-        )
-      })()}
+        </group>
+      </group>
 
       {/* ── STEERING WHEEL — moved to RIGHT side per reference ── */}
       <SteeringWheel
@@ -437,11 +433,11 @@ function RedLedRouteDisplay({
         <planeGeometry args={[0.205, 0.125]} />
         <meshStandardMaterial color={LED_BG} roughness={0.25} metalness={0.2} />
       </mesh>
-      {/* Route number — big red 7-segment style */}
+      {/* Route number — white 7-segment style (was red; user asked to whiten) */}
       <Text
         position={[-0.065, 0.025, 0.005]}
         fontSize={0.048}
-        color={LED_RED}
+        color="#f0e8d8"
         anchorX="center"
         anchorY="middle"
         fontWeight="bold"
@@ -452,7 +448,7 @@ function RedLedRouteDisplay({
       <Text
         position={[-0.025, 0.025, 0.005]}
         fontSize={0.048}
-        color={LED_RED}
+        color="#f0e8d8"
         anchorX="center"
         anchorY="middle"
         fontWeight="bold"
@@ -463,7 +459,7 @@ function RedLedRouteDisplay({
       <Text
         position={[0.035, 0.025, 0.005]}
         fontSize={0.03}
-        color={LED_RED}
+        color="#f0e8d8"
         anchorX="center"
         anchorY="middle"
         fontWeight="bold"
@@ -589,6 +585,20 @@ function DriverBadge({
 }) {
   const setShowDriverCard = useStore((s) => s.setShowDriverCard)
   const [hovered, setHovered] = useState(false)
+  const plaqueRef = useRef<THREE.MeshStandardMaterial>(null)
+  const haloRef = useRef<THREE.MeshBasicMaterial>(null)
+
+  // Gentle pulsing emissive glow — catches the eye at idle without being loud
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime
+    const pulse = (Math.sin(t * 1.8) + 1) / 2 // 0..1
+    if (plaqueRef.current) {
+      plaqueRef.current.emissiveIntensity = hovered ? 0.9 : 0.4 + pulse * 0.3
+    }
+    if (haloRef.current) {
+      haloRef.current.opacity = hovered ? 0.55 : 0.2 + pulse * 0.2
+    }
+  })
 
   const handleEnter = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
@@ -607,25 +617,38 @@ function DriverBadge({
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Brass plaque — only clickable element, sits flat on dashboard face */}
+      {/* Soft warm halo behind the plaque — makes it unmissable */}
+      <mesh position={[0, 0, -0.001]}>
+        <planeGeometry args={[0.34, 0.22]} />
+        <meshBasicMaterial ref={haloRef} color="#ffd880" transparent opacity={0.3} depthWrite={false} />
+      </mesh>
+
+      {/* Brass plaque — bigger (0.22×0.13 vs 0.14×0.08), pulsing emissive */}
       <mesh
         onPointerOver={handleEnter}
         onPointerOut={handleLeave}
         onClick={handleClick}
       >
-        <planeGeometry args={[0.14, 0.08]} />
+        <planeGeometry args={[0.22, 0.13]} />
         <meshStandardMaterial
+          ref={plaqueRef}
           color={BRASS}
           metalness={0.75}
-          roughness={hovered ? 0.22 : 0.32}
+          roughness={hovered ? 0.18 : 0.28}
           emissive={BRASS}
-          emissiveIntensity={hovered ? 0.55 : 0.15}
+          emissiveIntensity={0.4}
         />
       </mesh>
-      {/* Dark engraved envelope glyph */}
+      {/* Dark outer border — helps it read against the dashboard */}
+      <mesh position={[0, 0, -0.0005]}>
+        <planeGeometry args={[0.235, 0.145]} />
+        <meshStandardMaterial color="#1a1208" roughness={0.8} />
+      </mesh>
+
+      {/* Envelope glyph — larger */}
       <Text
-        position={[0, 0.008, 0.002]}
-        fontSize={0.042}
+        position={[-0.06, 0.005, 0.003]}
+        fontSize={0.07}
         color="#1a1410"
         anchorX="center"
         anchorY="middle"
@@ -633,10 +656,22 @@ function DriverBadge({
       >
         ✉
       </Text>
-      {/* Tiny caption */}
+      {/* "TALK TO DRIVER" primary label */}
       <Text
-        position={[0, -0.028, 0.002]}
-        fontSize={0.014}
+        position={[0.03, 0.018, 0.003]}
+        fontSize={0.018}
+        color="#1a1410"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+        letterSpacing={0.08}
+      >
+        TALK TO DRIVER
+      </Text>
+      {/* Chinese subtitle — larger than before */}
+      <Text
+        position={[0.03, -0.018, 0.003]}
+        fontSize={0.02}
         color="#1a1410"
         anchorX="center"
         anchorY="middle"
