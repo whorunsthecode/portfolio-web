@@ -6,12 +6,15 @@ export function HUD() {
   const blindIndex = useStore((s) => s.blindIndex)
   const cycleBind = useStore((s) => s.cycleBind)
   const routePos = useStore((s) => s.routePos)
+  const mode = useStore((s) => s.mode)
+  const setMode = useStore((s) => s.setMode)
 
   const currentStop = STOPS[blindIndex]
   const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
 
   const pillBg = 'rgba(20,20,20,0.75)'
   const textColor = '#f0e6d0'
+  const isNight = mode === 'night'
 
   return (
     <div style={{
@@ -34,7 +37,45 @@ export function HUD() {
         </button>
       )}
 
-      {/* TODO: re-enable in v1.1 if we want a night mode toggle */}
+      {/* ── Day/Night toggle — top right. Briefly overlaps with the
+              Skip button during the ~5s boarding intro (App.tsx);
+              after boarding Skip disappears and this pill sits alone. */}
+      <button
+        onClick={() => setMode(isNight ? 'day' : 'night')}
+        aria-label={isNight ? 'Switch to day' : 'Switch to night'}
+        title={isNight ? 'Switch to day' : 'Switch to night'}
+        style={{
+          position: 'absolute',
+          top: 68,
+          right: 16,
+          pointerEvents: 'auto',
+          background: pillBg,
+          border: 'none',
+          borderRadius: 24,
+          padding: '8px 14px',
+          color: textColor,
+          fontSize: 16,
+          cursor: 'pointer',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          lineHeight: 1,
+          transition: 'transform 120ms ease, background 120ms ease',
+        }}
+        onMouseEnter={(e) => {
+          ;(e.currentTarget as HTMLButtonElement).style.background =
+            'rgba(40,40,40,0.85)'
+        }}
+        onMouseLeave={(e) => {
+          ;(e.currentTarget as HTMLButtonElement).style.background = pillBg
+        }}
+      >
+        <span style={{ fontSize: 18 }}>{isNight ? '☀' : '🌙'}</span>
+        <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          {isNight ? 'Day' : 'Night'}
+        </span>
+      </button>
 
       {/* ── Destination navigation pill — bottom center ──── */}
       {!activeRoom && (

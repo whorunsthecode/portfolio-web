@@ -20,6 +20,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
+import { useStore } from '../store'
 
 /* ── Shop vocabulary — authentic HK shop types ──────────────────── */
 const SHOPS_CHINESE = [
@@ -421,20 +422,64 @@ const SCROLL_SPEED = 6
 const ROUTE_LENGTH = 140
 const RESET_THRESHOLD = 15
 
+// Emissive intensity base (day) and night multiplier. At night all sign
+// faces glow ~8x brighter — neon-street look without swapping materials.
+const DAY_EMISSIVE = 0.18
+const NIGHT_EMISSIVE = 1.6
+const EMISSIVE_LERP_SPEED = 3
+
 export function HKSigns() {
   const groupRef = useRef<THREE.Group>(null)
   const signs = useMemo(() => buildSigns(), [])
   const offsets = useRef(signs.map((s) => s.z))
+  const mode = useStore((s) => s.mode)
+  const blend = useRef(mode === 'night' ? 1 : 0)
 
   useFrame((_, delta) => {
     if (!groupRef.current) return
+
+    // Lerp the day/night blend
+    const target = mode === 'night' ? 1 : 0
+    const diff = target - blend.current
+    if (Math.abs(diff) > 0.001) {
+      blend.current += diff * Math.min(EMISSIVE_LERP_SPEED * delta * 3, 1)
+    } else {
+      blend.current = target
+    }
+    const emissiveIntensity = THREE.MathUtils.lerp(
+      DAY_EMISSIVE,
+      NIGHT_EMISSIVE,
+      blend.current,
+    )
+
     const children = groupRef.current.children
     for (let i = 0; i < children.length; i++) {
+      // Scroll each sign
       offsets.current[i] += SCROLL_SPEED * delta
       if (offsets.current[i] > RESET_THRESHOLD) {
         offsets.current[i] -= ROUTE_LENGTH
       }
       children[i].position.z = offsets.current[i]
+
+      // Update emissive intensity on every face mesh (MeshStandardMaterial
+      // with an emissive color). Walk descendants.
+      children[i].traverse((obj) => {
+        if ((obj as THREE.Mesh).isMesh) {
+          const mesh = obj as THREE.Mesh
+          const mat = mesh.material as THREE.MeshStandardMaterial
+          if (mat && mat.emissive && mat.emissiveIntensity !== undefined) {
+            // Only bump faces that already have emissive (the face planes),
+            // not the dark frame boxes (emissive is black there)
+            if (
+              mat.emissive.r > 0.05 ||
+              mat.emissive.g > 0.05 ||
+              mat.emissive.b > 0.05
+            ) {
+              mat.emissiveIntensity = emissiveIntensity
+            }
+          }
+        }
+      })
     }
   })
 
