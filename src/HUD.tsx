@@ -8,6 +8,7 @@ export function HUD() {
   const routePos = useStore((s) => s.routePos)
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
+  const setShowDriverCard = useStore((s) => s.setShowDriverCard)
 
   const currentStop = STOPS[blindIndex]
   const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
@@ -24,6 +25,14 @@ export function HUD() {
       zIndex: 10,
       color: textColor,
     }}>
+      {/* Keyframes for the Contact chip pulse — scoped to the HUD so the
+          animation is visible on mobile without relying on hover state. */}
+      <style>{`
+        @keyframes contactPulse {
+          0%, 100% { box-shadow: 0 2px 10px rgba(200,164,104,0.35), inset 0 1px 0 rgba(255,255,255,0.35); }
+          50%      { box-shadow: 0 2px 18px rgba(200,164,104,0.85), inset 0 1px 0 rgba(255,255,255,0.35); }
+        }
+      `}</style>
       {/* Back button */}
       {activeRoom && (
         <button onClick={() => setRoom(null)} style={{
@@ -74,6 +83,39 @@ export function HUD() {
         <span style={{ fontSize: 18 }}>{isNight ? '☀' : '🌙'}</span>
         <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
           {isNight ? 'Day' : 'Night'}
+        </span>
+      </button>
+
+      {/* ── Contact chip — persistent CTA below the Day/Night toggle.
+              Hover-glow on the 3D badge is invisible on touch devices, so
+              this HUD affordance guarantees the contact entry point is
+              always discoverable. Brass gradient matches the in-cabin
+              badge; the keyframe pulse draws the eye without being loud. */}
+      <button
+        onClick={() => setShowDriverCard(true)}
+        aria-label="Contact the driver"
+        title="Contact the driver"
+        style={{
+          position: 'absolute',
+          top: 116,
+          right: 16,
+          pointerEvents: 'auto',
+          background: 'linear-gradient(180deg, #d4b478 0%, #9a7a44 100%)',
+          border: '1px solid #8a6f3a',
+          borderRadius: 24,
+          padding: '8px 14px',
+          color: '#1a1410',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          lineHeight: 1,
+          animation: 'contactPulse 2.4s ease-in-out infinite',
+        }}
+      >
+        <span style={{ fontSize: 16 }}>✉</span>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          Contact
         </span>
       </button>
 
