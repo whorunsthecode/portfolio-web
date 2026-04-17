@@ -24,18 +24,21 @@ interface BuildingDef {
 const ROAD_HALF = 5.5  // buildings start this far from center
 const SCROLL_SPEED = 6 // match lane marking speed
 
-// Landmark z positions — skip tenements near these so landmarks are visible
+// Landmark z positions — skip tenements near these so landmarks are visible.
+// Keep in sync with LANDMARKS in buildings/landmarks/Landmarks.tsx.
 const LANDMARK_ZONES: { z: number; side: 'left' | 'right' }[] = [
-  { z: -18, side: 'right' },  // HSBC
-  { z: -34, side: 'left' },   // BoC
-  { z: -48, side: 'right' },  // Cheung Kong
-  { z: -60, side: 'left' },   // Western Market
-  { z: -75, side: 'right' },  // IFC 2
-  { z: -90, side: 'left' },   // Sheung Wan stalls
-  { z: -90, side: 'right' },
-  { z: -105, side: 'left' },  // Tong lau
+  { z: -18, side: 'right' },   // HSBC
+  { z: -26, side: 'left' },    // Central Market
+  { z: -34, side: 'left' },    // BoC
+  { z: -48, side: 'right' },   // Furama Hotel
+  { z: -60, side: 'left' },    // Western Market
+  { z: -75, side: 'right' },   // Jardine House
+  { z: -83, side: 'right' },   // Man Mo Temple
+  { z: -92, side: 'left' },    // Sheung Wan stalls
+  { z: -92, side: 'right' },
+  { z: -105, side: 'left' },   // Tong lau
   { z: -105, side: 'right' },
-  { z: -120, side: 'left' },  // Sai Ying Pun shelter
+  { z: -120, side: 'left' },   // Sai Ying Pun shelter
   { z: -120, side: 'right' },
 ]
 
