@@ -20,7 +20,10 @@ export function Museum() {
       <GestureGalleryExhibit />
       <VelvetRope />
       <GuardChair />
-      <WorldOrbit target={[-100, 1.5, -2]} minDistance={2} maxDistance={8} />
+      {/* Room is 6×10×5 with target at local [0,1.5,-2]; nearest wall is 3
+          units away, so cap maxDistance below that to keep the orbit sphere
+          inside and prevent seeing the beige back faces when rotating. */}
+      <WorldOrbit target={[-100, 1.5, -2]} minDistance={1.8} maxDistance={2.8} />
     </group>
   )
 }
