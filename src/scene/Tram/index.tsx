@@ -92,9 +92,10 @@ function UpperDeckExterior() {
         const rot: [number, number, number] = [0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]
         return (
           <group key={`upper-${side}`}>
+            {/* Upper deck bottom band — CREAM so it forms the visible waistline between decks */}
             <mesh position={[x, botBandY, Z_CENTER]}>
               <boxGeometry args={[0.08, botBandH, uLen]} />
-              <meshStandardMaterial color={GREEN} roughness={0.55} />
+              <meshStandardMaterial color={CREAM} roughness={0.75} />
             </mesh>
 
             <mesh position={[x, topBandY, Z_CENTER]}>
@@ -129,9 +130,10 @@ function UpperDeckExterior() {
         <boxGeometry args={[uw, topBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
+      {/* Front upper bottom band — CREAM so the waistline wraps around */}
       <mesh position={[0, botBandY, Z_FRONT]}>
         <boxGeometry args={[uw, botBandH, 0.07]} />
-        <meshStandardMaterial color={GREEN} roughness={0.55} />
+        <meshStandardMaterial color={CREAM} roughness={0.75} />
       </mesh>
       {[-uhw + 0.1, uhw - 0.1].map((px, i) => (
         <mesh key={`fup-${i}`} position={[px, winCY, Z_FRONT]}>
@@ -149,9 +151,10 @@ function UpperDeckExterior() {
         <boxGeometry args={[uw, topBandH, 0.07]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} />
       </mesh>
+      {/* Rear upper bottom band — CREAM so the waistline wraps around */}
       <mesh position={[0, botBandY, Z_REAR]}>
         <boxGeometry args={[uw, botBandH, 0.07]} />
-        <meshStandardMaterial color={GREEN} roughness={0.55} />
+        <meshStandardMaterial color={CREAM} roughness={0.75} />
       </mesh>
       {[-uhw + 0.1, uhw - 0.1].map((px, i) => (
         <mesh key={`rup-${i}`} position={[px, winCY, Z_REAR]}>
@@ -196,10 +199,10 @@ function LowerDeckExterior() {
               <meshStandardMaterial color={CREAM} roughness={0.75} />
             </mesh>
 
-            {/* Top thin strip — green */}
+            {/* Top thin strip — CREAM (extends the waistline down below the deck divider) */}
             <mesh position={[x, LOWER_TOP - topStripH / 2, Z_CENTER]}>
               <boxGeometry args={[0.07, topStripH, Z_LEN]} />
-              <meshStandardMaterial color={GREEN} roughness={0.55} />
+              <meshStandardMaterial color={CREAM} roughness={0.75} />
             </mesh>
 
             {/* Vertical posts between windows */}
