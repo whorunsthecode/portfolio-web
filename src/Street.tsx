@@ -13,6 +13,64 @@ export function Road() {
   )
 }
 
+/**
+ * Sidewalks — raised pavement strips on each side of the road, between the
+ * road (ends at ~x=±5.5 visually, though road plane is 20 wide) and the
+ * buildings (start at x=±9). Gives pedestrians a place to live and
+ * stops the scene reading as "cars and buildings with nothing between".
+ */
+export function Sidewalks() {
+  const SIDEWALK_Y = 0.12          // sits ~7cm above road surface
+  const SIDEWALK_WIDTH = 3.5
+  const SIDEWALK_LENGTH = 300
+  const SIDEWALK_Z = -75
+  const CURB_HEIGHT = 0.14
+  const CURB_WIDTH = 0.15
+
+  // Inner edge of sidewalk (curb sits flush with road edge at x=±5.5)
+  const INNER_X = 5.5
+  const OUTER_X = INNER_X + SIDEWALK_WIDTH  // 9.0
+  const CENTER_X = (INNER_X + OUTER_X) / 2  // 7.25
+
+  return (
+    <group>
+      {[-1, 1].map((side) => (
+        <group key={`sw-${side}`}>
+          {/* Main sidewalk slab — flat concrete */}
+          <mesh
+            position={[side * CENTER_X, SIDEWALK_Y / 2, SIDEWALK_Z]}
+            receiveShadow
+          >
+            <boxGeometry args={[SIDEWALK_WIDTH, SIDEWALK_Y, SIDEWALK_LENGTH]} />
+            <meshStandardMaterial color="#8a8578" roughness={0.92} />
+          </mesh>
+          {/* Curb edge — slightly darker and raised, runs along inner edge */}
+          <mesh
+            position={[side * (INNER_X + CURB_WIDTH / 2), CURB_HEIGHT / 2 + 0.05, SIDEWALK_Z]}
+            receiveShadow
+          >
+            <boxGeometry args={[CURB_WIDTH, CURB_HEIGHT, SIDEWALK_LENGTH]} />
+            <meshStandardMaterial color="#5a564e" roughness={0.9} />
+          </mesh>
+          {/* Lighter paving-slab seams every 2m — very subtle darker strips */}
+          {Array.from({ length: 60 }, (_, i) => {
+            const z = -i * 5
+            return (
+              <mesh
+                key={`seam-${side}-${i}`}
+                position={[side * CENTER_X, SIDEWALK_Y + 0.001, z]}
+              >
+                <boxGeometry args={[SIDEWALK_WIDTH - 0.1, 0.002, 0.04]} />
+                <meshStandardMaterial color="#6a6458" roughness={0.95} />
+              </mesh>
+            )
+          })}
+        </group>
+      ))}
+    </group>
+  )
+}
+
 /* ── Tram tracks ──────────────────────────────────────── */
 function Rail({ x }: { x: number }) {
   return (
