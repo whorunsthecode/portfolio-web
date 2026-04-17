@@ -534,11 +534,11 @@ interface SeatAssignment {
 // Right bench x = +0.73 → face -X (aisle) → facingAngle = -π/2
 const ASSIGNMENTS: SeatAssignment[] = [
   { variant: 0, x: -0.73, z: -6.5, facingAngle: Math.PI / 2 },    // Office male — left bench, faces aisle
-  { variant: 1, x: 0.73,  z: -5.5, facingAngle: -Math.PI / 2 },   // Office female — right bench, faces aisle
-  { variant: 2, x: -0.73, z: -4.0, facingAngle: Math.PI / 2 },    // Schoolboy — left bench, faces aisle
-  { variant: 3, x: 0.73,  z: -3.0, facingAngle: -Math.PI / 2 },   // Schoolgirl — right bench, faces aisle
-  { variant: 4, x: -0.73, z: -1.5, facingAngle: Math.PI / 2 },    // Auntie — left bench, faces aisle
-  { variant: 5, x: 0.73,  z: -1.0, facingAngle: -Math.PI / 2 },   // Tourist — right bench, faces aisle
+  { variant: 1, x: 0.73,  z: -5.5, facingAngle: -Math.PI / 2 },   // Office female ("pink top lady") — right bench
+  { variant: 4, x: 0.73,  z: -4.2, facingAngle: -Math.PI / 2 },   // Auntie with 紅白藍 bag — seated next to pink-top lady per user request
+  { variant: 2, x: -0.73, z: -4.0, facingAngle: Math.PI / 2 },    // Schoolboy — left bench
+  { variant: 3, x: -0.73, z: -2.5, facingAngle: Math.PI / 2 },    // Schoolgirl — moved to left bench (auntie took her old spot)
+  { variant: 5, x: 0.73,  z: -1.5, facingAngle: -Math.PI / 2 },   // Tourist — right bench
 ]
 
 const SEAT_Y = 0.95 // bench seat surface (FLOOR_Y 0.5 + SEAT_Y offset 0.45)
