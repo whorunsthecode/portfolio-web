@@ -53,8 +53,93 @@ export function TramExteriorShell() {
       <RoofExterior />
       <FrontFace />
       <RearFace />
+      <SideDestinationBoards />
       <Undercarriage />
       <TrolleyPole />
+    </group>
+  )
+}
+
+/**
+ * Side destination boards — the illuminated waistline panel that says
+ * "屈地街 WHITTY ST" on both flanks. In reference #88/#110 this wraps
+ * around the tram at the deck divider. A signature HK tram detail.
+ */
+function SideDestinationBoards() {
+  const boardY = LOWER_TOP - 0.08  // sits ON the cream waistline
+  const boardH = 0.22
+  const boardLen = 4.2
+  const boardZ = Z_FRONT + 3.2  // positioned toward the front, as on reference
+
+  return (
+    <group>
+      {[-1, 1].map((side) => {
+        const x = side * (HW + 0.015)  // slight outward extrusion beyond body
+        return (
+          <group key={`destboard-${side}`}>
+            {/* Cream panel background */}
+            <mesh position={[x, boardY, boardZ]}>
+              <boxGeometry args={[0.03, boardH, boardLen]} />
+              <meshStandardMaterial color={CREAM} roughness={0.65} emissive="#7a6c48" emissiveIntensity={0.12} />
+            </mesh>
+            {/* Thin dark frame top + bottom */}
+            <mesh position={[x + side * 0.002, boardY + boardH / 2, boardZ]}>
+              <boxGeometry args={[0.035, 0.02, boardLen + 0.02]} />
+              <meshStandardMaterial color={FRAME} roughness={0.7} />
+            </mesh>
+            <mesh position={[x + side * 0.002, boardY - boardH / 2, boardZ]}>
+              <boxGeometry args={[0.035, 0.02, boardLen + 0.02]} />
+              <meshStandardMaterial color={FRAME} roughness={0.7} />
+            </mesh>
+            {/* Chinese destination — 屈地街 */}
+            <Text
+              position={[x + side * 0.02, boardY + 0.04, boardZ]}
+              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              fontSize={0.085}
+              color="#0d3a1e"
+              anchorX="center"
+              anchorY="middle"
+              fontWeight="bold"
+              letterSpacing={0.08}
+            >
+              屈地街
+            </Text>
+            {/* English destination — WHITTY ST */}
+            <Text
+              position={[x + side * 0.02, boardY - 0.06, boardZ]}
+              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              fontSize={0.065}
+              color="#0d3a1e"
+              anchorX="center"
+              anchorY="middle"
+              fontWeight="bold"
+              letterSpacing={0.15}
+            >
+              WHITTY STREET
+            </Text>
+            {/* Small route number box at the LEFT end of the board */}
+            <mesh position={[x + side * 0.003, boardY, boardZ - boardLen / 2 + 0.25]}>
+              <boxGeometry args={[0.035, boardH - 0.04, 0.4]} />
+              <meshStandardMaterial color="#1a1a18" roughness={0.6} />
+            </mesh>
+            <mesh position={[x + side * 0.005, boardY, boardZ - boardLen / 2 + 0.25]}>
+              <boxGeometry args={[0.02, boardH - 0.07, 0.36]} />
+              <meshBasicMaterial color="#f8e8b8" />
+            </mesh>
+            <Text
+              position={[x + side * 0.022, boardY, boardZ - boardLen / 2 + 0.25]}
+              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              fontSize={0.13}
+              color="#c82020"
+              anchorX="center"
+              anchorY="middle"
+              fontWeight="bold"
+            >
+              88
+            </Text>
+          </group>
+        )
+      })}
     </group>
   )
 }
@@ -430,20 +515,28 @@ function FrontFace() {
         屈地街 WHITTY ST
       </Text>
 
-      {/* Route 88 box */}
-      <mesh position={[-0.6, LOWER_TOP - 0.12, z - 0.008]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[0.2, 0.2]} />
-        <meshBasicMaterial color="#f8e8b8" />
-      </mesh>
-      <Text position={[-0.6, LOWER_TOP - 0.12, z - 0.012]} rotation={[0, Math.PI, 0]}
-        fontSize={0.12} color="#a82020" anchorX="center" anchorY="middle" fontWeight="bold">
-        88
-      </Text>
+      {/* Front route plate — chunky yellow box with black border + red "88" numerals */}
+      <group position={[-0.72, LOWER_TOP - 0.14, z - 0.012]} rotation={[0, Math.PI, 0]}>
+        {/* Black frame */}
+        <mesh>
+          <boxGeometry args={[0.32, 0.26, 0.015]} />
+          <meshStandardMaterial color="#1a1a18" roughness={0.6} />
+        </mesh>
+        {/* Yellow illuminated face */}
+        <mesh position={[0, 0, -0.008]}>
+          <boxGeometry args={[0.28, 0.22, 0.01]} />
+          <meshBasicMaterial color="#f8dd66" />
+        </mesh>
+        {/* Red "88" numerals */}
+        <Text position={[0, 0, -0.016]} fontSize={0.16} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
+          88
+        </Text>
+      </group>
 
-      {/* Fleet number */}
-      {[-0.85, 0.85].map((x, i) => (
-        <Text key={`ffl-${i}`} position={[x, UPPER_TOP - 0.12, z - 0.008]} rotation={[0, Math.PI, 0]}
-          fontSize={0.08} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
+      {/* Fleet number "088" — bigger, on upper corners of front face (reference #110 style) */}
+      {[-0.88, 0.88].map((x, i) => (
+        <Text key={`ffl-${i}`} position={[x, UPPER_TOP - 0.14, z - 0.012]} rotation={[0, Math.PI, 0]}
+          fontSize={0.12} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
           088
         </Text>
       ))}
@@ -531,7 +624,30 @@ function RearFace() {
         </mesh>
       ))}
 
-      {/* Fleet number */}
+      {/* Rear route plate — matches front (HK trams have route number on both ends) */}
+      <group position={[-0.72, LOWER_TOP - 0.14, z + 0.012]}>
+        <mesh>
+          <boxGeometry args={[0.32, 0.26, 0.015]} />
+          <meshStandardMaterial color="#1a1a18" roughness={0.6} />
+        </mesh>
+        <mesh position={[0, 0, 0.008]}>
+          <boxGeometry args={[0.28, 0.22, 0.01]} />
+          <meshBasicMaterial color="#f8dd66" />
+        </mesh>
+        <Text position={[0, 0, 0.016]} fontSize={0.16} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
+          88
+        </Text>
+      </group>
+
+      {/* Rear fleet number "088" on upper corners */}
+      {[-0.88, 0.88].map((x, i) => (
+        <Text key={`rfl-${i}`} position={[x, UPPER_TOP - 0.14, z + 0.012]}
+          fontSize={0.12} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
+          088
+        </Text>
+      ))}
+
+      {/* Rear fleet number (bottom) */}
       <Text position={[0, LOWER_BOT + 0.12, z + 0.008]}
         fontSize={0.09} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
         088
