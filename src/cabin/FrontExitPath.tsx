@@ -28,7 +28,6 @@ const WOOD_TEAK = '#6a3a20'
 const WOOD_TEAK_DARK = '#4a2818'
 const PAINTED_STEEL = '#dcd6c0'
 const BRASS = '#c8a048'
-const GREEN = '#0d6b3a'
 
 export function FrontExitPath() {
   const doorZ = CABIN_FRONT_Z + 0.55 // slight z offset back from front wall
@@ -38,40 +37,15 @@ export function FrontExitPath() {
 
   return (
     <group>
-      {/* ── Exit door opening: dark panel suggests open sky / street ── */}
+      {/* Exit door opening — dark interior panel only (no swung-open
+          door panel, which was extending out past the tram body and
+          clipping through the exterior). The opening itself reads as
+          "door is open" because you can see the dark step + street
+          beyond. */}
       <mesh position={[exitX - 0.02, doorCY, doorZ]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[0.9, doorH]} />
         <meshStandardMaterial color="#1a1410" side={DoubleSide} />
       </mesh>
-
-      {/* ── Hinged exit door (swung open outward) ─────────────────── */}
-      <group
-        position={[exitX, doorCY, doorZ - 0.45]}
-        rotation={[0, -Math.PI / 2.3, 0]}
-      >
-        {/* Green painted steel door panel */}
-        <mesh position={[-0.3, 0, 0]}>
-          <boxGeometry args={[0.6, doorH, 0.04]} />
-          <meshStandardMaterial color={GREEN} roughness={0.55} />
-        </mesh>
-        {/* Upper translucent glass window */}
-        <mesh position={[-0.3, 0.35, 0.022]}>
-          <planeGeometry args={[0.48, 0.75]} />
-          <meshPhysicalMaterial
-            color="#c8dce0"
-            transparent
-            opacity={0.25}
-            transmission={0.6}
-            roughness={0.08}
-            side={DoubleSide}
-          />
-        </mesh>
-        {/* Brass horizontal push bar */}
-        <mesh position={[-0.5, -0.1, 0.03]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.012, 0.012, 0.3, 8]} />
-          <meshStandardMaterial color={BRASS} metalness={0.75} roughness={0.3} />
-        </mesh>
-      </group>
 
       {/* ── Farebox on a teak post beside the driver ──────────────── */}
       {/* Teak post */}
