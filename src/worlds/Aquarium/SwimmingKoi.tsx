@@ -48,20 +48,34 @@ const FLEE_STRENGTH = 1.5
 /* ═══════════════════════════════════════════════════════════════════
    Koi texture — calico scale pattern with soft color patches
    ═══════════════════════════════════════════════════════════════════ */
-function useKoiTexture(variant: 'orange' | 'white' | 'mixed') {
+type KoiVariant =
+  | 'orange'      // classic orange-red with white
+  | 'white'       // mostly white (platinum Ogon)
+  | 'mixed'       // tri-color Showa (white + red + black)
+  | 'kohaku'      // red-and-white (Nishikigoi classic)
+  | 'karasu'      // solid black koi
+  | 'yamabuki'    // metallic gold
+  | 'asagi'       // blue-grey with red belly
+  | 'butterfly'   // long-finned pastel
+
+function useKoiTexture(variant: KoiVariant) {
   return useMemo(() => {
     const canvas = document.createElement('canvas')
     canvas.width = 256
     canvas.height = 128
     const ctx = canvas.getContext('2d')!
 
-    const base =
-      variant === 'orange'
-        ? '#f4ece0'
-        : variant === 'white'
-        ? '#fafaf2'
-        : '#fbf4e8'
-    ctx.fillStyle = base
+    const BASE_COLORS: Record<KoiVariant, string> = {
+      orange: '#f4ece0',
+      white: '#fafaf2',
+      mixed: '#fbf4e8',
+      kohaku: '#fafaf2',
+      karasu: '#3a3236',
+      yamabuki: '#e8c848',
+      asagi: '#7894a8',
+      butterfly: '#f4e8f0',
+    }
+    ctx.fillStyle = BASE_COLORS[variant]
     ctx.fillRect(0, 0, 256, 128)
 
     // Warm belly shadow gradient (underside)
@@ -78,15 +92,26 @@ function useKoiTexture(variant: 'orange' | 'white' | 'mixed') {
     ctx.fillStyle = dorsal
     ctx.fillRect(0, 0, 256, 48)
 
-    // Calico color patches — large soft red/orange blobs
-    const patches =
-      variant === 'orange'
-        ? ['#f06428', '#d84810', '#f87040']
-        : variant === 'white'
-        ? ['#f06428', '#c83818', '#1a1410']
-        : ['#f06428', '#1a1410', '#c83818', '#c83818']
+    // Variant-specific color patches
+    const PATCHES: Record<KoiVariant, string[]> = {
+      orange:    ['#f06428', '#d84810', '#f87040'],
+      white:     ['#f06428', '#c83818', '#1a1410'],
+      mixed:     ['#f06428', '#1a1410', '#c83818', '#c83818'],
+      kohaku:    ['#d81810', '#a80808', '#e84028'],          // classic deep red patches
+      karasu:    ['#1a1210'],                                 // solid near-black accents
+      yamabuki:  ['#b88820', '#d4a038'],                      // darker gold accents for depth
+      asagi:     ['#c84040', '#4a6878', '#1a2a3a'],           // red belly + blue-grey scales
+      butterfly: ['#e8a0c8', '#f8c0d8', '#a880b8'],           // pastel pink/purple
+    }
+    const patches = PATCHES[variant]
+    // Patch density varies by variant too
+    const patchCount =
+      variant === 'karasu' ? 4
+      : variant === 'yamabuki' ? 5
+      : variant === 'butterfly' ? 6
+      : 8
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < patchCount; i++) {
       const px = 30 + Math.random() * 200
       const py = 25 + Math.random() * 75
       const pr = 18 + Math.random() * 24
@@ -142,7 +167,7 @@ function useKoiTexture(variant: 'orange' | 'white' | 'mixed') {
 interface KoiProps {
   position: [number, number, number]
   scale: number
-  variant: 'orange' | 'white' | 'mixed'
+  variant: KoiVariant
   pathRadius: number
   pathOffsetZ: number
   speed: number
@@ -762,14 +787,32 @@ function Turtle({
    Exported composite
    ═══════════════════════════════════════════════════════════════════ */
 export function SwimmingKoi() {
+  // 10 koi across 8 distinct Nishikigoi varieties + varied sizes/speeds.
+  // Larger koi (1.2–1.4 scale) swim slowly; small juveniles (0.55–0.7)
+  // dart faster. Older showa + karasu tend to hang near the bottom;
+  // yamabuki + butterflies swim higher and brighter.
   const kois = useMemo<KoiProps[]>(
     () => [
-      { position: [-2, 0.5, -1], scale: 1.0, variant: 'orange', pathRadius: 2.5, pathOffsetZ: -1, speed: 0.4, phaseOffset: 0 },
-      { position: [2, 1.0, 1], scale: 0.8, variant: 'white', pathRadius: 3.0, pathOffsetZ: 0, speed: 0.5, phaseOffset: 1.5 },
-      { position: [0, -0.5, -2], scale: 1.2, variant: 'mixed', pathRadius: 3.5, pathOffsetZ: -1, speed: 0.3, phaseOffset: 3 },
-      { position: [-1, 1.5, 2], scale: 0.7, variant: 'orange', pathRadius: 2.0, pathOffsetZ: 1, speed: 0.6, phaseOffset: 4.5 },
-      { position: [3, 0, -2], scale: 0.9, variant: 'white', pathRadius: 2.8, pathOffsetZ: -1.5, speed: 0.45, phaseOffset: 2.2 },
-      { position: [-3, 0.5, 1], scale: 1.1, variant: 'orange', pathRadius: 3.2, pathOffsetZ: 0.5, speed: 0.35, phaseOffset: 5.5 },
+      // Big patriarch orange koi — slow, centered
+      { position: [-2, 0.5, -1],   scale: 1.3, variant: 'orange',    pathRadius: 2.5, pathOffsetZ: -1,   speed: 0.28, phaseOffset: 0 },
+      // Classic kohaku (red-on-white)
+      { position: [2, 1.0, 1],     scale: 1.0, variant: 'kohaku',    pathRadius: 3.0, pathOffsetZ: 0,    speed: 0.42, phaseOffset: 1.5 },
+      // Black karasu — rare + dignified, swims near bottom
+      { position: [0, -0.8, -2],   scale: 1.4, variant: 'karasu',    pathRadius: 3.5, pathOffsetZ: -1,   speed: 0.25, phaseOffset: 3 },
+      // Small juvenile butterfly — pastel pink, fast
+      { position: [-1, 1.5, 2],    scale: 0.55, variant: 'butterfly', pathRadius: 2.0, pathOffsetZ: 1,    speed: 0.7, phaseOffset: 4.5 },
+      // Gold yamabuki — mid-water, flashy
+      { position: [3, 0.3, -2],    scale: 0.95, variant: 'yamabuki',  pathRadius: 2.8, pathOffsetZ: -1.5, speed: 0.45, phaseOffset: 2.2 },
+      // Asagi blue — elegant, slow
+      { position: [-3, 0.5, 1],    scale: 1.15, variant: 'asagi',    pathRadius: 3.2, pathOffsetZ: 0.5,  speed: 0.32, phaseOffset: 5.5 },
+      // Juvenile kohaku — small, peppy
+      { position: [0, 1.8, 0.5],   scale: 0.6, variant: 'kohaku',    pathRadius: 2.2, pathOffsetZ: 0.8,  speed: 0.65, phaseOffset: 0.8 },
+      // Mixed showa — medium size, sideswims
+      { position: [-2.5, -0.2, 1.5], scale: 0.85, variant: 'mixed',  pathRadius: 2.6, pathOffsetZ: 0.3,  speed: 0.48, phaseOffset: 3.8 },
+      // Small platinum-white — schooling juvenile
+      { position: [2.5, 1.6, -0.5], scale: 0.65, variant: 'white',   pathRadius: 2.4, pathOffsetZ: 0,    speed: 0.6, phaseOffset: 2.9 },
+      // Another big butterfly — long fins trailing
+      { position: [1, 0.8, -3],    scale: 1.2, variant: 'butterfly', pathRadius: 3.0, pathOffsetZ: -2,   speed: 0.3, phaseOffset: 5.0 },
     ],
     [],
   )

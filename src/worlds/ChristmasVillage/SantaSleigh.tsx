@@ -32,8 +32,15 @@ const SLEIGH_GOLD = '#d4a848'
 const RUDOLF_NOSE = '#ff3030'
 const REIN = '#3a2818'
 
-const ORBIT_R = 0.52     // radius of the flight path inside the globe
-const ORBIT_Y = 1.35     // height within the globe — upper portion
+// Santa orbits in the OUTDOOR space east of the post office window.
+// Window is at x=4.95, y=2.2; Santa flies a slow wide loop in x=[6, 11]
+// and z=[-5, 3] at y≈3.5 so he's clearly visible through the window
+// as he passes across it. Loop takes ~28s.
+const ORBIT_CX = 8.5
+const ORBIT_CZ = -1
+const ORBIT_RX = 2.2
+const ORBIT_RZ = 4.0
+const ORBIT_Y = 3.5
 const ORBIT_SPEED = 0.22 // radians/sec — slow, dreamy
 
 export function SantaSleigh() {
@@ -44,22 +51,27 @@ export function SantaSleigh() {
     if (!groupRef.current) return
     const t = clock.elapsedTime
     const angle = t * ORBIT_SPEED
-    const x = Math.cos(angle) * ORBIT_R
-    const z = Math.sin(angle) * ORBIT_R
+    // Elliptical orbit — wider in Z than X so the sleigh tracks past the
+    // window (at x=4.95) from left to right then disappears behind the
+    // wall, looping back around.
+    const x = ORBIT_CX + Math.cos(angle) * ORBIT_RX
+    const z = ORBIT_CZ + Math.sin(angle) * ORBIT_RZ
     groupRef.current.position.set(x, ORBIT_Y, z)
-    // Face the direction of travel (tangent to the orbit)
+    // Face tangent to the orbit — reindeer point the way they're flying
     groupRef.current.rotation.y = -angle + Math.PI / 2
 
-    // Subtle vertical bob + slight banking so sleigh feels alive
+    // Subtle vertical bob + slight banking
     if (bobRef.current) {
-      bobRef.current.position.y = Math.sin(t * 1.7) * 0.015
-      bobRef.current.rotation.z = Math.sin(t * 0.9) * 0.06
+      bobRef.current.position.y = Math.sin(t * 1.7) * 0.06
+      bobRef.current.rotation.z = Math.sin(t * 0.9) * 0.08
     }
   })
 
   return (
     <group ref={groupRef}>
-      <group ref={bobRef} scale={[0.28, 0.28, 0.28]}>
+      {/* Scaled larger now that he's in full-scale world space instead
+          of inside a 0.9m snow globe — 0.5 reads well through the window */}
+      <group ref={bobRef} scale={[0.5, 0.5, 0.5]}>
         {/* ── Reindeer team — 4 reindeer in 2×2 formation ahead of sleigh ── */}
         {/* Lead pair (Rudolf + partner) — closest to the sleigh's front */}
         <Reindeer position={[-0.12, 0, 0.6]} isRudolf />

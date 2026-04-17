@@ -285,32 +285,64 @@ export function PostOfficeRoom() {
         </group>
       ))}
 
-      {/* === WINDOW with snow outside === */}
+      {/* === WINDOW — now transparent so you can see the snow (+Santa)
+             flying past outside. No more solid black stroke / opaque
+             white pane per user feedback. === */}
       <group position={[4.95, 2.2, -1]}>
-        <mesh rotation={[0, -Math.PI / 2, 0]}>
-          <boxGeometry args={[2, 2, 0.06]} />
+        {/* Wood window frame — outer sill only, no opaque center panel */}
+        {/* Top rail */}
+        <mesh position={[0, 1.0, 0]}>
+          <boxGeometry args={[0.06, 0.1, 2.1]} />
           <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
         </mesh>
-        <mesh position={[-0.04, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
-          <planeGeometry args={[1.8, 1.8]} />
-          <meshBasicMaterial color="#c8d8e8" />
+        {/* Bottom sill */}
+        <mesh position={[0, -1.0, 0]}>
+          <boxGeometry args={[0.08, 0.12, 2.1]} />
+          <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
         </mesh>
-        <mesh position={[-0.03, 0, 0]}>
-          <boxGeometry args={[0.01, 1.8, 0.04]} />
-          <meshStandardMaterial color={WOOD_DARK} />
+        {/* Left post */}
+        <mesh position={[0, 0, -1.0]}>
+          <boxGeometry args={[0.06, 2.0, 0.08]} />
+          <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
         </mesh>
-        <mesh position={[-0.03, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-          <boxGeometry args={[0.01, 0.04, 1.8]} />
-          <meshStandardMaterial color={WOOD_DARK} />
+        {/* Right post */}
+        <mesh position={[0, 0, 1.0]}>
+          <boxGeometry args={[0.06, 2.0, 0.08]} />
+          <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
         </mesh>
-        {/* Curtains */}
-        <mesh position={[-0.05, 0, -0.85]} rotation={[0, -Math.PI / 2, 0]}>
-          <planeGeometry args={[0.3, 2]} />
-          <meshStandardMaterial color={POST_RED} transparent opacity={0.7} roughness={0.9} side={2} />
+        {/* Center mullion (thin cross) — horizontal */}
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.04, 0.04, 1.9]} />
+          <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
         </mesh>
-        <mesh position={[-0.05, 0, 0.85]} rotation={[0, -Math.PI / 2, 0]}>
-          <planeGeometry args={[0.3, 2]} />
-          <meshStandardMaterial color={POST_RED} transparent opacity={0.7} roughness={0.9} side={2} />
+        {/* Center mullion — vertical */}
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.04, 1.9, 0.04]} />
+          <meshStandardMaterial color={WOOD_DARK} roughness={0.7} />
+        </mesh>
+        {/* The glass — physical-material transparent pane.
+             No black stroke, no opaque fill — you see through to the
+             world beyond (snow + Santa sleigh). */}
+        <mesh rotation={[0, -Math.PI / 2, 0]}>
+          <planeGeometry args={[1.9, 1.9]} />
+          <meshPhysicalMaterial
+            color="#e8f0f8"
+            transparent
+            opacity={0.12}
+            transmission={0.9}
+            roughness={0.04}
+            thickness={0.02}
+            side={2}
+          />
+        </mesh>
+        {/* Curtains — narrower so they don't block the view */}
+        <mesh position={[-0.05, 0, -0.95]} rotation={[0, -Math.PI / 2, 0]}>
+          <planeGeometry args={[0.22, 2]} />
+          <meshStandardMaterial color={POST_RED} transparent opacity={0.6} roughness={0.9} side={2} />
+        </mesh>
+        <mesh position={[-0.05, 0, 0.95]} rotation={[0, -Math.PI / 2, 0]}>
+          <planeGeometry args={[0.22, 2]} />
+          <meshStandardMaterial color={POST_RED} transparent opacity={0.6} roughness={0.9} side={2} />
         </mesh>
         {/* Curtain rod */}
         <mesh position={[-0.05, 1.05, 0]}>

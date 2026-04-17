@@ -194,205 +194,105 @@ function useStarryNightTex() {
 
 /* ═══════════════════════════════════════════════════════════════════
    "Mona Lisa" — Da Vinci, c.1503
-   Warm sfumato brown background, soft-gradient face, arched brows,
-   characteristic half-smile, crossed hands band.
+   Classic stacked-primitives version (reverted per user request).
+   Reads as stylised pictogram, not uncanny. Rendered directly as a
+   <MonaLisa /> component instead of a CanvasTexture.
    ═══════════════════════════════════════════════════════════════════ */
-function useMonaLisaTex() {
-  return useMemo(() => {
-    const { canvas, ctx } = makeCanvas(400, 512)
-
-    // Previous version tried too hard to be a literal Mona Lisa and hit
-    // uncanny-valley hard. New direction: a stylised renaissance portrait
-    // inspired by the Mona Lisa but abstracted — no attempt to paint a
-    // recognisable face. Focus on mood (sfumato tones, composition,
-    // soft gradients) rather than features.
-
-    // Deep warm chiaroscuro background — radial spotlight behind the figure
-    const bg = ctx.createRadialGradient(200, 290, 20, 200, 290, 320)
-    bg.addColorStop(0, '#4a3420')
-    bg.addColorStop(0.35, '#2a1c10')
-    bg.addColorStop(0.75, '#14090a')
-    bg.addColorStop(1, '#060304')
-    ctx.fillStyle = bg
-    ctx.fillRect(0, 0, 400, 512)
-
-    // Soft vertical brushwork in the background — diagonal strokes for
-    // painterly texture (imitates old-master canvas feel)
-    ctx.globalAlpha = 0.08
-    for (let i = 0; i < 200; i++) {
-      const x = Math.random() * 400
-      const y = Math.random() * 512
-      const l = 30 + Math.random() * 60
-      const hue = 20 + Math.random() * 20
-      ctx.strokeStyle = `rgb(${60 + hue}, ${40 + hue * 0.6}, ${24 + hue * 0.4})`
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x + 2, y + l)
-      ctx.stroke()
-    }
-    ctx.globalAlpha = 1
-
-    // Distant misty landscape upper-right — the Mona-Lisa-style vista
-    // visible over the subject's shoulder. Kept abstract: soft color
-    // blocks suggesting aerial perspective.
-    const mist = ctx.createLinearGradient(0, 50, 0, 200)
-    mist.addColorStop(0, '#7a6844')
-    mist.addColorStop(0.6, '#52604a')
-    mist.addColorStop(1, '#2a3430')
-    ctx.fillStyle = mist
-    // Only fill the upper thirds of the image, leaving figure area dark
-    ctx.fillRect(0, 40, 400, 140)
-
-    // Soft mountain silhouette
-    ctx.fillStyle = 'rgba(20, 30, 28, 0.55)'
-    ctx.beginPath()
-    ctx.moveTo(0, 160)
-    ctx.bezierCurveTo(60, 130, 140, 150, 220, 125)
-    ctx.bezierCurveTo(290, 105, 350, 140, 400, 128)
-    ctx.lineTo(400, 180)
-    ctx.lineTo(0, 180)
-    ctx.closePath()
-    ctx.fill()
-
-    // Atmospheric haze on top of the landscape
-    const haze = ctx.createLinearGradient(0, 80, 0, 220)
-    haze.addColorStop(0, 'rgba(180, 160, 120, 0)')
-    haze.addColorStop(0.5, 'rgba(140, 100, 70, 0.3)')
-    haze.addColorStop(1, 'rgba(30, 20, 14, 0.85)')
-    ctx.fillStyle = haze
-    ctx.fillRect(0, 80, 400, 140)
-
-    // === FIGURE — abstracted silhouette, no literal face ===
-    // Dress / torso — soft pyramid shape blended into the dark background
-    const dressGrad = ctx.createLinearGradient(0, 260, 0, 512)
-    dressGrad.addColorStop(0, '#1a0c06')
-    dressGrad.addColorStop(0.4, '#120804')
-    dressGrad.addColorStop(1, '#060302')
-    ctx.fillStyle = dressGrad
-
-    // Broad pyramidal body silhouette
-    ctx.beginPath()
-    ctx.moveTo(60, 512)
-    ctx.quadraticCurveTo(80, 380, 140, 310)
-    ctx.quadraticCurveTo(200, 280, 260, 310)
-    ctx.quadraticCurveTo(320, 380, 340, 512)
-    ctx.closePath()
-    ctx.fill()
-
-    // Subtle dress-fold strokes
-    ctx.strokeStyle = 'rgba(70, 50, 30, 0.18)'
-    ctx.lineWidth = 1.5
-    for (let i = 0; i < 7; i++) {
-      const sx = 110 + i * 30
-      ctx.beginPath()
-      ctx.moveTo(sx, 320)
-      ctx.quadraticCurveTo(sx - 5, 420, sx - 10, 510)
-      ctx.stroke()
-    }
-
-    // Warm sleeve / upper-arm gradient (visible on each side)
-    const sleeveGrad = ctx.createRadialGradient(100, 380, 10, 100, 380, 90)
-    sleeveGrad.addColorStop(0, '#8a5a30')
-    sleeveGrad.addColorStop(0.6, '#4a2a18')
-    sleeveGrad.addColorStop(1, 'rgba(26,12,6,0)')
-    ctx.fillStyle = sleeveGrad
-    ctx.beginPath()
-    ctx.ellipse(100, 380, 48, 80, -0.15, 0, Math.PI * 2)
-    ctx.fill()
-
-    const sleeveGrad2 = ctx.createRadialGradient(300, 380, 10, 300, 380, 90)
-    sleeveGrad2.addColorStop(0, '#8a5a30')
-    sleeveGrad2.addColorStop(0.6, '#4a2a18')
-    sleeveGrad2.addColorStop(1, 'rgba(26,12,6,0)')
-    ctx.fillStyle = sleeveGrad2
-    ctx.beginPath()
-    ctx.ellipse(300, 380, 48, 80, 0.15, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Neckline — warm V in sfumato tones, NO actual face features
-    const neckGrad = ctx.createRadialGradient(200, 290, 10, 200, 290, 80)
-    neckGrad.addColorStop(0, '#a08068')
-    neckGrad.addColorStop(0.5, '#6a4a30')
-    neckGrad.addColorStop(1, 'rgba(20, 10, 6, 0)')
-    ctx.fillStyle = neckGrad
-    ctx.beginPath()
-    ctx.ellipse(200, 300, 55, 48, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Head as a soft warm ellipse — sfumato blur, NO eyes/nose/mouth
-    // This is the critical change: readable as "there's a figure there"
-    // without triggering uncanny-valley pattern recognition.
-    const headGrad = ctx.createRadialGradient(200, 220, 10, 200, 230, 85)
-    headGrad.addColorStop(0, '#d4b494')
-    headGrad.addColorStop(0.35, '#b89270')
-    headGrad.addColorStop(0.65, '#6a4830')
-    headGrad.addColorStop(1, 'rgba(20, 10, 6, 0)')
-    ctx.fillStyle = headGrad
-    ctx.beginPath()
-    ctx.ellipse(200, 230, 65, 82, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Dark hair silhouette — soft-edged around the face
-    const hairGrad = ctx.createRadialGradient(200, 200, 30, 200, 230, 100)
-    hairGrad.addColorStop(0, 'rgba(10, 6, 4, 0)')
-    hairGrad.addColorStop(0.45, 'rgba(8, 4, 2, 0)')
-    hairGrad.addColorStop(0.7, 'rgba(8, 4, 2, 0.85)')
-    hairGrad.addColorStop(1, '#060302')
-    ctx.fillStyle = hairGrad
-    ctx.beginPath()
-    ctx.ellipse(200, 230, 96, 105, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Warm rim light — catches the left side of the face softly
-    const rimGrad = ctx.createRadialGradient(155, 215, 5, 150, 225, 55)
-    rimGrad.addColorStop(0, 'rgba(255, 220, 170, 0.25)')
-    rimGrad.addColorStop(1, 'rgba(255, 220, 170, 0)')
-    ctx.fillStyle = rimGrad
-    ctx.fillRect(100, 160, 120, 140)
-
-    // Thin translucent veil (signature Mona-Lisa-style cloth over hair)
-    ctx.globalAlpha = 0.2
-    ctx.strokeStyle = '#6a5038'
-    ctx.lineWidth = 1
-    for (let i = 0; i < 5; i++) {
-      ctx.beginPath()
-      ctx.moveTo(140 + i * 30, 165)
-      ctx.quadraticCurveTo(200, 150, 260 - i * 30, 165)
-      ctx.stroke()
-    }
-    ctx.globalAlpha = 1
-
-    // Subtle light-bloom halo around the figure
-    const bloom = ctx.createRadialGradient(200, 260, 40, 200, 260, 220)
-    bloom.addColorStop(0, 'rgba(200, 150, 90, 0.06)')
-    bloom.addColorStop(1, 'rgba(200, 150, 90, 0)')
-    ctx.fillStyle = bloom
-    ctx.fillRect(0, 0, 400, 512)
-
-    // Aged varnish tint — warm amber overall cast
-    ctx.globalAlpha = 0.12
-    ctx.fillStyle = '#6a3410'
-    ctx.fillRect(0, 0, 400, 512)
-    ctx.globalAlpha = 1
-
-    // Craquelure hint — tiny random cracks
-    ctx.globalAlpha = 0.08
-    ctx.strokeStyle = '#1a0804'
-    ctx.lineWidth = 0.5
-    for (let i = 0; i < 50; i++) {
-      const cx = Math.random() * 400
-      const cy = Math.random() * 512
-      ctx.beginPath()
-      ctx.moveTo(cx, cy)
-      ctx.lineTo(cx + (Math.random() - 0.5) * 12, cy + (Math.random() - 0.5) * 12)
-      ctx.stroke()
-    }
-    ctx.globalAlpha = 1
-
-    return toTexture(canvas)
-  }, [])
+function MonaLisa({ width = 1.2, height = 0.9 }) {
+  return (
+    <group>
+      {/* Canvas base — warm dark sfumato brown */}
+      <mesh position={[0, 0, 0.001]}>
+        <planeGeometry args={[width, height]} />
+        <meshStandardMaterial color="#3a2818" roughness={0.9} />
+      </mesh>
+      {/* Background landscape — muted blue-green misty hills */}
+      <mesh position={[0, 0.25, 0.002]}>
+        <planeGeometry args={[width, 0.4]} />
+        <meshStandardMaterial color="#5a6048" roughness={0.85} />
+      </mesh>
+      <mesh position={[-0.25, 0.18, 0.003]}>
+        <coneGeometry args={[0.12, 0.1, 3]} />
+        <meshStandardMaterial color="#3a4838" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.25, 0.2, 0.003]}>
+        <coneGeometry args={[0.14, 0.12, 3]} />
+        <meshStandardMaterial color="#3a4838" roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 0.42, 0.002]}>
+        <planeGeometry args={[width, 0.06]} />
+        <meshStandardMaterial color="#a89878" roughness={0.85} />
+      </mesh>
+      {/* Dress */}
+      <mesh position={[0, -0.25, 0.004]}>
+        <planeGeometry args={[0.55, 0.45]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, -0.05, 0.005]}>
+        <planeGeometry args={[0.4, 0.18]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+      {/* Crossed arms band */}
+      <mesh position={[0, -0.18, 0.006]}>
+        <planeGeometry args={[0.35, 0.04]} />
+        <meshStandardMaterial color="#8a6a48" roughness={0.85} />
+      </mesh>
+      {/* Neck */}
+      <mesh position={[0, 0.04, 0.005]}>
+        <planeGeometry args={[0.08, 0.08]} />
+        <meshStandardMaterial color="#c8a888" roughness={0.85} />
+      </mesh>
+      {/* Face oval */}
+      <mesh position={[0, 0.15, 0.006]} scale={[1, 1.2, 1]}>
+        <circleGeometry args={[0.11, 16]} />
+        <meshStandardMaterial color="#d8b898" roughness={0.85} />
+      </mesh>
+      {/* Side hair */}
+      <mesh position={[-0.13, 0.16, 0.005]} scale={[0.6, 1.4, 1]}>
+        <circleGeometry args={[0.08, 12]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.13, 0.16, 0.005]} scale={[0.6, 1.4, 1]}>
+        <circleGeometry args={[0.08, 12]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+      {/* Hair top */}
+      <mesh position={[0, 0.27, 0.005]} scale={[1.1, 0.5, 1]}>
+        <circleGeometry args={[0.1, 12]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+      {/* Eyes */}
+      <mesh position={[-0.04, 0.18, 0.007]}>
+        <circleGeometry args={[0.012, 8]} />
+        <meshBasicMaterial color="#2a1808" />
+      </mesh>
+      <mesh position={[0.04, 0.18, 0.007]}>
+        <circleGeometry args={[0.012, 8]} />
+        <meshBasicMaterial color="#2a1808" />
+      </mesh>
+      {/* Eyebrows */}
+      <mesh position={[-0.04, 0.21, 0.007]}>
+        <planeGeometry args={[0.025, 0.005]} />
+        <meshBasicMaterial color="#5a4028" transparent opacity={0.4} />
+      </mesh>
+      <mesh position={[0.04, 0.21, 0.007]}>
+        <planeGeometry args={[0.025, 0.005]} />
+        <meshBasicMaterial color="#5a4028" transparent opacity={0.4} />
+      </mesh>
+      {/* Smile */}
+      <mesh position={[0, 0.115, 0.007]} rotation={[0, 0, Math.PI]}>
+        <torusGeometry args={[0.022, 0.004, 6, 12, Math.PI]} />
+        <meshBasicMaterial color="#5a3018" />
+      </mesh>
+      {/* Nose */}
+      <mesh position={[0, 0.15, 0.007]}>
+        <planeGeometry args={[0.008, 0.04]} />
+        <meshBasicMaterial color="#a8886a" transparent opacity={0.5} />
+      </mesh>
+    </group>
+  )
 }
+
 
 /* ═══════════════════════════════════════════════════════════════════
    "Water Lilies" — Monet, c.1906
@@ -806,7 +706,6 @@ const PLAQUE_INFO: Record<
 function FramedPainting({ position, rotation, painting }: PaintingProps) {
   const info = PLAQUE_INFO[painting]
   const starryTex = useStarryNightTex()
-  const monaTex = useMonaLisaTex()
   const liliesTex = useWaterLiliesTex()
 
   // Mona is tall portrait, others are landscape
@@ -814,12 +713,16 @@ function FramedPainting({ position, rotation, painting }: PaintingProps) {
   const w = isPortrait ? 0.85 : 1.2
   const h = isPortrait ? 1.1 : 0.9
 
-  const tex =
-    painting === 'starry' ? starryTex : painting === 'mona' ? monaTex : liliesTex
+  // Mona Lisa uses the stacked-primitives <MonaLisa /> component rather than a canvas texture
+  const tex = painting === 'starry' ? starryTex : liliesTex
 
   return (
     <group position={position} rotation={rotation}>
-      <PaintingCanvas tex={tex} width={w} height={h} />
+      {painting === 'mona' ? (
+        <MonaLisa width={w} height={h} />
+      ) : (
+        <PaintingCanvas tex={tex} width={w} height={h} />
+      )}
       <GiltFrame width={w} height={h} />
 
       {/* Plaque hanging below the frame */}
