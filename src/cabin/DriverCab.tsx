@@ -18,11 +18,9 @@
  * always fit; gray painted-steel panels are period-correct.
  */
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Text } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
 import type { ThreeEvent } from '@react-three/fiber'
-import * as THREE from 'three'
 import { useStore } from '../store'
 
 const FLOOR_Y = 0.5
@@ -585,20 +583,6 @@ function DriverBadge({
 }) {
   const setShowDriverCard = useStore((s) => s.setShowDriverCard)
   const [hovered, setHovered] = useState(false)
-  const plaqueRef = useRef<THREE.MeshStandardMaterial>(null)
-  const haloRef = useRef<THREE.MeshBasicMaterial>(null)
-
-  // Gentle pulsing emissive glow — catches the eye at idle without being loud
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime
-    const pulse = (Math.sin(t * 1.8) + 1) / 2 // 0..1
-    if (plaqueRef.current) {
-      plaqueRef.current.emissiveIntensity = hovered ? 0.9 : 0.4 + pulse * 0.3
-    }
-    if (haloRef.current) {
-      haloRef.current.opacity = hovered ? 0.55 : 0.2 + pulse * 0.2
-    }
-  })
 
   const handleEnter = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
@@ -617,38 +601,27 @@ function DriverBadge({
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Soft warm halo behind the plaque — makes it unmissable */}
-      <mesh position={[0, 0, -0.001]}>
-        <planeGeometry args={[0.34, 0.22]} />
-        <meshBasicMaterial ref={haloRef} color="#ffd880" transparent opacity={0.3} depthWrite={false} />
-      </mesh>
-
-      {/* Brass plaque — bigger (0.22×0.13 vs 0.14×0.08), pulsing emissive */}
+      {/* Small elegant brass plaque — restored to original clean look.
+          Positioning is handled by the outer nested-transform groups in
+          DriverCab (the sign-error trap from earlier attempts is gone). */}
       <mesh
         onPointerOver={handleEnter}
         onPointerOut={handleLeave}
         onClick={handleClick}
       >
-        <planeGeometry args={[0.22, 0.13]} />
+        <planeGeometry args={[0.12, 0.08]} />
         <meshStandardMaterial
-          ref={plaqueRef}
           color={BRASS}
           metalness={0.75}
-          roughness={hovered ? 0.18 : 0.28}
+          roughness={hovered ? 0.22 : 0.32}
           emissive={BRASS}
-          emissiveIntensity={0.4}
+          emissiveIntensity={hovered ? 0.55 : 0.18}
         />
       </mesh>
-      {/* Dark outer border — helps it read against the dashboard */}
-      <mesh position={[0, 0, -0.0005]}>
-        <planeGeometry args={[0.235, 0.145]} />
-        <meshStandardMaterial color="#1a1208" roughness={0.8} />
-      </mesh>
-
-      {/* Envelope glyph — larger */}
+      {/* Engraved envelope glyph */}
       <Text
-        position={[-0.06, 0.005, 0.003]}
-        fontSize={0.07}
+        position={[0, 0.008, 0.001]}
+        fontSize={0.05}
         color="#1a1410"
         anchorX="center"
         anchorY="middle"
@@ -656,22 +629,10 @@ function DriverBadge({
       >
         ✉
       </Text>
-      {/* "TALK TO DRIVER" primary label */}
+      {/* Tiny caption */}
       <Text
-        position={[0.03, 0.018, 0.003]}
-        fontSize={0.018}
-        color="#1a1410"
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
-        letterSpacing={0.08}
-      >
-        TALK TO DRIVER
-      </Text>
-      {/* Chinese subtitle — larger than before */}
-      <Text
-        position={[0.03, -0.018, 0.003]}
-        fontSize={0.02}
+        position={[0, -0.025, 0.001]}
+        fontSize={0.012}
         color="#1a1410"
         anchorX="center"
         anchorY="middle"
