@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { useTexture } from '@react-three/drei'
 import { useStore } from '../../store'
 import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
+import { SantaSleigh } from './SantaSleigh'
 
 const GLOBE_RADIUS = 0.9
 const SNOW_COUNT = 80
@@ -118,6 +119,11 @@ export function SnowGlobe() {
             <meshBasicMaterial color="#ffffff" />
           </mesh>
         ))}
+
+        {/* 🎅 Easter egg — Santa + reindeer flying a slow orbit around
+            the village inside the globe. Only readable when the user
+            zooms in close; reads as a tiny speck from default distance. */}
+        <SantaSleigh />
       </group>
 
       {/* Wooden base */}
