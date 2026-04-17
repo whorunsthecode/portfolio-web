@@ -43,10 +43,20 @@ interface Vehicle {
   minGap: number
 }
 
+/**
+ * Lanes are positioned for a physically plausible HK tram street:
+ *
+ *   [-9 ─── sidewalk ─── -5.5][-5.5 ─── road ─── -4.5 (oncomingCar)][-2.9 (oncomingTram)][0 (player tram)][+2.9 phantom tram center][+4.5 (sameDirCar)][+5.5 ─── sidewalk ─── +9]
+ *
+ * Catenary poles live at x=±2.85 (between the two tram tracks and the
+ * outer car lanes). Moving same-direction traffic was previously at
+ * x=+2.0 which put it INSIDE the tram envelope / on top of the catenary
+ * pole. Now it mirrors the oncoming-car lane on the passenger side.
+ */
 const LANES = {
   oncomingTram: -2.9,
   oncomingCar: -4.5,
-  sameDirCar: 2.0,
+  sameDirCar: 4.5,   // was 2.0 — that overlapped tram + catenary pole
 } as const
 
 const TRAM_SPEED = 4
