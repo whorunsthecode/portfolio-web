@@ -97,7 +97,7 @@ function Arms({
 }
 
 // ── Variant 1: Male office worker (寫字樓打工仔) ─────────────────────
-function OfficeMale() {
+export function OfficeMale() {
   const skin = SKIN_CN_A
   return (
     <group>
@@ -153,7 +153,7 @@ function OfficeMale() {
 }
 
 // ── Variant 2: Female office worker (OL) ─────────────────────────────
-function OfficeFemale({ seed = 0 }: { seed?: number }) {
+export function OfficeFemale({ seed = 0 }: { seed?: number }) {
   const skin = SKIN_CN_B
   const hasGlasses = seed % 5 < 2 // ~40%
   return (
@@ -210,7 +210,7 @@ function OfficeFemale({ seed = 0 }: { seed?: number }) {
 }
 
 // ── Variant 3: Primary schoolboy (小學生) ────────────────────────────
-function Schoolboy() {
+export function Schoolboy() {
   const skin = SKIN_CN_C
   // Leg-swinging refs (feet don't reach floor)
   const leftLegRef = useRef<THREE.Group>(null)
@@ -276,7 +276,7 @@ function Schoolboy() {
 }
 
 // ── Variant 4: Secondary schoolgirl (中學生) ─────────────────────────
-function Schoolgirl({ seed = 0 }: { seed?: number }) {
+export function Schoolgirl({ seed = 0 }: { seed?: number }) {
   const skin = SKIN_CN_B
   const hasGlasses = seed % 10 < 3 // ~30%
   return (
@@ -345,7 +345,7 @@ function Schoolgirl({ seed = 0 }: { seed?: number }) {
 }
 
 // ── Variant 5: Elderly auntie (師奶) ─────────────────────────────────
-function Auntie() {
+export function Auntie() {
   const skin = SKIN_CN_C
   const rightArmRef = useRef<THREE.Group>(null)
   // Subtle bracelet-rubbing gesture every ~20s
@@ -433,7 +433,7 @@ function Auntie() {
 
 // ── Variant 6: Tourist (late-80s style) ──────────────────────────────
 const TOURIST_SKINS = ['#f4dcc4', '#c89878', '#f0d0a8'] // white, SEA, JP
-function Tourist({ seed = 0 }: { seed?: number }) {
+export function Tourist({ seed = 0 }: { seed?: number }) {
   const skin = TOURIST_SKINS[seed % TOURIST_SKINS.length]
   const cameraRef = useRef<THREE.Group>(null)
   // Lift camera to face every ~15s
@@ -500,7 +500,7 @@ function Tourist({ seed = 0 }: { seed?: number }) {
 // ── Animated wrapper per passenger ───────────────────────────────────
 
 // Variant render functions — some accept a seed prop for conditional details
-function renderVariant(index: number, seed: number) {
+export function renderVariant(index: number, seed: number) {
   switch (index) {
     case 0: return <OfficeMale />
     case 1: return <OfficeFemale seed={seed} />
@@ -543,7 +543,7 @@ const ASSIGNMENTS: SeatAssignment[] = [
 
 const SEAT_Y = 0.95 // bench seat surface (FLOOR_Y 0.5 + SEAT_Y offset 0.45)
 
-function AnimatedPassenger({
+export function AnimatedPassenger({
   variant,
   position,
   personalOffset,
