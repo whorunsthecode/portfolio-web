@@ -26,7 +26,6 @@ const CABIN_LEFT_X = -1.15       // exit is on the left flank
 
 const WOOD_TEAK = '#6a3a20'
 const WOOD_TEAK_DARK = '#4a2818'
-const PAINTED_STEEL = '#dcd6c0'
 const BRASS = '#c8a048'
 
 export function FrontExitPath() {
@@ -115,29 +114,11 @@ export function FrontExitPath() {
         </mesh>
       </group>
 
-      {/* ── Boarding step (painted steel plate with safety edge) ── */}
-      <mesh position={[exitX - 0.2, FLOOR_Y - 0.08, doorZ]}>
-        <boxGeometry args={[0.5, 0.04, 0.9]} />
-        <meshStandardMaterial color={PAINTED_STEEL} metalness={0.15} roughness={0.7} />
-      </mesh>
-      {/* Safety-yellow edge strip on the outer rim of the step */}
-      <mesh position={[exitX - 0.44, FLOOR_Y - 0.06, doorZ]}>
-        <boxGeometry args={[0.02, 0.005, 0.9]} />
-        <meshStandardMaterial color="#e8c048" roughness={0.7} />
-      </mesh>
-
-      {/* ── "出 EXIT" painted text on the step (amber paint) ────── */}
-      <Text
-        position={[exitX - 0.2, FLOOR_Y - 0.058, doorZ]}
-        rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
-        fontSize={0.06}
-        color="#c89028"
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
-      >
-        出  EXIT
-      </Text>
+      {/* Boarding step + EXIT text intentionally removed — they
+          extended past the outer edge of the cabin body at exitX=-1.15
+          and appeared as a "white foot pane floating outside the tram"
+          in the user's screenshot. Leaving this area dark completes
+          the open-door illusion. */}
 
       {/* ── Small "落車 DROP FARE" sign on the farebox post ──── */}
       <group position={[exitX + 0.165, FLOOR_Y + 1.25, doorZ + 0.7]} rotation={[0, Math.PI / 2, 0]}>

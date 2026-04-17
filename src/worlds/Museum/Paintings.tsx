@@ -201,169 +201,194 @@ function useMonaLisaTex() {
   return useMemo(() => {
     const { canvas, ctx } = makeCanvas(400, 512)
 
-    // Warm amber background gradient
-    const bg = ctx.createRadialGradient(200, 256, 40, 200, 256, 420)
-    bg.addColorStop(0, '#6a4a28')
-    bg.addColorStop(0.5, '#3a2818')
-    bg.addColorStop(1, '#1a100a')
+    // Previous version tried too hard to be a literal Mona Lisa and hit
+    // uncanny-valley hard. New direction: a stylised renaissance portrait
+    // inspired by the Mona Lisa but abstracted — no attempt to paint a
+    // recognisable face. Focus on mood (sfumato tones, composition,
+    // soft gradients) rather than features.
+
+    // Deep warm chiaroscuro background — radial spotlight behind the figure
+    const bg = ctx.createRadialGradient(200, 290, 20, 200, 290, 320)
+    bg.addColorStop(0, '#4a3420')
+    bg.addColorStop(0.35, '#2a1c10')
+    bg.addColorStop(0.75, '#14090a')
+    bg.addColorStop(1, '#060304')
     ctx.fillStyle = bg
     ctx.fillRect(0, 0, 400, 512)
 
-    // Distant misty landscape — upper portion
-    const sky = ctx.createLinearGradient(0, 0, 0, 180)
-    sky.addColorStop(0, '#8a7a52')
-    sky.addColorStop(1, '#5a5442')
-    ctx.fillStyle = sky
-    ctx.fillRect(0, 0, 400, 180)
+    // Soft vertical brushwork in the background — diagonal strokes for
+    // painterly texture (imitates old-master canvas feel)
+    ctx.globalAlpha = 0.08
+    for (let i = 0; i < 200; i++) {
+      const x = Math.random() * 400
+      const y = Math.random() * 512
+      const l = 30 + Math.random() * 60
+      const hue = 20 + Math.random() * 20
+      ctx.strokeStyle = `rgb(${60 + hue}, ${40 + hue * 0.6}, ${24 + hue * 0.4})`
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(x, y)
+      ctx.lineTo(x + 2, y + l)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
 
-    // Rolling hills — low contrast
-    ctx.fillStyle = '#3a4032'
+    // Distant misty landscape upper-right — the Mona-Lisa-style vista
+    // visible over the subject's shoulder. Kept abstract: soft color
+    // blocks suggesting aerial perspective.
+    const mist = ctx.createLinearGradient(0, 50, 0, 200)
+    mist.addColorStop(0, '#7a6844')
+    mist.addColorStop(0.6, '#52604a')
+    mist.addColorStop(1, '#2a3430')
+    ctx.fillStyle = mist
+    // Only fill the upper thirds of the image, leaving figure area dark
+    ctx.fillRect(0, 40, 400, 140)
+
+    // Soft mountain silhouette
+    ctx.fillStyle = 'rgba(20, 30, 28, 0.55)'
     ctx.beginPath()
-    ctx.moveTo(0, 155)
-    ctx.bezierCurveTo(80, 120, 160, 135, 230, 115)
-    ctx.bezierCurveTo(300, 95, 360, 130, 400, 120)
+    ctx.moveTo(0, 160)
+    ctx.bezierCurveTo(60, 130, 140, 150, 220, 125)
+    ctx.bezierCurveTo(290, 105, 350, 140, 400, 128)
     ctx.lineTo(400, 180)
     ctx.lineTo(0, 180)
     ctx.closePath()
     ctx.fill()
 
-    // Second hill layer darker
-    ctx.fillStyle = '#2a3028'
+    // Atmospheric haze on top of the landscape
+    const haze = ctx.createLinearGradient(0, 80, 0, 220)
+    haze.addColorStop(0, 'rgba(180, 160, 120, 0)')
+    haze.addColorStop(0.5, 'rgba(140, 100, 70, 0.3)')
+    haze.addColorStop(1, 'rgba(30, 20, 14, 0.85)')
+    ctx.fillStyle = haze
+    ctx.fillRect(0, 80, 400, 140)
+
+    // === FIGURE — abstracted silhouette, no literal face ===
+    // Dress / torso — soft pyramid shape blended into the dark background
+    const dressGrad = ctx.createLinearGradient(0, 260, 0, 512)
+    dressGrad.addColorStop(0, '#1a0c06')
+    dressGrad.addColorStop(0.4, '#120804')
+    dressGrad.addColorStop(1, '#060302')
+    ctx.fillStyle = dressGrad
+
+    // Broad pyramidal body silhouette
     ctx.beginPath()
-    ctx.moveTo(0, 175)
-    ctx.bezierCurveTo(100, 160, 180, 170, 260, 155)
-    ctx.bezierCurveTo(320, 148, 360, 165, 400, 158)
-    ctx.lineTo(400, 180)
-    ctx.lineTo(0, 180)
+    ctx.moveTo(60, 512)
+    ctx.quadraticCurveTo(80, 380, 140, 310)
+    ctx.quadraticCurveTo(200, 280, 260, 310)
+    ctx.quadraticCurveTo(320, 380, 340, 512)
     ctx.closePath()
     ctx.fill()
 
-    // Column / balustrade hint — warm vertical smudges left + right
-    ctx.fillStyle = 'rgba(90, 58, 32, 0.45)'
-    ctx.fillRect(30, 180, 40, 140)
-    ctx.fillRect(330, 180, 40, 140)
+    // Subtle dress-fold strokes
+    ctx.strokeStyle = 'rgba(70, 50, 30, 0.18)'
+    ctx.lineWidth = 1.5
+    for (let i = 0; i < 7; i++) {
+      const sx = 110 + i * 30
+      ctx.beginPath()
+      ctx.moveTo(sx, 320)
+      ctx.quadraticCurveTo(sx - 5, 420, sx - 10, 510)
+      ctx.stroke()
+    }
 
-    // === FIGURE ===
-    // Dress — large dark trapezoid
-    ctx.fillStyle = '#0f0904'
+    // Warm sleeve / upper-arm gradient (visible on each side)
+    const sleeveGrad = ctx.createRadialGradient(100, 380, 10, 100, 380, 90)
+    sleeveGrad.addColorStop(0, '#8a5a30')
+    sleeveGrad.addColorStop(0.6, '#4a2a18')
+    sleeveGrad.addColorStop(1, 'rgba(26,12,6,0)')
+    ctx.fillStyle = sleeveGrad
     ctx.beginPath()
-    ctx.moveTo(80, 512)
-    ctx.lineTo(320, 512)
-    ctx.lineTo(300, 320)
-    ctx.lineTo(100, 320)
-    ctx.closePath()
+    ctx.ellipse(100, 380, 48, 80, -0.15, 0, Math.PI * 2)
     ctx.fill()
 
-    // Dress folds — subtle darker strokes
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
-    ctx.lineWidth = 2
+    const sleeveGrad2 = ctx.createRadialGradient(300, 380, 10, 300, 380, 90)
+    sleeveGrad2.addColorStop(0, '#8a5a30')
+    sleeveGrad2.addColorStop(0.6, '#4a2a18')
+    sleeveGrad2.addColorStop(1, 'rgba(26,12,6,0)')
+    ctx.fillStyle = sleeveGrad2
+    ctx.beginPath()
+    ctx.ellipse(300, 380, 48, 80, 0.15, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Neckline — warm V in sfumato tones, NO actual face features
+    const neckGrad = ctx.createRadialGradient(200, 290, 10, 200, 290, 80)
+    neckGrad.addColorStop(0, '#a08068')
+    neckGrad.addColorStop(0.5, '#6a4a30')
+    neckGrad.addColorStop(1, 'rgba(20, 10, 6, 0)')
+    ctx.fillStyle = neckGrad
+    ctx.beginPath()
+    ctx.ellipse(200, 300, 55, 48, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Head as a soft warm ellipse — sfumato blur, NO eyes/nose/mouth
+    // This is the critical change: readable as "there's a figure there"
+    // without triggering uncanny-valley pattern recognition.
+    const headGrad = ctx.createRadialGradient(200, 220, 10, 200, 230, 85)
+    headGrad.addColorStop(0, '#d4b494')
+    headGrad.addColorStop(0.35, '#b89270')
+    headGrad.addColorStop(0.65, '#6a4830')
+    headGrad.addColorStop(1, 'rgba(20, 10, 6, 0)')
+    ctx.fillStyle = headGrad
+    ctx.beginPath()
+    ctx.ellipse(200, 230, 65, 82, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Dark hair silhouette — soft-edged around the face
+    const hairGrad = ctx.createRadialGradient(200, 200, 30, 200, 230, 100)
+    hairGrad.addColorStop(0, 'rgba(10, 6, 4, 0)')
+    hairGrad.addColorStop(0.45, 'rgba(8, 4, 2, 0)')
+    hairGrad.addColorStop(0.7, 'rgba(8, 4, 2, 0.85)')
+    hairGrad.addColorStop(1, '#060302')
+    ctx.fillStyle = hairGrad
+    ctx.beginPath()
+    ctx.ellipse(200, 230, 96, 105, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Warm rim light — catches the left side of the face softly
+    const rimGrad = ctx.createRadialGradient(155, 215, 5, 150, 225, 55)
+    rimGrad.addColorStop(0, 'rgba(255, 220, 170, 0.25)')
+    rimGrad.addColorStop(1, 'rgba(255, 220, 170, 0)')
+    ctx.fillStyle = rimGrad
+    ctx.fillRect(100, 160, 120, 140)
+
+    // Thin translucent veil (signature Mona-Lisa-style cloth over hair)
+    ctx.globalAlpha = 0.2
+    ctx.strokeStyle = '#6a5038'
+    ctx.lineWidth = 1
     for (let i = 0; i < 5; i++) {
       ctx.beginPath()
-      ctx.moveTo(130 + i * 35, 330)
-      ctx.quadraticCurveTo(130 + i * 35, 420, 125 + i * 35, 512)
+      ctx.moveTo(140 + i * 30, 165)
+      ctx.quadraticCurveTo(200, 150, 260 - i * 30, 165)
       ctx.stroke()
     }
+    ctx.globalAlpha = 1
 
-    // Crossed hands — warm sfumato band
-    const handsGrad = ctx.createLinearGradient(0, 330, 0, 390)
-    handsGrad.addColorStop(0, '#c8a882')
-    handsGrad.addColorStop(0.5, '#8a6a48')
-    handsGrad.addColorStop(1, '#5a4028')
-    ctx.fillStyle = handsGrad
-    ctx.beginPath()
-    ctx.ellipse(200, 360, 80, 18, 0, 0, Math.PI * 2)
-    ctx.fill()
+    // Subtle light-bloom halo around the figure
+    const bloom = ctx.createRadialGradient(200, 260, 40, 200, 260, 220)
+    bloom.addColorStop(0, 'rgba(200, 150, 90, 0.06)')
+    bloom.addColorStop(1, 'rgba(200, 150, 90, 0)')
+    ctx.fillStyle = bloom
+    ctx.fillRect(0, 0, 400, 512)
 
-    // Neck + chest
-    ctx.fillStyle = '#c8a888'
-    ctx.beginPath()
-    ctx.moveTo(175, 290)
-    ctx.lineTo(225, 290)
-    ctx.quadraticCurveTo(240, 310, 220, 330)
-    ctx.lineTo(180, 330)
-    ctx.quadraticCurveTo(160, 310, 175, 290)
-    ctx.closePath()
-    ctx.fill()
+    // Aged varnish tint — warm amber overall cast
+    ctx.globalAlpha = 0.12
+    ctx.fillStyle = '#6a3410'
+    ctx.fillRect(0, 0, 400, 512)
+    ctx.globalAlpha = 1
 
-    // Head — oval with sfumato gradient
-    const faceGrad = ctx.createRadialGradient(200, 240, 20, 200, 240, 80)
-    faceGrad.addColorStop(0, '#e8c8a8')
-    faceGrad.addColorStop(0.6, '#c8a888')
-    faceGrad.addColorStop(1, '#8a7058')
-    ctx.fillStyle = faceGrad
-    ctx.beginPath()
-    ctx.ellipse(200, 240, 60, 78, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Hair — dark sweeps over the head + sides
-    ctx.fillStyle = '#0a0604'
-    ctx.beginPath()
-    ctx.ellipse(200, 195, 64, 28, 0, 0, Math.PI * 2)
-    ctx.fill()
-    // Side hair falls
-    ctx.beginPath()
-    ctx.ellipse(142, 250, 18, 70, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.beginPath()
-    ctx.ellipse(258, 250, 18, 70, 0, 0, Math.PI * 2)
-    ctx.fill()
-
-    // Veil — thin translucent lines over hair (signature sfumato veil)
-    ctx.strokeStyle = 'rgba(80, 60, 44, 0.4)'
-    ctx.lineWidth = 1
-    for (let i = 0; i < 6; i++) {
+    // Craquelure hint — tiny random cracks
+    ctx.globalAlpha = 0.08
+    ctx.strokeStyle = '#1a0804'
+    ctx.lineWidth = 0.5
+    for (let i = 0; i < 50; i++) {
+      const cx = Math.random() * 400
+      const cy = Math.random() * 512
       ctx.beginPath()
-      ctx.moveTo(145 + i * 20, 185)
-      ctx.quadraticCurveTo(200, 170, 255 - i * 20, 185)
+      ctx.moveTo(cx, cy)
+      ctx.lineTo(cx + (Math.random() - 0.5) * 12, cy + (Math.random() - 0.5) * 12)
       ctx.stroke()
     }
-
-    // Eyes — two soft-edged dark lozenges
-    for (const ex of [182, 218]) {
-      ctx.fillStyle = '#1a0c04'
-      ctx.beginPath()
-      ctx.ellipse(ex, 234, 5, 3.5, 0, 0, Math.PI * 2)
-      ctx.fill()
-      // Under-eye shadow (sfumato)
-      ctx.fillStyle = 'rgba(80, 50, 30, 0.3)'
-      ctx.beginPath()
-      ctx.ellipse(ex, 242, 8, 3, 0, 0, Math.PI * 2)
-      ctx.fill()
-    }
-
-    // Eyebrows — very faint, reference erased-brow look
-    ctx.strokeStyle = 'rgba(90, 60, 30, 0.35)'
-    ctx.lineWidth = 1.5
-    ctx.beginPath()
-    ctx.moveTo(174, 224)
-    ctx.quadraticCurveTo(182, 220, 190, 224)
-    ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(210, 224)
-    ctx.quadraticCurveTo(218, 220, 226, 224)
-    ctx.stroke()
-
-    // Nose shadow
-    ctx.strokeStyle = 'rgba(80, 50, 30, 0.35)'
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.moveTo(200, 238)
-    ctx.quadraticCurveTo(195, 258, 198, 268)
-    ctx.stroke()
-
-    // The smile — slight asymmetric curve
-    ctx.strokeStyle = '#5a3018'
-    ctx.lineWidth = 2.2
-    ctx.beginPath()
-    ctx.moveTo(186, 276)
-    ctx.quadraticCurveTo(200, 284, 216, 274)
-    ctx.stroke()
-
-    // Subtle face highlights (left cheek)
-    ctx.fillStyle = 'rgba(248, 220, 180, 0.18)'
-    ctx.beginPath()
-    ctx.ellipse(178, 250, 20, 28, 0, 0, Math.PI * 2)
-    ctx.fill()
+    ctx.globalAlpha = 1
 
     return toTexture(canvas)
   }, [])
@@ -692,37 +717,6 @@ function BrassPlaque({
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   Ceiling spotlight cone + polished bulb cap shining on the painting
-   ═══════════════════════════════════════════════════════════════════ */
-function SpotlightCone() {
-  return (
-    <group>
-      {/* Warm emissive cone — the light beam itself */}
-      <mesh position={[0, 1.9, 0.05]}>
-        <coneGeometry args={[0.55, 1.8, 20, 1, true]} />
-        <meshBasicMaterial
-          color="#ffedb8"
-          transparent
-          opacity={0.09}
-          depthWrite={false}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {/* Warm disc halo ON the painting surface */}
-      <mesh position={[0, 0.5, 0.02]}>
-        <circleGeometry args={[0.45, 32]} />
-        <meshBasicMaterial color="#ffe8a8" transparent opacity={0.12} depthWrite={false} />
-      </mesh>
-      {/* Core highlight */}
-      <mesh position={[0, 0.55, 0.022]}>
-        <circleGeometry args={[0.2, 32]} />
-        <meshBasicMaterial color="#fff6d0" transparent opacity={0.14} depthWrite={false} />
-      </mesh>
-    </group>
-  )
-}
-
-/* ═══════════════════════════════════════════════════════════════════
    Museum bench — two leather cushions on a brass frame, center of room
    ═══════════════════════════════════════════════════════════════════ */
 export function MuseumBench() {
@@ -827,7 +821,6 @@ function FramedPainting({ position, rotation, painting }: PaintingProps) {
     <group position={position} rotation={rotation}>
       <PaintingCanvas tex={tex} width={w} height={h} />
       <GiltFrame width={w} height={h} />
-      <SpotlightCone />
 
       {/* Plaque hanging below the frame */}
       <group position={[0, -h / 2 - 0.17, 0.01]}>

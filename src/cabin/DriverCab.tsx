@@ -118,7 +118,9 @@ export function DriverCab() {
       {[-0.42, -0.29, -0.16, 0.16, 0.29, 0.42].map((xOff, i) => {
         const topEdgeY = dashY + 0.17 * Math.cos(dashTilt)
         const topEdgeZ = dashZ + 0.17 * Math.sin(-dashTilt)
-        const colors = ['#c82020', '#c88020', '#3a8848', '#5a8ac8', '#c8a048', '#c82020']
+        // Reduced red load — only one red warning (centre-left). Rest are
+        // amber / green / blue / amber / amber.
+        const colors = ['#c8a048', '#c88020', '#3a8848', '#5a8ac8', '#c88020', '#c8a048']
         return (
           <group
             key={`warn-${i}`}
@@ -144,15 +146,28 @@ export function DriverCab() {
         )
       })}
 
-      {/* ── CONTACT BADGE — on sloped dash BELOW gauge lights ──── */}
-      <DriverBadge
-        position={[
-          driverX + 0.0,
-          dashY - 0.13 * Math.cos(dashTilt),
-          dashZ - 0.13 * Math.sin(-dashTilt) + 0.011,
-        ]}
-        rotation={[dashTilt, 0, 0]}
-      />
+      {/* ── CONTACT BADGE — floats PROUD of the sloped dashboard face
+            (previous version at +0.011 was burying inside the dash
+            geometry, making the badge invisible). Now offset +0.05
+            normal-to-dashboard so it clearly sits on top. */}
+      {(() => {
+        const dashCos = Math.cos(dashTilt)
+        const dashSin = Math.sin(-dashTilt)
+        // Position ON the dashboard face, below the warning-light row
+        const downY = -0.13
+        const faceY = dashY + downY * dashCos
+        const faceZ = dashZ + downY * dashSin
+        // Push the badge out along the dashboard surface normal
+        const normalLift = 0.05
+        const liftZ = normalLift * Math.cos(dashTilt)
+        const liftY = normalLift * Math.sin(-dashTilt)
+        return (
+          <DriverBadge
+            position={[driverX + 0.0, faceY + liftY, faceZ + liftZ]}
+            rotation={[dashTilt, 0, 0]}
+          />
+        )
+      })()}
 
       {/* ── STEERING WHEEL — moved to RIGHT side per reference ── */}
       <SteeringWheel
@@ -170,9 +185,10 @@ export function DriverCab() {
           <cylinderGeometry args={[0.013, 0.013, 0.3, 8]} />
           <meshStandardMaterial color={WHEEL_DARK} metalness={0.5} />
         </mesh>
+        {/* Brass knob (was crimson — too much red overall) */}
         <mesh position={[0, 0.16, 0]}>
           <sphereGeometry args={[0.028, 10, 10]} />
-          <meshStandardMaterial color="#8a2820" roughness={0.6} />
+          <meshStandardMaterial color={BRASS} metalness={0.7} roughness={0.35} />
         </mesh>
       </group>
 
@@ -271,22 +287,25 @@ function LeftSwitchCluster({
         </Text>
       </group>
 
-      {/* Red mushroom alarm button — bottom-left of cluster */}
+      {/* Amber emergency button — bottom-left of cluster (was red, but
+          the panel already has the red dial needle and the red-tinted
+          LED display, so swapping this to amber tones down total red
+          load and still reads as "industrial emergency button"). */}
       <group position={[-0.065, -0.12, 0.007]}>
         {/* Dark base ring */}
         <mesh>
           <ringGeometry args={[0.018, 0.026, 16]} />
           <meshStandardMaterial color="#1a1a1a" metalness={0.4} roughness={0.6} />
         </mesh>
-        {/* Red button cap */}
+        {/* Amber button cap */}
         <mesh position={[0, 0, 0.004]}>
           <circleGeometry args={[0.018, 16]} />
-          <meshBasicMaterial color="#c82020" />
+          <meshBasicMaterial color="#e89020" />
         </mesh>
         {/* Subtle highlight dot */}
         <mesh position={[-0.005, 0.005, 0.005]}>
           <circleGeometry args={[0.005, 10]} />
-          <meshBasicMaterial color="#ff5a4a" transparent opacity={0.6} />
+          <meshBasicMaterial color="#ffc060" transparent opacity={0.6} />
         </mesh>
       </group>
     </group>
@@ -452,11 +471,11 @@ function RedLedRouteDisplay({
       >
         WHITTY
       </Text>
-      {/* Smaller stop counter — "05 / 12" style */}
+      {/* Smaller stop counter — white (was red; too much red overall) */}
       <Text
         position={[0, -0.04, 0.005]}
         fontSize={0.018}
-        color={LED_RED}
+        color="#f0e8d8"
         anchorX="center"
         anchorY="middle"
         fontWeight="bold"
