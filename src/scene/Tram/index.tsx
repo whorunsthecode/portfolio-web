@@ -15,7 +15,7 @@
 import { Text } from '@react-three/drei'
 import { FrontSide, DoubleSide } from 'three'
 
-const GREEN = '#1a5838'
+const GREEN = '#0d6b3a' // HK Tram Pantone green — signature livery color
 const CREAM = '#f0e6c8'
 const FRAME = '#1a1a18'
 
@@ -168,9 +168,9 @@ function LowerDeckExterior() {
   const h = LOWER_TOP - LOWER_BOT  // 2.2
   const cy = (LOWER_BOT + LOWER_TOP) / 2
 
-  // Cream skirt below windows, thin green trim above. Windows fill the middle band.
-  const bottomStripH = 0.85  // CREAM skirt — taller so windows sit at realistic eye level
-  const topStripH = 0.22     // thin green trim band at top (meets cream belt-line at y=0.5)
+  // Mostly GREEN body (signature HK tram look). Thin cream stripe at deck divider only.
+  const bottomStripH = 0.5   // GREEN skirt below windows
+  const topStripH = 0.15     // thin CREAM waistline stripe at deck boundary
   const windowH = h - bottomStripH - topStripH
   const windowCY = LOWER_BOT + bottomStripH + windowH / 2
 
@@ -181,13 +181,13 @@ function LowerDeckExterior() {
         const rot: [number, number, number] = [0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]
         return (
           <group key={`lower-${side}`}>
-            {/* Bottom solid strip — CREAM skirt below windows */}
+            {/* Bottom solid strip — GREEN skirt below windows (signature tram color) */}
             <mesh position={[x, LOWER_BOT + bottomStripH / 2, Z_CENTER]}>
               <boxGeometry args={[0.07, bottomStripH, Z_LEN]} />
-              <meshStandardMaterial color={CREAM} roughness={0.75} />
+              <meshStandardMaterial color={GREEN} roughness={0.55} metalness={0.15} />
             </mesh>
 
-            {/* Top thin strip — CREAM (extends the waistline down below the deck divider) */}
+            {/* Top thin strip — CREAM waistline at deck divider */}
             <mesh position={[x, LOWER_TOP - topStripH / 2, Z_CENTER]}>
               <boxGeometry args={[0.07, topStripH, Z_LEN]} />
               <meshStandardMaterial color={CREAM} roughness={0.75} />
