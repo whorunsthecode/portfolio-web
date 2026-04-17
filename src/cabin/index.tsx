@@ -6,6 +6,7 @@ import { CabinDetails } from './CabinDetails'
 import { DestinationBlind } from './DestinationBlind'
 import { LowerDeckShell } from '../scene/LowerDeckShell'
 import { SpiralStaircase } from '../scene/SpiralStaircase'
+import { UpperDeck } from './UpperDeck'
 
 export function Cabin() {
   return (
@@ -18,6 +19,7 @@ export function Cabin() {
       <CabinDetails />
       <DestinationBlind />
       <SpiralStaircase />
+      <UpperDeck />
     </group>
   )
 }
