@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Text } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
+import { CONTACT_CHANNELS, type ContactChannel } from '../../config/contact'
 
 const TRAM_GREEN_VINTAGE = '#2a5238'
 const TRAM_GREEN_WEATHERED = '#3a6248'
@@ -10,20 +11,9 @@ const WOOD_FRAME = '#5a3a20'
 const BOARD_WOOD = '#5a3a20'
 const TICKET_BG = '#f0e0c0'
 
-interface Stop {
-  id: string
-  label: string
-  subtitle: string
-  url: string | null
-  accentColor: string
-}
-
-const STOPS: Stop[] = [
-  { id: 'linkedin', label: 'LinkedIn', subtitle: '@karmenyipnm', url: 'https://www.linkedin.com/in/karmenyipnm', accentColor: '#2a4868' },
-  { id: 'email', label: 'Email', subtitle: 'kynm2603', url: 'mailto:kynm2603@gmail.com', accentColor: '#a82828' },
-  { id: 'github', label: 'GitHub', subtitle: '@whorunsthecode', url: 'https://github.com/whorunsthecode', accentColor: '#3a3a38' },
-  { id: 'resume', label: 'Résumé', subtitle: 'coming soon', url: null, accentColor: '#8a6a42' },
-]
+// Alias so existing local references to Stop / STOPS keep working
+type Stop = ContactChannel
+const STOPS: Stop[] = CONTACT_CHANNELS
 
 function Nameplate() {
   return (

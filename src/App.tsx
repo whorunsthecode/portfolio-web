@@ -11,6 +11,7 @@ import { OrbitControls } from '@react-three/drei'
 import { TOUCH } from 'three'
 import { useStore } from './store'
 import { OnboardingOverlay } from './onboarding/OnboardingOverlay'
+import { DriverContactCard } from './onboarding/DriverContactCard'
 
 export default function App() {
   const [boardingDone, setBoardingDone] = useState(false)
@@ -94,6 +95,7 @@ export default function App() {
       <ProjectModal />
       <Toast />
       <OnboardingOverlay />
+      <DriverContactCard />
     </>
   )
 }

@@ -27,6 +27,9 @@ interface State {
   blindIndex: number
   routePos: number  // 0–140, advances with tram scroll speed
   muted: boolean
+  /** When true, the Driver contact-card overlay is shown. Toggled by clicking
+   *  the driver figure in DriverCab, dismissed by backdrop/Esc/close button. */
+  showDriverCard: boolean
   setMode: (m: 'day' | 'night') => void
   setRoom: (r: State['activeRoom']) => void
   setModal: (m: State['modal']) => void
@@ -34,6 +37,7 @@ interface State {
   cycleBind: (dir: 1 | -1) => void
   advanceRoute: (delta: number) => void
   toggleMute: () => void
+  setShowDriverCard: (v: boolean) => void
 }
 
 export const useStore = create<State>((set) => ({
@@ -43,6 +47,7 @@ export const useStore = create<State>((set) => ({
   blindIndex: 0,
   routePos: 0,
   muted: false,
+  showDriverCard: false,
   setMode: (mode) => set({ mode }),
   setRoom: (activeRoom) => set({ activeRoom, modal: null }),
   setModal: (modal) => set({ modal }),
@@ -54,4 +59,5 @@ export const useStore = create<State>((set) => ({
     routePos: (s.routePos + delta) % 140,
   })),
   toggleMute: () => set((s) => ({ muted: !s.muted })),
+  setShowDriverCard: (v) => set({ showDriverCard: v }),
 }))
