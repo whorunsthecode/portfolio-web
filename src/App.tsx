@@ -10,6 +10,7 @@ import { FilmGrade } from './FilmGrade'
 import { OrbitControls } from '@react-three/drei'
 import { TOUCH } from 'three'
 import { useStore } from './store'
+import { OnboardingOverlay } from './onboarding/OnboardingOverlay'
 
 export default function App() {
   const [boardingDone, setBoardingDone] = useState(false)
@@ -92,6 +93,7 @@ export default function App() {
       <HUD />
       <ProjectModal />
       <Toast />
+      <OnboardingOverlay />
     </>
   )
 }
