@@ -148,6 +148,10 @@ export function OfficeMale() {
         <cylinderGeometry args={[0.008, 0.008, 0.12, 6]} />
         <meshStandardMaterial color="#1a1a1a" roughness={0.6} />
       </mesh>
+      {/* Folded Chinese newspaper resting on top of the briefcase */}
+      <group position={[0.02, 0.105, 0.2]} rotation={[0, 0.15, 0]}>
+        <Newspaper />
+      </group>
     </group>
   )
 }
@@ -325,11 +329,10 @@ export function Schoolgirl({ seed = 0 }: { seed?: number }) {
       </mesh>
       {/* White socks + black Mary Jane shoes */}
       <SeatedLegs color="#fafaf0" shoeColor="#1a1614" radius={0.05} upperLen={0.2} lowerLen={0.32} spread={0.1} />
-      {/* Book held up as if reading */}
-      <mesh position={[0, 0.28, 0.25]}>
-        <boxGeometry args={[0.16, 0.22, 0.02]} />
-        <meshStandardMaterial color="#f4ebd4" roughness={0.8} />
-      </mesh>
+      {/* Paperback held up as if reading — more detailed than a flat box */}
+      <group position={[0, 0.28, 0.25]} rotation={[Math.PI / 2.2, 0, 0]}>
+        <Paperback />
+      </group>
       {/* School bag on floor beside her */}
       <mesh position={[0.22, -0.35, 0.1]}>
         <boxGeometry args={[0.1, 0.35, 0.3]} />
@@ -493,6 +496,303 @@ export function Tourist({ seed = 0 }: { seed?: number }) {
         <planeGeometry args={[0.3, 0.25]} />
         <meshStandardMaterial color="#f4ebd4" roughness={0.8} side={THREE.DoubleSide} />
       </mesh>
+      {/* Yellow Walkman clipped to the fanny pack — listening while sightseeing */}
+      <group position={[-0.12, 0.12, 0.2]} rotation={[0.2, -0.3, 0.2]}>
+        <Walkman />
+      </group>
+    </group>
+  )
+}
+
+// ── Shared commuter props — newspapers, books, cassette Walkmans ───
+
+/** Folded Chinese newspaper (Oriental Daily / Ming Pao feel — greyish
+ *  paper with black inky column strips). No masthead / logo. */
+function Newspaper() {
+  return (
+    <group>
+      {/* Main folded paper */}
+      <mesh>
+        <boxGeometry args={[0.18, 0.01, 0.13]} />
+        <meshStandardMaterial color="#e4dac8" roughness={0.92} />
+      </mesh>
+      {/* Black ink column strips on top face */}
+      {[-0.055, -0.018, 0.018, 0.055].map((x, i) => (
+        <mesh key={i} position={[x, 0.006, 0]}>
+          <boxGeometry args={[0.022, 0.001, 0.11]} />
+          <meshStandardMaterial color="#1a1410" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* Darker fold crease down the middle */}
+      <mesh position={[0, 0.0055, 0]}>
+        <boxGeometry args={[0.001, 0.001, 0.13]} />
+        <meshStandardMaterial color="#5a4a38" roughness={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+/** Small paperback book — red leatherette cover with a blank cream
+ *  spine panel. No title text. */
+function Paperback() {
+  return (
+    <group>
+      <mesh>
+        <boxGeometry args={[0.11, 0.015, 0.155]} />
+        <meshStandardMaterial color="#8a2028" roughness={0.78} />
+      </mesh>
+      {/* Cream pages edge */}
+      <mesh position={[0, 0, 0.0081]}>
+        <boxGeometry args={[0.108, 0.013, 0.002]} />
+        <meshStandardMaterial color="#f4ead4" roughness={0.85} />
+      </mesh>
+      {/* Gold decorative spine line */}
+      <mesh position={[0, 0.0081, 0]}>
+        <boxGeometry args={[0.003, 0.001, 0.145]} />
+        <meshStandardMaterial color="#c8a048" metalness={0.6} roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+/** Early-80s yellow Sony TPS-L2-style Walkman cassette player with
+ *  thin orange headphone wire. No brand logo. */
+function Walkman() {
+  return (
+    <group>
+      {/* Yellow-and-silver body (original TPS-L2 colourway) */}
+      <mesh>
+        <boxGeometry args={[0.09, 0.055, 0.015]} />
+        <meshStandardMaterial color="#e8c838" roughness={0.6} metalness={0.15} />
+      </mesh>
+      {/* Silver top half */}
+      <mesh position={[0, 0.014, 0]}>
+        <boxGeometry args={[0.09, 0.025, 0.016]} />
+        <meshStandardMaterial color="#c8c8cc" metalness={0.6} roughness={0.35} />
+      </mesh>
+      {/* Cassette window — clear-ish dark face */}
+      <mesh position={[0, 0, 0.008]}>
+        <boxGeometry args={[0.07, 0.04, 0.001]} />
+        <meshStandardMaterial color="#2a2820" roughness={0.5} metalness={0.2} />
+      </mesh>
+      {/* Two little reels inside the window */}
+      {[-0.016, 0.016].map((x, i) => (
+        <mesh key={i} position={[x, 0, 0.0085]}>
+          <cylinderGeometry args={[0.008, 0.008, 0.0005, 12]} />
+          <meshStandardMaterial color="#4a4238" roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Orange foam headphone wire dangling out the side */}
+      <mesh position={[-0.052, 0.01, 0]} rotation={[0, 0, -0.5]}>
+        <cylinderGeometry args={[0.0015, 0.0015, 0.2, 4]} />
+        <meshStandardMaterial color="#e86828" roughness={0.85} />
+      </mesh>
+    </group>
+  )
+}
+
+// ── Shared beverage props — iconic HK drinks held by passengers ─────
+
+/** Vitasoy-style paper carton (brown body, green side stripe, straw).
+ *  No brand logo per user instruction — reads as generic HK soy milk. */
+function VitasoyCarton() {
+  return (
+    <group>
+      {/* Main brown carton body */}
+      <mesh>
+        <boxGeometry args={[0.07, 0.14, 0.045]} />
+        <meshStandardMaterial color="#4a3020" roughness={0.75} />
+      </mesh>
+      {/* Green side stripe (iconic green band on Vitasoy-style cartons) */}
+      <mesh position={[0.0361, 0, 0]}>
+        <boxGeometry args={[0.001, 0.12, 0.04]} />
+        <meshStandardMaterial color="#2a7840" roughness={0.7} />
+      </mesh>
+      {/* Cream top-seam cap */}
+      <mesh position={[0, 0.075, 0]}>
+        <boxGeometry args={[0.072, 0.012, 0.048]} />
+        <meshStandardMaterial color="#f0e4c4" roughness={0.7} />
+      </mesh>
+      {/* Straw poking out */}
+      <mesh position={[0.015, 0.095, 0]}>
+        <cylinderGeometry args={[0.003, 0.003, 0.05, 6]} />
+        <meshStandardMaterial color="#fafaf2" roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+/** HK-style Lemon Tea carton — yellow body with green horizontal band,
+ *  slightly taller/skinnier than Vitasoy. No logo. */
+function LemonTeaCarton() {
+  return (
+    <group>
+      {/* Yellow main body */}
+      <mesh>
+        <boxGeometry args={[0.055, 0.13, 0.04]} />
+        <meshStandardMaterial color="#e8c838" roughness={0.75} />
+      </mesh>
+      {/* Green horizontal band */}
+      <mesh position={[0, -0.02, 0.0206]}>
+        <boxGeometry args={[0.056, 0.02, 0.001]} />
+        <meshStandardMaterial color="#3a8a48" roughness={0.7} />
+      </mesh>
+      {/* Small dark tea-color panel near top */}
+      <mesh position={[0, 0.04, 0.0206]}>
+        <boxGeometry args={[0.045, 0.02, 0.001]} />
+        <meshStandardMaterial color="#5a3818" roughness={0.7} />
+      </mesh>
+      {/* Cream top-seam cap */}
+      <mesh position={[0, 0.07, 0]}>
+        <boxGeometry args={[0.057, 0.012, 0.042]} />
+        <meshStandardMaterial color="#f0e4c4" roughness={0.7} />
+      </mesh>
+      {/* Straw */}
+      <mesh position={[0.012, 0.09, 0]}>
+        <cylinderGeometry args={[0.003, 0.003, 0.05, 6]} />
+        <meshStandardMaterial color="#fafaf2" roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+// ── Variant 6: Anita Mui 梅艷芳 ────────────────────────────────────────
+// Anita's signature: bold androgynous silhouette, strong shoulders in
+// sharp black tuxedo-style jacket, deep red lipstick, dark short hair
+// with volume, dramatic statement earrings. Often held drinks in her
+// casual shots — giving her a carton of lemon tea for everyday
+// commuter flavour.
+function AnitaMui() {
+  const skin = SKIN_CN_B
+  return (
+    <group>
+      {/* Head */}
+      <mesh position={[0, 0.62, 0]}>
+        <sphereGeometry args={[0.13, 12, 10]} />
+        <meshStandardMaterial color={skin} roughness={0.75} />
+      </mesh>
+      {/* Hair — dark short volumetric, tousled wave (Anita's iconic cut) */}
+      <mesh position={[0, 0.7, -0.02]}>
+        <sphereGeometry args={[0.16, 14, 10]} />
+        <meshStandardMaterial color="#0a0604" roughness={0.85} />
+      </mesh>
+      {/* Side swoop of hair crossing forehead */}
+      <mesh position={[0.06, 0.67, 0.06]} rotation={[0, 0, -0.3]}>
+        <boxGeometry args={[0.14, 0.04, 0.1]} />
+        <meshStandardMaterial color="#0a0604" roughness={0.85} />
+      </mesh>
+      {/* Statement earrings — large gold geometric */}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * 0.14, 0.56, 0]}>
+          <boxGeometry args={[0.02, 0.05, 0.015]} />
+          <meshStandardMaterial color="#d4a028" metalness={0.75} roughness={0.25} />
+        </mesh>
+      ))}
+      {/* Deep red lipstick */}
+      <mesh position={[0, 0.57, 0.12]}>
+        <boxGeometry args={[0.06, 0.018, 0.01]} />
+        <meshStandardMaterial color="#a81020" roughness={0.5} />
+      </mesh>
+      {/* Black tuxedo jacket — SHARP structured shoulders */}
+      <mesh position={[0, 0.3, 0]}>
+        <boxGeometry args={[0.42, 0.48, 0.24]} />
+        <meshStandardMaterial color="#0a0806" roughness={0.75} />
+      </mesh>
+      {/* Massive power shoulders */}
+      <mesh position={[0, 0.52, 0]}>
+        <boxGeometry args={[0.5, 0.1, 0.26]} />
+        <meshStandardMaterial color="#0a0806" roughness={0.75} />
+      </mesh>
+      {/* White shirt collar visible — open neckline, no tie (Anita's look) */}
+      <mesh position={[0, 0.48, 0.1]}>
+        <boxGeometry args={[0.16, 0.1, 0.06]} />
+        <meshStandardMaterial color="#fafaf0" roughness={0.7} />
+      </mesh>
+      {/* Slim black tie */}
+      <mesh position={[0, 0.38, 0.13]}>
+        <boxGeometry args={[0.025, 0.2, 0.012]} />
+        <meshStandardMaterial color="#1a1410" roughness={0.6} />
+      </mesh>
+      <Arms color="#0a0806" skinColor={skin} spread={0.25} />
+      {/* Tailored black trousers */}
+      <SeatedLegs color="#0a0806" radius={0.065} />
+      {/* Lemon-tea carton held in lap */}
+      <group position={[0.1, 0.04, 0.22]} rotation={[-0.4, 0.3, 0]}>
+        <LemonTeaCarton />
+      </group>
+    </group>
+  )
+}
+
+// ── Variant 7: Leslie Cheung 張國榮 ───────────────────────────────────
+// Monica era (1984), designed by Eddie Lau — the iconic RED-dominant
+// look Eddie chose "to accentuate his unique personal charm." Fluffy
+// feathered 80s hair with side-swept fringe, single silver stud
+// earring, cropped red jacket over white shirt, tailored trousers.
+// Holding a Vitasoy carton — casual Cantopop-star-on-the-MTR vibe.
+function LeslieCheung() {
+  const skin = SKIN_CN_A
+  const MONICA_RED = '#c82420'
+  const MONICA_RED_DARK = '#8a1818'
+
+  return (
+    <group>
+      {/* Head */}
+      <mesh position={[0, 0.62, 0]}>
+        <sphereGeometry args={[0.12, 12, 10]} />
+        <meshStandardMaterial color={skin} roughness={0.75} />
+      </mesh>
+      {/* Hair — fluffy feathered 80s style */}
+      <mesh position={[0, 0.72, -0.01]}>
+        <sphereGeometry args={[0.14, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
+        <meshStandardMaterial color="#1a0f08" roughness={0.85} />
+      </mesh>
+      {/* Signature side-swept fringe across forehead */}
+      <mesh position={[-0.05, 0.7, 0.07]} rotation={[0, 0, 0.4]}>
+        <boxGeometry args={[0.14, 0.04, 0.1]} />
+        <meshStandardMaterial color="#1a0f08" roughness={0.85} />
+      </mesh>
+      {/* Silver stud earring on right ear — a Leslie signature */}
+      <mesh position={[0.13, 0.6, 0]}>
+        <sphereGeometry args={[0.012, 8, 8]} />
+        <meshStandardMaterial color="#d4d4d4" metalness={0.85} roughness={0.25} />
+      </mesh>
+      {/* Monica-era RED jacket — Eddie Lau's signature choice */}
+      <mesh position={[0, 0.28, 0]}>
+        <boxGeometry args={[0.4, 0.46, 0.24]} />
+        <meshStandardMaterial color={MONICA_RED} roughness={0.75} />
+      </mesh>
+      {/* Wide 80s shoulders */}
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[0.46, 0.1, 0.25]} />
+        <meshStandardMaterial color={MONICA_RED} roughness={0.75} />
+      </mesh>
+      {/* Lapels — darker red diagonal V */}
+      <mesh position={[-0.06, 0.38, 0.123]} rotation={[0, 0, -0.3]}>
+        <planeGeometry args={[0.06, 0.22]} />
+        <meshStandardMaterial color={MONICA_RED_DARK} roughness={0.7} />
+      </mesh>
+      <mesh position={[0.06, 0.38, 0.123]} rotation={[0, 0, 0.3]}>
+        <planeGeometry args={[0.06, 0.22]} />
+        <meshStandardMaterial color={MONICA_RED_DARK} roughness={0.7} />
+      </mesh>
+      {/* Open-collar white shirt through the V */}
+      <mesh position={[0, 0.44, 0.124]}>
+        <boxGeometry args={[0.1, 0.12, 0.01]} />
+        <meshStandardMaterial color="#fafaf0" roughness={0.7} />
+      </mesh>
+      {/* Slim black tie — hinting at the Monica-era styling */}
+      <mesh position={[0, 0.37, 0.128]}>
+        <boxGeometry args={[0.02, 0.14, 0.012]} />
+        <meshStandardMaterial color="#1a1410" roughness={0.6} />
+      </mesh>
+      <Arms color={MONICA_RED} skinColor={skin} spread={0.23} />
+      {/* Dark tailored trousers */}
+      <SeatedLegs color="#1a1410" radius={0.065} />
+      {/* Vitasoy carton held casually */}
+      <group position={[-0.08, 0.04, 0.22]} rotation={[-0.3, -0.2, 0.1]}>
+        <VitasoyCarton />
+      </group>
     </group>
   )
 }
@@ -508,6 +808,8 @@ export function renderVariant(index: number, seed: number) {
     case 3: return <Schoolgirl seed={seed} />
     case 4: return <Auntie />
     case 5: return <Tourist seed={seed} />
+    case 6: return <AnitaMui />
+    case 7: return <LeslieCheung />
     default: return <OfficeMale />
   }
 }
@@ -533,12 +835,14 @@ interface SeatAssignment {
 // Left bench  x = -0.73 → face +X (aisle) → facingAngle = +π/2
 // Right bench x = +0.73 → face -X (aisle) → facingAngle = -π/2
 const ASSIGNMENTS: SeatAssignment[] = [
-  { variant: 0, x: -0.73, z: -6.5, facingAngle: Math.PI / 2 },    // Office male — left bench, faces aisle
-  { variant: 1, x: 0.73,  z: -5.5, facingAngle: -Math.PI / 2 },   // Office female ("pink top lady") — right bench
-  { variant: 4, x: 0.73,  z: -4.2, facingAngle: -Math.PI / 2 },   // Auntie with 紅白藍 bag — seated next to pink-top lady per user request
+  { variant: 0, x: -0.73, z: -6.5, facingAngle: Math.PI / 2 },    // Office male with newspaper — left bench
+  { variant: 7, x: 0.73,  z: -6.5, facingAngle: -Math.PI / 2 },   // Leslie Cheung (Monica-era red jacket + Vitasoy) — right bench
+  { variant: 1, x: 0.73,  z: -5.5, facingAngle: -Math.PI / 2 },   // OL "pink top lady" — right bench
+  { variant: 6, x: -0.73, z: -5.3, facingAngle: Math.PI / 2 },    // Anita Mui (black tuxedo + lemon tea) — left bench, faces Leslie
+  { variant: 4, x: 0.73,  z: -4.2, facingAngle: -Math.PI / 2 },   // Auntie with 紅白藍 bag — right bench
   { variant: 2, x: -0.73, z: -4.0, facingAngle: Math.PI / 2 },    // Schoolboy — left bench
-  { variant: 3, x: -0.73, z: -2.5, facingAngle: Math.PI / 2 },    // Schoolgirl — moved to left bench (auntie took her old spot)
-  { variant: 5, x: 0.73,  z: -1.5, facingAngle: -Math.PI / 2 },   // Tourist — right bench
+  { variant: 3, x: -0.73, z: -2.5, facingAngle: Math.PI / 2 },    // Schoolgirl with paperback — left bench
+  { variant: 5, x: 0.73,  z: -1.5, facingAngle: -Math.PI / 2 },   // Tourist with Walkman — right bench
 ]
 
 const SEAT_Y = 0.95 // bench seat surface (FLOOR_Y 0.5 + SEAT_Y offset 0.45)
