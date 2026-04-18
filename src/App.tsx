@@ -12,6 +12,7 @@ import { TOUCH } from 'three'
 import { useStore } from './store'
 import { OnboardingOverlay } from './onboarding/OnboardingOverlay'
 import { DriverContactCard } from './onboarding/DriverContactCard'
+import { GreetingCard } from './ui/GreetingCard'
 
 export default function App() {
   const [boardingDone, setBoardingDone] = useState(false)
@@ -96,6 +97,7 @@ export default function App() {
       <Toast />
       <OnboardingOverlay />
       <DriverContactCard />
+      <GreetingCard />
     </>
   )
 }
