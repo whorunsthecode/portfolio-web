@@ -7,7 +7,7 @@
  * Replaces the earlier canvas-drawing flow in PostcardStation, which
  * generated and instantly downloaded a postcard without any preview.
  *
- * Backdrop asset lives at /public/assets/card-poster.jpg (cream sky at
+ * Backdrop asset lives at /public/assets/card-poster.png (cream sky at
  * the top leaves room for the overlay text; cobblestone at the bottom
  * sits under the footer credit).
  */
@@ -77,7 +77,7 @@ export function GreetingCard() {
         style={{
           width: 360,
           height: 640,
-          backgroundImage: 'url(/assets/card-poster.jpg)',
+          backgroundImage: 'url(/assets/card-poster.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           borderRadius: 4,
