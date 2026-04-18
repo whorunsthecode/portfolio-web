@@ -31,6 +31,9 @@ interface State {
    *  the small brass envelope badge on the driver's dashboard; dismissed via
    *  backdrop / × / Esc. */
   showDriverCard: boolean
+  /** When true, the vintage greeting-card overlay is shown. Opened by tapping
+   *  the PostcardStation prop inside the Christmas Village world. */
+  showGreetingCard: boolean
   setMode: (m: 'day' | 'night') => void
   setRoom: (r: State['activeRoom']) => void
   setModal: (m: State['modal']) => void
@@ -39,6 +42,7 @@ interface State {
   advanceRoute: (delta: number) => void
   toggleMute: () => void
   setShowDriverCard: (v: boolean) => void
+  setShowGreetingCard: (v: boolean) => void
 }
 
 export const useStore = create<State>((set) => ({
@@ -49,6 +53,7 @@ export const useStore = create<State>((set) => ({
   routePos: 0,
   muted: false,
   showDriverCard: false,
+  showGreetingCard: false,
   setMode: (mode) => set({ mode }),
   setRoom: (activeRoom) => set({ activeRoom, modal: null }),
   setModal: (modal) => set({ modal }),
@@ -61,4 +66,5 @@ export const useStore = create<State>((set) => ({
   })),
   toggleMute: () => set((s) => ({ muted: !s.muted })),
   setShowDriverCard: (v) => set({ showDriverCard: v }),
+  setShowGreetingCard: (v) => set({ showGreetingCard: v }),
 }))
