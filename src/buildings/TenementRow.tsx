@@ -46,9 +46,16 @@ const LANDMARK_ZONES: { z: number; side: 'left' | 'right' }[] = [
   { z: -120, side: 'right' },
 ]
 
+/** Radius (in Z) around each landmark where no tenement may spawn on the
+ *  same side. Wider than before so signature buildings (HSBC, Jardine
+ *  House, Furama, Man Mo, Central Market) don't visually merge with the
+ *  neighbouring tenement row. ~22m clears roughly two tenement footprints
+ *  on either side of the landmark. */
+const LANDMARK_CLEAR_RADIUS = 22
+
 function isNearLandmark(z: number, side: 'left' | 'right'): boolean {
   return LANDMARK_ZONES.some((lm) =>
-    lm.side === side && Math.abs(z - lm.z) < 14
+    lm.side === side && Math.abs(z - lm.z) < LANDMARK_CLEAR_RADIUS
   )
 }
 

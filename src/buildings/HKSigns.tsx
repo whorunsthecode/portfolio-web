@@ -148,6 +148,104 @@ function NeonTube({
   )
 }
 
+/** Arched-top tube: rectangle with a half-circle arch instead of a top
+ *  side. Very common on HK restaurant and jewellery signs. Bottom is
+ *  rendered with the normal rectangle; the top is a half-torus. */
+function NeonArchedTube({
+  width,
+  height,
+  color,
+}: {
+  width: number
+  height: number
+  color: string
+}) {
+  const halfW = width / 2
+  const archR = Math.min(halfW, height * 0.35)
+  const sideLen = height - archR
+  const bottomY = -height / 2
+  const sideTopY = bottomY + sideLen
+  const mat = (
+    <meshStandardMaterial
+      color={color}
+      emissive={color}
+      emissiveIntensity={0.3}
+      roughness={0.3}
+      metalness={0.1}
+      toneMapped={false}
+    />
+  )
+  return (
+    <group>
+      {/* Bottom */}
+      <mesh position={[0, bottomY, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[TUBE_RADIUS, TUBE_RADIUS, width, 10]} />
+        {mat}
+      </mesh>
+      {/* Left vertical */}
+      <mesh position={[-halfW, (bottomY + sideTopY) / 2, 0]}>
+        <cylinderGeometry args={[TUBE_RADIUS, TUBE_RADIUS, sideLen, 10]} />
+        {mat}
+      </mesh>
+      {/* Right vertical */}
+      <mesh position={[halfW, (bottomY + sideTopY) / 2, 0]}>
+        <cylinderGeometry args={[TUBE_RADIUS, TUBE_RADIUS, sideLen, 10]} />
+        {mat}
+      </mesh>
+      {/* Arch */}
+      <mesh position={[0, sideTopY, 0]}>
+        <torusGeometry args={[archR, TUBE_RADIUS, 6, 24, Math.PI]} />
+        {mat}
+      </mesh>
+    </group>
+  )
+}
+
+/** Oval outline built from a torus scaled non-uniformly. Tube thickness
+ *  varies a little because of the non-uniform scale, but at tram-viewing
+ *  distance the effect reads as hand-bent neon glass. */
+function NeonOvalTube({
+  width,
+  height,
+  color,
+}: {
+  width: number
+  height: number
+  color: string
+}) {
+  return (
+    <mesh scale={[width / 2, height / 2, 1]}>
+      <torusGeometry args={[1, TUBE_RADIUS * (2 / Math.min(width, height)), 6, 48]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={0.3}
+        roughness={0.3}
+        metalness={0.1}
+        toneMapped={false}
+      />
+    </mesh>
+  )
+}
+
+/** Render one of the tube shape variants based on the `shape` prop. */
+type TubeShape = 'rect' | 'arched' | 'oval'
+function BorderTube({
+  shape,
+  width,
+  height,
+  color,
+}: {
+  shape: TubeShape
+  width: number
+  height: number
+  color: string
+}) {
+  if (shape === 'arched') return <NeonArchedTube width={width} height={height} color={color} />
+  if (shape === 'oval') return <NeonOvalTube width={width} height={height} color={color} />
+  return <NeonTube width={width} height={height} color={color} />
+}
+
 /** Neon character. drei Text with a child meshStandardMaterial so the
  *  character strokes themselves glow and pick up the day/night lerp. */
 function NeonText({
@@ -194,6 +292,7 @@ function VerticalHanger({
   y,
   text,
   color,
+  shape,
   height = 3.2,
   width = 0.75,
 }: {
@@ -201,24 +300,28 @@ function VerticalHanger({
   y: number
   text: string
   color: { border: string; text: string }
+  shape: TubeShape
   height?: number
   width?: number
 }) {
-  const projection = 2.4
+  // Signs project far enough past the facade that their FACE points along
+  // the street (world +Z), not perpendicular to the wall. This is how
+  // actual 1980s HK signs were hung — forward-looking pedestrians and
+  // tram passengers read them without having to turn sideways.
+  const projection = 2.6
   const facadeX = side * FACADE_X
   const signX = side * (FACADE_X - projection)
-  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   const chars = text.split('')
 
   return (
     <group>
-      {/* Wall bracket + support arm + drop pin — kept outside the
-          rotated group because they live in world-X space. */}
-      <mesh position={[facadeX - side * 0.05, y, 0]}>
+      {/* Wall bracket at the facade */}
+      <mesh position={[facadeX - side * 0.05, y + height / 2 + 0.1, 0]}>
         <boxGeometry args={[0.1, 0.3, 0.3]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
+      {/* Horizontal support arm from facade to sign body */}
       <mesh
         position={[side * (FACADE_X - projection / 2), y + height / 2 + 0.1, 0]}
         rotation={[0, 0, Math.PI / 2]}
@@ -226,49 +329,68 @@ function VerticalHanger({
         <cylinderGeometry args={[0.04, 0.04, projection, 8]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
+      {/* Short vertical drop from arm to top of sign */}
       <mesh position={[signX, y + height / 2 + 0.05, 0]}>
         <cylinderGeometry args={[0.03, 0.03, 0.2, 8]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
 
-      {/* Rotated sign body — dark board, tube border, glowing chars */}
-      <group position={[signX, y, 0]} rotation={[0, rotY, 0]}>
-        {/* Dark board — absorbs scene lighting, no emissive */}
+      {/* Sign body — face normal +Z, readable from forward view */}
+      <group position={[signX, y, 0]}>
+        {/* Dark board */}
         <mesh>
-          <boxGeometry args={[width, height, 0.1]} />
+          <boxGeometry args={[width, height, 0.08]} />
           <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
         </mesh>
 
-        {/* Neon tube border (on the road-facing side) */}
-        <group position={[0, 0, 0.055]}>
-          <NeonTube width={width * 0.92} height={height * 0.96} color={color.border} />
+        {/* Tube border on the +Z face (shape picked per sign) */}
+        <group position={[0, 0, 0.045]}>
+          <BorderTube shape={shape} width={width * 0.92} height={height * 0.96} color={color.border} />
         </group>
 
-        {/* Halo bleed behind the board — almost invisible by day */}
-        <mesh position={[0, 0, -0.06]}>
-          <planeGeometry args={[width * 2.2, height * 1.25]} />
-          <meshBasicMaterial
-            color={color.border}
-            transparent
-            opacity={0.04}
-            blending={THREE.AdditiveBlending}
-            depthWrite={false}
-          />
-        </mesh>
+        {/* Mirror border on the -Z face so the sign reads from both
+            directions as you drive past it */}
+        <group position={[0, 0, -0.045]}>
+          <BorderTube shape={shape} width={width * 0.92} height={height * 0.96} color={color.border} />
+        </group>
 
-        {/* Stacked glowing characters */}
+        {/* Halo bleeds behind the board on both sides */}
+        {[0.06, -0.06].map((z, i) => (
+          <mesh key={i} position={[0, 0, -z]}>
+            <planeGeometry args={[width * 2.2, height * 1.25]} />
+            <meshBasicMaterial
+              color={color.border}
+              transparent
+              opacity={0.04}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+        ))}
+
+        {/* Stacked glowing characters — one copy per face */}
         {chars.map((ch, i) => {
           const charSize = Math.min(width * 0.72, height / chars.length * 0.72)
           const charY = (height / 2) - (i + 0.5) * (height / chars.length)
           return (
-            <NeonText
-              key={i}
-              color={color.text}
-              fontSize={charSize}
-              position={[0, charY, 0.07]}
-            >
-              {ch}
-            </NeonText>
+            <group key={i}>
+              <NeonText
+                color={color.text}
+                fontSize={charSize}
+                position={[0, charY, 0.06]}
+              >
+                {ch}
+              </NeonText>
+              <group position={[0, charY, -0.06]} rotation={[0, Math.PI, 0]}>
+                <NeonText
+                  color={color.text}
+                  fontSize={charSize}
+                  position={[0, 0, 0]}
+                >
+                  {ch}
+                </NeonText>
+              </group>
+            </group>
           )
         })}
       </group>
@@ -285,6 +407,7 @@ function HorizontalBanner({
   y,
   text,
   color,
+  shape,
   width = 3.2,
   height = 0.8,
 }: {
@@ -292,52 +415,87 @@ function HorizontalBanner({
   y: number
   text: { zh: string; en: string }
   color: { border: string; text: string }
+  shape: TubeShape
   width?: number
   height?: number
 }) {
-  const projection = 0.5
+  // Banners project a metre past the facade so their face still points
+  // along the street (not perpendicular to the wall). Bigger projection
+  // than before so they read from the tram's forward view.
+  const projection = 1.1
+  const facadeX = side * FACADE_X
   const signX = side * (FACADE_X - projection)
-  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   return (
-    <group position={[signX, y, 0]} rotation={[0, rotY, 0]}>
-      <mesh>
-        <boxGeometry args={[width, height, 0.12]} />
-        <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
+    <group>
+      {/* Short support arm */}
+      <mesh
+        position={[side * (FACADE_X - projection / 2), y, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
+        <cylinderGeometry args={[0.035, 0.035, projection, 8]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+      {/* Wall bracket */}
+      <mesh position={[facadeX - side * 0.05, y, 0]}>
+        <boxGeometry args={[0.1, 0.25, 0.25]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
 
-      <group position={[0, 0, 0.065]}>
-        <NeonTube width={width * 0.95} height={height * 0.88} color={color.border} />
+      <group position={[signX, y, 0]}>
+        <mesh>
+          <boxGeometry args={[width, height, 0.1]} />
+          <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
+        </mesh>
+
+        {/* Tube border on both faces */}
+        <group position={[0, 0, 0.055]}>
+          <BorderTube shape={shape} width={width * 0.95} height={height * 0.88} color={color.border} />
+        </group>
+        <group position={[0, 0, -0.055]}>
+          <BorderTube shape={shape} width={width * 0.95} height={height * 0.88} color={color.border} />
+        </group>
+
+        {/* Halo both sides */}
+        {[0.07, -0.07].map((z, i) => (
+          <mesh key={i} position={[0, 0, -z]}>
+            <planeGeometry args={[width * 1.4, height * 1.8]} />
+            <meshBasicMaterial
+              color={color.border}
+              transparent
+              opacity={0.04}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+        ))}
+
+        {/* ZH + EN text — two passes, one per face */}
+        {[0.07, -0.07].map((z, face) => (
+          <group
+            key={face}
+            position={[0, 0, z]}
+            rotation={[0, z < 0 ? Math.PI : 0, 0]}
+          >
+            <NeonText
+              color={color.text}
+              fontSize={height * 0.46}
+              position={[0, height * 0.2, 0]}
+              letterSpacing={0.08}
+            >
+              {text.zh}
+            </NeonText>
+            <NeonText
+              color={color.text}
+              fontSize={height * 0.22}
+              position={[0, -height * 0.26, 0]}
+              letterSpacing={0.18}
+            >
+              {text.en}
+            </NeonText>
+          </group>
+        ))}
       </group>
-
-      {/* Halo */}
-      <mesh position={[0, 0, -0.07]}>
-        <planeGeometry args={[width * 1.6, height * 1.8]} />
-        <meshBasicMaterial
-          color={color.border}
-          transparent
-          opacity={0.04}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </mesh>
-
-      <NeonText
-        color={color.text}
-        fontSize={height * 0.46}
-        position={[0, height * 0.2, 0.08]}
-        letterSpacing={0.08}
-      >
-        {text.zh}
-      </NeonText>
-      <NeonText
-        color={color.text}
-        fontSize={height * 0.22}
-        position={[0, -height * 0.26, 0.08]}
-        letterSpacing={0.18}
-      >
-        {text.en}
-      </NeonText>
     </group>
   )
 }
@@ -351,6 +509,7 @@ function RooftopBillboard({
   y,
   text,
   color,
+  shape,
   width = 4.2,
   height = 1.2,
 }: {
@@ -358,14 +517,16 @@ function RooftopBillboard({
   y: number
   text: { zh: string; en: string }
   color: { border: string; text: string }
+  shape: TubeShape
   width?: number
   height?: number
 }) {
+  // Billboard sits on the road-facing edge of the roof with its face
+  // along the street, so it reads from the forward-looking view.
   const x = side * (FACADE_X + 0.3)
-  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   return (
-    <group position={[x, y, 0]} rotation={[0, rotY, 0]}>
+    <group position={[x, y, 0]}>
       {/* Support legs */}
       {[-width / 2 + 0.3, width / 2 - 0.3].map((lx, i) => (
         <mesh key={i} position={[lx, -height / 2 - 0.5, 0]}>
@@ -380,38 +541,53 @@ function RooftopBillboard({
         <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
       </mesh>
 
+      {/* Tube borders on both faces */}
       <group position={[0, 0, 0.055]}>
-        <NeonTube width={width * 0.96} height={height * 0.9} color={color.border} />
+        <BorderTube shape={shape} width={width * 0.96} height={height * 0.9} color={color.border} />
+      </group>
+      <group position={[0, 0, -0.055]}>
+        <BorderTube shape={shape} width={width * 0.96} height={height * 0.9} color={color.border} />
       </group>
 
-      {/* Halo */}
-      <mesh position={[0, 0, -0.06]}>
-        <planeGeometry args={[width * 1.35, height * 1.8]} />
-        <meshBasicMaterial
-          color={color.border}
-          transparent
-          opacity={0.04}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </mesh>
+      {/* Halos both sides */}
+      {[0.06, -0.06].map((z, i) => (
+        <mesh key={i} position={[0, 0, -z]}>
+          <planeGeometry args={[width * 1.35, height * 1.8]} />
+          <meshBasicMaterial
+            color={color.border}
+            transparent
+            opacity={0.04}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
 
-      <NeonText
-        color={color.text}
-        fontSize={height * 0.44}
-        position={[0, height * 0.2, 0.07]}
-        letterSpacing={0.08}
-      >
-        {text.zh}
-      </NeonText>
-      <NeonText
-        color={color.text}
-        fontSize={height * 0.24}
-        position={[0, -height * 0.26, 0.07]}
-        letterSpacing={0.2}
-      >
-        {text.en}
-      </NeonText>
+      {/* Bilingual text — one set per face */}
+      {[0.07, -0.07].map((z, face) => (
+        <group
+          key={face}
+          position={[0, 0, z]}
+          rotation={[0, z < 0 ? Math.PI : 0, 0]}
+        >
+          <NeonText
+            color={color.text}
+            fontSize={height * 0.44}
+            position={[0, height * 0.2, 0]}
+            letterSpacing={0.08}
+          >
+            {text.zh}
+          </NeonText>
+          <NeonText
+            color={color.text}
+            fontSize={height * 0.24}
+            position={[0, -height * 0.26, 0]}
+            letterSpacing={0.2}
+          >
+            {text.en}
+          </NeonText>
+        </group>
+      ))}
     </group>
   )
 }
@@ -428,6 +604,7 @@ type Sign =
       y: number
       text: string
       color: (typeof COLORS)[number]
+      shape: TubeShape
       height?: number
       width?: number
     }
@@ -438,6 +615,7 @@ type Sign =
       y: number
       text: { zh: string; en: string }
       color: (typeof COLORS)[number]
+      shape: TubeShape
       width?: number
       height?: number
     }
@@ -448,20 +626,39 @@ type Sign =
       y: number
       text: { zh: string; en: string }
       color: (typeof COLORS)[number]
+      shape: TubeShape
       width?: number
       height?: number
     }
+
+function pickShape(rand: number, kind: 'vertical' | 'horizontal' | 'rooftop'): TubeShape {
+  // Distribution tuned per sign kind. Verticals mostly stay rectangular
+  // (feels most like 龍門大酒樓); banners get more arched tops; rooftop
+  // billboards lean rectangular but sometimes oval for the "ELGIN" feel.
+  if (kind === 'vertical') {
+    if (rand < 0.7) return 'rect'
+    if (rand < 0.92) return 'arched'
+    return 'oval'
+  }
+  if (kind === 'horizontal') {
+    if (rand < 0.5) return 'rect'
+    if (rand < 0.88) return 'arched'
+    return 'oval'
+  }
+  if (rand < 0.7) return 'rect'
+  if (rand < 0.88) return 'oval'
+  return 'arched'
+}
 
 function buildSigns(): Sign[] {
   const r = seededRandom(5309)
   const signs: Sign[] = []
 
-  // Distribute along z=-5 to z=-135 with gaps. Target ~25 signs.
   const positions: number[] = []
   let z = -5
   while (z > -135) {
     positions.push(z)
-    z -= 4 + r() * 3   // 4-7m spacing
+    z -= 4 + r() * 3
   }
 
   for (const zp of positions) {
@@ -469,11 +666,10 @@ function buildSigns(): Sign[] {
     const kind = r()
     const colorIdx = Math.floor(r() * COLORS.length)
     const color = COLORS[colorIdx]
+    const shapeRoll = r()
 
     if (kind < 0.55) {
-      // Vertical hanger — most common
       const chars = SHOPS_CHINESE[Math.floor(r() * SHOPS_CHINESE.length)]
-      // Taller for longer text
       const height = 1.4 + (chars.length - 2) * 0.35 + r() * 0.3
       signs.push({
         kind: 'vertical',
@@ -482,11 +678,11 @@ function buildSigns(): Sign[] {
         y: 4 + r() * 3,
         text: chars,
         color,
+        shape: pickShape(shapeRoll, 'vertical'),
         height,
         width: 0.45 + r() * 0.15,
       })
     } else if (kind < 0.85) {
-      // Horizontal banner
       const pair = SHOPS_BILINGUAL[Math.floor(r() * SHOPS_BILINGUAL.length)]
       signs.push({
         kind: 'horizontal',
@@ -495,11 +691,11 @@ function buildSigns(): Sign[] {
         y: 3.5 + r() * 4,
         text: pair,
         color,
+        shape: pickShape(shapeRoll, 'horizontal'),
         width: 2.2 + r() * 1.0,
         height: 0.5 + r() * 0.2,
       })
     } else {
-      // Rooftop billboard — rarer, higher
       const pair = SHOPS_BILINGUAL[Math.floor(r() * SHOPS_BILINGUAL.length)]
       signs.push({
         kind: 'rooftop',
@@ -508,6 +704,7 @@ function buildSigns(): Sign[] {
         y: 8.5 + r() * 2,
         text: pair,
         color,
+        shape: pickShape(shapeRoll, 'rooftop'),
         width: 3.0 + r() * 0.8,
         height: 0.7 + r() * 0.2,
       })
@@ -614,6 +811,7 @@ export function HKSigns() {
               y={s.y}
               text={s.text}
               color={s.color}
+              shape={s.shape}
               height={s.height}
               width={s.width}
             />
@@ -624,6 +822,7 @@ export function HKSigns() {
               y={s.y}
               text={s.text}
               color={s.color}
+              shape={s.shape}
               width={s.width}
               height={s.height}
             />
@@ -634,6 +833,7 @@ export function HKSigns() {
               y={s.y}
               text={s.text}
               color={s.color}
+              shape={s.shape}
               width={s.width}
               height={s.height}
             />
