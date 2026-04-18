@@ -1,31 +1,27 @@
 /**
  * Bamboo scaffolding — the signature HK construction texture.
  *
- * Traditional bamboo-pole scaffolding (still used on HK high-rises
- * today) wraps selected tenements along the corridor. Per user design
- * choice: 1-in-6 coverage so 2-3 scaffolded buildings are visible at
- * any time — realistic background texture without dominating.
+ * Wraps selected tenement facades along the corridor. Unlike the previous
+ * implementation, which generated its own z positions and ended up floating
+ * between buildings, this one samples from the shared BUILDINGS list in
+ * TenementRow and plants each scaffold directly on a real facade.
  *
  * Geometry per scaffolded building:
  *   - 6 vertical bamboo uprights along the facade
  *   - Horizontal cross-pieces every 3m (one per floor)
  *   - A few diagonal braces for rigidity
- *   - Translucent green mesh netting overlay (the iconic HK dust
- *     screen — that characteristic bright green fabric)
+ *   - Translucent green mesh netting overlay (the iconic HK dust screen)
+ *   - Safety-tape yellow bar at street level
  *
- * All bamboo uses warm tan #a08a50 with subtle variation per pole.
- * Netting is meshBasicMaterial with 0.35 opacity so the building +
- * windows behind are still visible.
- *
- * Positioned relative to the scrolling tenement row (which moves at
- * 6 u/s). This component has its OWN z offsets that scroll in sync
- * with the tenements. Placing them in the same corridor at selected
- * z positions means scaffold covers THOSE specific buildings.
+ * Scroll is driven here, matching the lane-markings/tenement speed. Sharing
+ * BUILDINGS means scaffolds inherit the same landmark exclusions — we never
+ * wrap an HSBC or a Man Mo Temple.
  */
 
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { BUILDINGS, TENEMENT_DEPTH, type BuildingDef } from './TenementRow'
 
 const BAMBOO = '#a08a50'
 const BAMBOO_DARK = '#7a6a3c'
@@ -35,30 +31,34 @@ const SCROLL_SPEED = 6
 const ROUTE_LENGTH = 140
 const RESET_THRESHOLD = 15
 
-/* ── Single scaffolded building wrap ──────────────────────────────── */
+/** Single scaffolded building wrap — laid out around an external facade.
+ *  `x` is the world-space plane the scaffold lives on (just outside the
+ *  facade), `width` is the facade length along Z. */
 function ScaffoldWrap({
+  x,
   side,
   height,
-  width = 8,
-  hasNetting = true,
+  width,
+  hasNetting,
 }: {
+  x: number
   side: 1 | -1
   height: number
-  width?: number   // facade width along Z (tenements run along Z axis)
-  hasNetting?: boolean
+  width: number
+  hasNetting: boolean
 }) {
-  // Scaffold sits 0.3m proud of the building face (x=±9)
-  const x = side * 8.7
   const floors = Math.max(2, Math.floor(height / 3))
 
-  // 6 vertical uprights spread along facade
   const upright = 6
   const uprightZs = Array.from({ length: upright }, (_, i) => {
     return (i - (upright - 1) / 2) * (width / (upright - 1))
   })
 
-  // Horizontal cross-pieces — one per floor, full facade width
   const crossYs = Array.from({ length: floors }, (_, i) => (i + 1) * 3)
+
+  // Netting sits slightly further from the facade than the uprights so it
+  // reads as draped over the cage, not clipping into it.
+  const nettingPushOut = -side * 0.05
 
   return (
     <group>
@@ -85,7 +85,7 @@ function ScaffoldWrap({
         </mesh>
       ))}
 
-      {/* A couple of diagonal braces every ~2 floors for rigidity */}
+      {/* Diagonal braces every ~2 floors for rigidity */}
       {Array.from({ length: Math.floor(floors / 2) }, (_, i) => {
         const y1 = i * 6
         const y2 = y1 + 6
@@ -96,7 +96,7 @@ function ScaffoldWrap({
         return (
           <mesh
             key={`diag-${i}`}
-            position={[x + 0.03, (y1 + y2) / 2, 0]}
+            position={[x - side * 0.03, (y1 + y2) / 2, 0]}
             rotation={[angle - Math.PI / 2, 0, 0]}
           >
             <cylinderGeometry args={[0.022, 0.022, len, 6]} />
@@ -105,27 +105,29 @@ function ScaffoldWrap({
         )
       })}
 
-      {/* Green mesh netting — translucent overlay covering ~60% of the
-          facade, with a section left open near the top showing raw
-          scaffolding (realistic — scaffolding goes up floor by floor) */}
+      {/* Green mesh netting — translucent, covers most of the facade, with
+          a strip left open near the top (scaffolding climbs floor by floor) */}
       {hasNetting && (
         <mesh
-          position={[x + 0.04, (height * 0.35), 0]}
+          position={[x + nettingPushOut, height * 0.38, 0]}
           rotation={[0, side === 1 ? -Math.PI / 2 : Math.PI / 2, 0]}
         >
-          <planeGeometry args={[width - 0.5, height * 0.65]} />
+          <planeGeometry args={[width - 0.2, height * 0.72]} />
           <meshBasicMaterial
             color={NETTING_GREEN}
             transparent
-            opacity={0.38}
+            opacity={0.42}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
         </mesh>
       )}
 
-      {/* Safety-tape stripes on the lowest cross-piece — yellow+black */}
-      <mesh position={[x + 0.04, 2.6, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      {/* Safety-tape bar at pedestrian height */}
+      <mesh
+        position={[x - side * 0.03, 2.6, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <cylinderGeometry args={[0.035, 0.035, width - 0.3, 6]} />
         <meshStandardMaterial color="#f4c020" roughness={0.8} />
       </mesh>
@@ -133,48 +135,60 @@ function ScaffoldWrap({
   )
 }
 
-/* ── Scrolling composite ──────────────────────────────────────────── */
+/* ── Scaffold selection: sample from BUILDINGS ───────────────────────── */
+
 interface ScaffoldDef {
+  buildingIdx: number
   z: number
+  x: number
   side: 1 | -1
   height: number
   width: number
   hasNetting: boolean
 }
 
-function seededRandom(seed: number) {
-  let s = seed
-  return () => {
-    s = (s * 16807 + 0) % 2147483647
-    return (s - 1) / 2147483646
-  }
+function hash(seed: number) {
+  const s = Math.sin(seed) * 43758.5453
+  return s - Math.floor(s)
 }
 
-// Every 6th tenement has scaffolding — spread along the full corridor.
-// Tenements live z=-2 to z=-130 per TenementRow. We place scaffolds at
-// those intervals so ~2-3 are always in view as the world scrolls.
-function buildScaffolds(): ScaffoldDef[] {
-  const r = seededRandom(42)
-  const scaffolds: ScaffoldDef[] = []
+/** Pick ~1-in-3 tenements for scaffolding. Uses each building's own seed so
+ *  the choice is deterministic across renders. Returns one ScaffoldDef per
+ *  selected building, positioned just outside its facade. */
+function selectScaffolds(buildings: BuildingDef[]): ScaffoldDef[] {
+  const out: ScaffoldDef[] = []
+  for (let i = 0; i < buildings.length; i++) {
+    const b = buildings[i]
+    // Probability gate — ~1-in-3 buildings get scaffolded
+    if (hash(b.seed + 13) > 0.35) continue
 
-  // Tenement spacing is ~7m. 1-in-6 → every ~42m. Offset sides so not
-  // both sides have scaffold at the same z (would block the tram view).
-  for (let z = -10; z > -130; z -= 14 + r() * 8) {
-    const side: 1 | -1 = r() < 0.5 ? 1 : -1
-    scaffolds.push({
-      z,
-      side,
-      height: 15 + Math.floor(r() * 10),  // 15-25m
-      width: 7 + r() * 2,
-      hasNetting: r() < 0.7,               // 70% have green netting
+    const sideNum: 1 | -1 = b.side === 'right' ? 1 : -1
+    // Facade plane (road-facing edge of the building) sits at
+    //   worldX = side * (xOffset - depth/2)
+    // Push the scaffold 0.25m further outward (toward the road) so it
+    // reads as wrapping the wall rather than clipping through it.
+    const facadeX = sideNum * (b.xOffset - TENEMENT_DEPTH / 2)
+    const scaffoldX = facadeX - sideNum * 0.25
+
+    const h = 15 + Math.floor(hash(b.seed + 27) * 10)
+    const w = 7.5 + hash(b.seed + 41) * 1.4
+
+    out.push({
+      buildingIdx: i,
+      z: b.z,
+      x: scaffoldX,
+      side: sideNum,
+      height: h,
+      width: w,
+      hasNetting: hash(b.seed + 59) < 0.75,
     })
   }
-  return scaffolds
+  return out
 }
 
 export function BambooScaffold() {
   const groupRef = useRef<THREE.Group>(null)
-  const scaffolds = useMemo(() => buildScaffolds(), [])
+  const scaffolds = useMemo(() => selectScaffolds(BUILDINGS), [])
   const offsets = useRef(scaffolds.map((s) => s.z))
 
   useFrame((_, delta) => {
@@ -194,6 +208,7 @@ export function BambooScaffold() {
       {scaffolds.map((s, i) => (
         <group key={i} position={[0, 0, s.z]}>
           <ScaffoldWrap
+            x={s.x}
             side={s.side}
             height={s.height}
             width={s.width}

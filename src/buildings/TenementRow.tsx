@@ -13,7 +13,7 @@ function seededRandom(seed: number) {
 }
 
 /* ── Static building layout ────────────────────────────── */
-interface BuildingDef {
+export interface BuildingDef {
   z: number
   side: 'left' | 'right'
   style: TenementStyle
@@ -22,6 +22,10 @@ interface BuildingDef {
 }
 
 const ROAD_HALF = 5.5  // buildings start this far from center
+/** Tenement depth (perpendicular to road). Exported so BambooScaffold can
+ *  compute the facade plane from each BuildingDef without re-reading the
+ *  Tenement component internals. */
+export const TENEMENT_DEPTH = 7
 const SCROLL_SPEED = 6 // match lane marking speed
 
 // Landmark z positions — skip tenements near these so landmarks are visible.
@@ -87,7 +91,7 @@ function generateBuildings(): BuildingDef[] {
   return buildings
 }
 
-const BUILDINGS = generateBuildings()
+export const BUILDINGS = generateBuildings()
 const MIN_Z = Math.min(...BUILDINGS.map((b) => b.z)) - 12
 const RANGE = 10 - MIN_Z // total z-range for recycling
 
