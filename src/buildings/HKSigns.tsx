@@ -55,17 +55,18 @@ const SHOPS_BILINGUAL = [
   { zh: '電器',   en: 'ELECTRIC' },
 ]
 
-// Classic HK sign palette — red dominant, gold accents, teal/blue for banks,
-// green for pawnshops, yellow for hotels
+// Restrained neon palette — real 80s HK signs were a DARK board with thin
+// glowing tube outlines and glowing character strokes, not solid coloured
+// lightboxes. `border` = the tube rectangle around the sign edge, `text` =
+// the character strokes. Kept to six combos so the street doesn't turn
+// into Mong Kok chaos.
 const COLORS = [
-  { bg: '#c82020', text: '#f8e060' },  // red / gold
-  { bg: '#a81818', text: '#f4ead4' },  // deep red / cream
-  { bg: '#f8b020', text: '#1a0a08' },  // orange / black (pawnshop style)
-  { bg: '#2a4878', text: '#f8e060' },  // navy / gold (bank)
-  { bg: '#2a6a3a', text: '#f8e060' },  // green / gold
-  { bg: '#f4ead4', text: '#a81818' },  // cream / red
-  { bg: '#1a1614', text: '#f4c430' },  // black / yellow
-  { bg: '#8a2020', text: '#f4ead4' },  // wine / cream
+  { border: '#ff3040', text: '#ffd850' }, // red tube / yellow chars — classic
+  { border: '#ff6020', text: '#ffe8b0' }, // amber / cream
+  { border: '#ffcc20', text: '#ff3848' }, // yellow / red
+  { border: '#28dcc0', text: '#ffffff' }, // teal / white
+  { border: '#48c850', text: '#ffe850' }, // lime / yellow
+  { border: '#5088ff', text: '#ffe850' }, // cobalt / yellow
 ]
 
 function seededRandom(seed: number) {
@@ -82,16 +83,111 @@ function seededRandom(seed: number) {
    Buildings are centred at world x = ±9 with depth 7, so their
    road-facing FACADE sits at world x = ±5.5 (= ROAD_HALF in
    TenementRow). Signs mount on the facade and project OUTWARD across
-   the road — this is the authentic 1980s look where massive vertical
-   hangers jutted over tram tracks. Sign `projection` values below
-   are "metres past the facade toward the road centre."
+   the road — authentic 1980s look.
+
+   Rendering model for each sign (see refs):
+     1. Dark board — matte black backing, no emissive, absorbs glare
+     2. NeonTube border — thin glowing cylinders tracing the edge
+     3. Glowing character strokes — drei <Text> with a custom
+        meshStandardMaterial whose emissiveIntensity is lerped at
+        night by the top-level useFrame
+     4. Additive halo plane — soft bleed behind the sign, near-zero
+        opacity during the day, bright at night
+
+   The emissive lerp in useFrame finds any mesh whose emissive colour
+   is > 0.05 (so board stays dark) and bumps intensity up at night.
    ────────────────────────────────────────────────────────────────── */
 const FACADE_X = 5.5
+const BOARD_DARK = '#0b0b0a'
+const TUBE_RADIUS = 0.025
+
+/** Rectangle outline of thin glowing cylinders — the neon-tube border
+ *  that's the iconic part of every HK sign. Rendered in local XY space
+ *  at z = 0, suitable to sit inside a rotated parent group. */
+function NeonTube({
+  width,
+  height,
+  color,
+}: {
+  width: number
+  height: number
+  color: string
+}) {
+  const halfW = width / 2
+  const halfH = height / 2
+  const segments: Array<{
+    pos: [number, number, number]
+    rot: [number, number, number]
+    len: number
+  }> = [
+    // Top
+    { pos: [0, halfH, 0], rot: [0, 0, Math.PI / 2], len: width },
+    // Bottom
+    { pos: [0, -halfH, 0], rot: [0, 0, Math.PI / 2], len: width },
+    // Left
+    { pos: [-halfW, 0, 0], rot: [0, 0, 0], len: height },
+    // Right
+    { pos: [halfW, 0, 0], rot: [0, 0, 0], len: height },
+  ]
+  return (
+    <group>
+      {segments.map((s, i) => (
+        <mesh key={i} position={s.pos} rotation={s.rot}>
+          <cylinderGeometry args={[TUBE_RADIUS, TUBE_RADIUS, s.len, 10]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={0.3}
+            roughness={0.3}
+            metalness={0.1}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+/** Neon character. drei Text with a child meshStandardMaterial so the
+ *  character strokes themselves glow and pick up the day/night lerp. */
+function NeonText({
+  children,
+  color,
+  fontSize,
+  position,
+  letterSpacing,
+}: {
+  children: string
+  color: string
+  fontSize: number
+  position: [number, number, number]
+  letterSpacing?: number
+}) {
+  return (
+    <Text
+      position={position}
+      fontSize={fontSize}
+      anchorX="center"
+      anchorY="middle"
+      fontWeight="bold"
+      letterSpacing={letterSpacing}
+    >
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={0.3}
+        roughness={0.3}
+        metalness={0}
+        toneMapped={false}
+      />
+      {children}
+    </Text>
+  )
+}
 
 /* ──────────────────────────────────────────────────────────────────
-   Sign 1: Vertical hanger — massive 龍門大酒樓-style plate that hangs
-   off the facade, suspended by a black steel arm, 2-4 characters
-   stacked vertically. Huge at night.
+   Sign 1: Vertical hanger — tall plate suspended from the facade,
+   stacked characters glowing in neon tube strokes.
    ────────────────────────────────────────────────────────────────── */
 function VerticalHanger({
   side,
@@ -104,27 +200,25 @@ function VerticalHanger({
   side: 1 | -1
   y: number
   text: string
-  color: { bg: string; text: string }
+  color: { border: string; text: string }
   height?: number
   width?: number
 }) {
-  // How far past the facade the sign hangs. Big: ~2.4m over the road.
   const projection = 2.4
   const facadeX = side * FACADE_X
-  const signX = side * (FACADE_X - projection) // out over the road
+  const signX = side * (FACADE_X - projection)
   const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   const chars = text.split('')
 
   return (
     <group>
-      {/* Wall bracket anchoring the arm to the facade */}
+      {/* Wall bracket + support arm + drop pin — kept outside the
+          rotated group because they live in world-X space. */}
       <mesh position={[facadeX - side * 0.05, y, 0]}>
         <boxGeometry args={[0.1, 0.3, 0.3]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
-
-      {/* Support arm — steel beam from facade to sign */}
       <mesh
         position={[side * (FACADE_X - projection / 2), y + height / 2 + 0.1, 0]}
         rotation={[0, 0, Math.PI / 2]}
@@ -132,69 +226,59 @@ function VerticalHanger({
         <cylinderGeometry args={[0.04, 0.04, projection, 8]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
-      {/* Short vertical drop from arm to top of sign */}
       <mesh position={[signX, y + height / 2 + 0.05, 0]}>
         <cylinderGeometry args={[0.03, 0.03, 0.2, 8]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
 
-      {/* Sign frame — thick dark border box behind the face */}
-      <mesh position={[signX, y, 0]} rotation={[0, rotY, 0]}>
-        <boxGeometry args={[width + 0.1, height + 0.1, 0.1]} />
-        <meshStandardMaterial color="#1a1410" roughness={0.8} />
-      </mesh>
+      {/* Rotated sign body — dark board, tube border, glowing chars */}
+      <group position={[signX, y, 0]} rotation={[0, rotY, 0]}>
+        {/* Dark board — absorbs scene lighting, no emissive */}
+        <mesh>
+          <boxGeometry args={[width, height, 0.1]} />
+          <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
+        </mesh>
 
-      {/* Sign face — emissive plane that lights up at night */}
-      <mesh position={[signX + side * 0.055, y, 0]} rotation={[0, rotY, 0]}>
-        <planeGeometry args={[width, height]} />
-        <meshStandardMaterial
-          color={color.bg}
-          emissive={color.bg}
-          emissiveIntensity={0.18}
-          roughness={0.55}
-          metalness={0.05}
-        />
-      </mesh>
+        {/* Neon tube border (on the road-facing side) */}
+        <group position={[0, 0, 0.055]}>
+          <NeonTube width={width * 0.92} height={height * 0.96} color={color.border} />
+        </group>
 
-      {/* Halo behind the sign — only really visible at night because of the
-          additive blending + emissive bump. Gives the neon-tube bleed look. */}
-      <mesh position={[signX + side * 0.05, y, 0]} rotation={[0, rotY, 0]}>
-        <planeGeometry args={[width * 1.8, height * 1.25]} />
-        <meshBasicMaterial
-          color={color.bg}
-          transparent
-          opacity={0.35}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </mesh>
+        {/* Halo bleed behind the board — almost invisible by day */}
+        <mesh position={[0, 0, -0.06]}>
+          <planeGeometry args={[width * 2.2, height * 1.25]} />
+          <meshBasicMaterial
+            color={color.border}
+            transparent
+            opacity={0.04}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
 
-      {/* Vertical stack of Chinese characters */}
-      {chars.map((ch, i) => {
-        const charSize = Math.min(width * 0.78, height / chars.length * 0.78)
-        const charY = y + (height / 2) - (i + 0.5) * (height / chars.length)
-        return (
-          <Text
-            key={i}
-            position={[signX + side * 0.057, charY, 0]}
-            rotation={[0, rotY, 0]}
-            fontSize={charSize}
-            color={color.text}
-            anchorX="center"
-            anchorY="middle"
-            fontWeight="bold"
-          >
-            {ch}
-          </Text>
-        )
-      })}
+        {/* Stacked glowing characters */}
+        {chars.map((ch, i) => {
+          const charSize = Math.min(width * 0.72, height / chars.length * 0.72)
+          const charY = (height / 2) - (i + 0.5) * (height / chars.length)
+          return (
+            <NeonText
+              key={i}
+              color={color.text}
+              fontSize={charSize}
+              position={[0, charY, 0.07]}
+            >
+              {ch}
+            </NeonText>
+          )
+        })}
+      </group>
     </group>
   )
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Sign 2: Horizontal banner — wide bilingual plate mounted just off
-   the facade. Projects a short distance so it has visual depth.
+   Sign 2: Horizontal banner — wide bilingual plate near ground level,
+   short projection, dark board + tube border + glowing chars.
    ────────────────────────────────────────────────────────────────── */
 function HorizontalBanner({
   side,
@@ -207,78 +291,60 @@ function HorizontalBanner({
   side: 1 | -1
   y: number
   text: { zh: string; en: string }
-  color: { bg: string; text: string }
+  color: { border: string; text: string }
   width?: number
   height?: number
 }) {
-  // Banners project ~0.5m from the facade — less than vertical hangers
-  // but enough to cast real shadow.
   const projection = 0.5
   const signX = side * (FACADE_X - projection)
   const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   return (
-    <group>
-      {/* Frame */}
-      <mesh position={[signX, y, 0]} rotation={[0, rotY, 0]}>
-        <boxGeometry args={[width + 0.08, height + 0.08, 0.12]} />
-        <meshStandardMaterial color="#1a1410" roughness={0.8} />
+    <group position={[signX, y, 0]} rotation={[0, rotY, 0]}>
+      <mesh>
+        <boxGeometry args={[width, height, 0.12]} />
+        <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
       </mesh>
-      {/* Face */}
-      <mesh position={[signX + side * 0.07, y, 0]} rotation={[0, rotY, 0]}>
-        <planeGeometry args={[width, height]} />
-        <meshStandardMaterial
-          color={color.bg}
-          emissive={color.bg}
-          emissiveIntensity={0.18}
-          roughness={0.55}
-          metalness={0.05}
-        />
-      </mesh>
+
+      <group position={[0, 0, 0.065]}>
+        <NeonTube width={width * 0.95} height={height * 0.88} color={color.border} />
+      </group>
+
       {/* Halo */}
-      <mesh position={[signX + side * 0.065, y, 0]} rotation={[0, rotY, 0]}>
-        <planeGeometry args={[width * 1.4, height * 1.6]} />
+      <mesh position={[0, 0, -0.07]}>
+        <planeGeometry args={[width * 1.6, height * 1.8]} />
         <meshBasicMaterial
-          color={color.bg}
+          color={color.border}
           transparent
-          opacity={0.3}
+          opacity={0.04}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </mesh>
-      {/* Chinese text (larger, top) */}
-      <Text
-        position={[signX + side * 0.075, y + height * 0.2, 0]}
-        rotation={[0, rotY, 0]}
-        fontSize={height * 0.48}
+
+      <NeonText
         color={color.text}
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
+        fontSize={height * 0.46}
+        position={[0, height * 0.2, 0.08]}
         letterSpacing={0.08}
       >
         {text.zh}
-      </Text>
-      {/* English text (smaller, bottom) */}
-      <Text
-        position={[signX + side * 0.075, y - height * 0.26, 0]}
-        rotation={[0, rotY, 0]}
-        fontSize={height * 0.24}
+      </NeonText>
+      <NeonText
         color={color.text}
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
-        letterSpacing={0.15}
+        fontSize={height * 0.22}
+        position={[0, -height * 0.26, 0.08]}
+        letterSpacing={0.18}
       >
         {text.en}
-      </Text>
+      </NeonText>
     </group>
   )
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Sign 3: Rooftop billboard — bilingual board standing on the roof of
-   a low-rise, facing the road. ELGIN-style.
+   Sign 3: Rooftop billboard — wider neon board standing on a low-rise
+   roof, supported by two legs. Visible from further down the route.
    ────────────────────────────────────────────────────────────────── */
 function RooftopBillboard({
   side,
@@ -291,74 +357,61 @@ function RooftopBillboard({
   side: 1 | -1
   y: number
   text: { zh: string; en: string }
-  color: { bg: string; text: string }
+  color: { border: string; text: string }
   width?: number
   height?: number
 }) {
-  // Sits on the road-facing edge of the roof and faces the road centre.
   const x = side * (FACADE_X + 0.3)
   const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   return (
     <group position={[x, y, 0]} rotation={[0, rotY, 0]}>
-      {/* Support legs dropping from the board to the roof */}
+      {/* Support legs */}
       {[-width / 2 + 0.3, width / 2 - 0.3].map((lx, i) => (
         <mesh key={i} position={[lx, -height / 2 - 0.5, 0]}>
           <boxGeometry args={[0.12, 1.0, 0.12]} />
           <meshStandardMaterial color="#1a1410" roughness={0.85} />
         </mesh>
       ))}
-      {/* Billboard frame */}
+
+      {/* Dark board */}
       <mesh>
-        <boxGeometry args={[width + 0.08, height + 0.08, 0.08]} />
-        <meshStandardMaterial color="#1a1410" roughness={0.8} />
+        <boxGeometry args={[width, height, 0.1]} />
+        <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
       </mesh>
-      {/* Face */}
-      <mesh position={[0, 0, 0.055]}>
-        <planeGeometry args={[width, height]} />
-        <meshStandardMaterial
-          color={color.bg}
-          emissive={color.bg}
-          emissiveIntensity={0.2}
-          roughness={0.55}
-          metalness={0.05}
-        />
-      </mesh>
+
+      <group position={[0, 0, 0.055]}>
+        <NeonTube width={width * 0.96} height={height * 0.9} color={color.border} />
+      </group>
+
       {/* Halo */}
-      <mesh position={[0, 0, 0.05]}>
-        <planeGeometry args={[width * 1.25, height * 1.6]} />
+      <mesh position={[0, 0, -0.06]}>
+        <planeGeometry args={[width * 1.35, height * 1.8]} />
         <meshBasicMaterial
-          color={color.bg}
+          color={color.border}
           transparent
-          opacity={0.32}
+          opacity={0.04}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </mesh>
-      {/* Chinese text */}
-      <Text
-        position={[0, height * 0.2, 0.06]}
-        fontSize={height * 0.45}
+
+      <NeonText
         color={color.text}
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
+        fontSize={height * 0.44}
+        position={[0, height * 0.2, 0.07]}
         letterSpacing={0.08}
       >
         {text.zh}
-      </Text>
-      {/* English text */}
-      <Text
-        position={[0, -height * 0.26, 0.06]}
-        fontSize={height * 0.26}
+      </NeonText>
+      <NeonText
         color={color.text}
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
+        fontSize={height * 0.24}
+        position={[0, -height * 0.26, 0.07]}
         letterSpacing={0.2}
       >
         {text.en}
-      </Text>
+      </NeonText>
     </group>
   )
 }
