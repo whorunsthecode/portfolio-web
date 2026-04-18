@@ -13,16 +13,34 @@ import { useStore } from './store'
 import { OnboardingOverlay } from './onboarding/OnboardingOverlay'
 import { DriverContactCard } from './onboarding/DriverContactCard'
 import { GreetingCard } from './ui/GreetingCard'
+import { MobileNavHint } from './onboarding/MobileNavHint'
+
+// Mobile viewports get a wider FOV + farther max-dolly so the spatial layout
+// of the cabin/street reads even when the screen is narrow. 88° mirrors a
+// typical phone-camera ultrawide; desktop keeps the cinematic 72°.
+const MOBILE_MQ = '(max-width: 768px)'
+function isMobileViewport() {
+  return typeof window !== 'undefined' && window.matchMedia(MOBILE_MQ).matches
+}
 
 export default function App() {
   const [boardingDone, setBoardingDone] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  const [mobile, setMobile] = useState(() => isMobileViewport())
 
   // Reduced motion — auto-skip
   const [prefersReduced] = useState(() =>
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   )
+
+  // Keep mobile flag in sync with orientation/resize
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ)
+    const onChange = () => setMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     if (prefersReduced) setBoardingDone(true)
@@ -48,7 +66,7 @@ export default function App() {
         dpr={[1, 2]}
         camera={{
           position: boardingDone || prefersReduced ? [0, 1.7, -9.0] : [5.5, 0.8, -2.0],
-          fov: boardingDone || prefersReduced ? 72 : 65,
+          fov: boardingDone || prefersReduced ? (mobile ? 88 : 72) : (mobile ? 78 : 65),
           near: 0.1,
           far: 250,
         }}
@@ -61,7 +79,7 @@ export default function App() {
         {/* Tram exterior — visible during sidewalk beat */}
         <TramExterior visible={!boardingDone && elapsed < 3.5} />
 
-        {boardingDone && <SeatedOrbit />}
+        {boardingDone && <SeatedOrbit mobile={mobile} />}
         <Scene />
         <FilmGrade />
       </Canvas>
@@ -98,6 +116,7 @@ export default function App() {
       <OnboardingOverlay />
       <DriverContactCard />
       <GreetingCard />
+      {boardingDone && mobile && <MobileNavHint />}
     </>
   )
 }
@@ -147,7 +166,7 @@ function Toast() {
 }
 
 /* ── Seated orbit — look around from the tram seat, disabled in worlds ── */
-function SeatedOrbit() {
+function SeatedOrbit({ mobile }: { mobile: boolean }) {
   const activeRoom = useStore((s) => s.activeRoom)
   const { camera } = useThree()
   const initialized = useRef(false)
@@ -155,19 +174,20 @@ function SeatedOrbit() {
   if (!initialized.current && !activeRoom) {
     camera.position.set(0, 1.7, -9.0)
     camera.lookAt(0, 1.6, -15)
-    camera.fov = 72
+    camera.fov = mobile ? 88 : 72
     camera.updateProjectionMatrix()
     initialized.current = true
   }
 
   if (activeRoom) return null // WorldCamera handles it
 
-  // Driver POV — stable orbit, zoom out to see exterior
+  // Driver POV — stable orbit. Mobile gets a higher max-dolly so users can
+  // pull back far enough to orient themselves relative to the tram/street.
   return (
     <OrbitControls
       target={[0, 1.65, -10.5]}
       minDistance={1.5}
-      maxDistance={15}
+      maxDistance={mobile ? 22 : 15}
       enablePan={false}
       enableZoom={true}
       zoomSpeed={0.6}
