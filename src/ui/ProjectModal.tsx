@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../store'
+import { CASE_STUDIES } from './caseStudies'
 
 export interface ProjectData {
   name: string
@@ -72,11 +73,39 @@ export function ProjectModal() {
   const modal = useStore((s) => s.modal)
   const setModal = useStore((s) => s.setModal)
   const [email, setEmail] = useState('')
+  const [storyOpen, setStoryOpen] = useState(false)
+  const modalBodyRef = useRef<HTMLDivElement>(null)
+
+  // Collapse the case study whenever the modal switches to a different
+  // project (and when it closes), so each modal opens in its resting state.
+  useEffect(() => {
+    setStoryOpen(false)
+  }, [modal])
 
   if (!modal || modal === 'terminus') return null
 
   const project = PROJECTS[modal]
   if (!project) return null
+
+  const caseStudy = CASE_STUDIES[modal]
+
+  const toggleStory = () => {
+    setStoryOpen((v) => {
+      const next = !v
+      // When opening, scroll the modal so the newly revealed story text
+      // is visible — on short phones the button otherwise ends up at the
+      // top with the content below the fold.
+      if (next) {
+        requestAnimationFrame(() => {
+          modalBodyRef.current?.scrollTo({
+            top: modalBodyRef.current.scrollHeight,
+            behavior: 'smooth',
+          })
+        })
+      }
+      return next
+    })
+  }
 
   const handleNotify = () => {
     const trimmed = email.trim()
@@ -106,6 +135,7 @@ export function ProjectModal() {
       backdropFilter: 'blur(10px)',
     }} onClick={() => setModal(null)}>
       <div
+        ref={modalBodyRef}
         style={{
           background: '#1a1816',
           borderRadius: 16,
@@ -257,6 +287,68 @@ export function ProjectModal() {
             </form>
           </div>
         ) : null}
+
+        {/* Case-study disclosure — shown below the CTA for every project
+            modal that has a case study (Terminus is already short-circuited
+            above). Tapping the button toggles a max-height-transitioned
+            panel below. */}
+        {caseStudy && (
+          <>
+            <button
+              onClick={toggleStory}
+              aria-expanded={storyOpen}
+              style={{
+                display: 'block',
+                width: '100%',
+                marginTop: 14,
+                padding: '10px 20px',
+                background: '#f0e6c8',
+                color: '#1a1a18',
+                border: 'none',
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background 120ms ease',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.background = '#e2d7b5'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.background = '#f0e6c8'
+              }}
+            >
+              {storyOpen ? 'Close ×' : 'Read the story →'}
+            </button>
+
+            <div
+              style={{
+                overflow: 'hidden',
+                maxHeight: storyOpen ? 3000 : 0,
+                transition: 'max-height 250ms ease-out',
+              }}
+            >
+              <div style={{ paddingTop: 16, paddingBottom: 4 }}>
+                {caseStudy.split('\n\n').map((para, i) => (
+                  <p
+                    key={i}
+                    style={{
+                      margin: '0 0 12px',
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      color: '#f0e6d3',
+                      opacity: 0.88,
+                    }}
+                  >
+                    {para}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
