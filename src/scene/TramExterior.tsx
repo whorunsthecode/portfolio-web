@@ -11,7 +11,7 @@ const TRAM_CREAM = '#f4e4c8'
  */
 export function TramExterior({ visible }: { visible: boolean }) {
   const adTex = useMemo(() => makeTextTexture({
-    text: '香港電車 HONG KONG TRAMWAYS',
+    text: '叮叮電車 DING DING TRAMWAYS',
     fontSize: 36,
     color: '#007549',
     width: 768,
@@ -20,7 +20,7 @@ export function TramExterior({ visible }: { visible: boolean }) {
   }), [])
 
   const tramwaysTex = useMemo(() => makeTextTexture({
-    text: 'HONG KONG TRAMWAYS · 香港電車',
+    text: 'DING DING TRAMWAYS · 叮叮電車',
     fontSize: 28,
     color: '#c82820',
     width: 768,
@@ -85,7 +85,7 @@ export function TramExterior({ visible }: { visible: boolean }) {
         <meshStandardMaterial map={adTex} roughness={0.7} />
       </mesh>
 
-      {/* ── "HONG KONG TRAMWAYS · 香港電車" on upper deck ── */}
+      {/* ── "DING DING TRAMWAYS · 叮叮電車" on upper deck ── */}
       <mesh position={[0, 1.9, 1.165]}>
         <planeGeometry args={[6, 0.4]} />
         <meshStandardMaterial map={tramwaysTex} transparent roughness={0.7} />

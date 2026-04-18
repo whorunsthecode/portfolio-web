@@ -60,7 +60,7 @@ export function RouteMap() {
         anchorY="middle"
         letterSpacing={0.2}
       >
-        {'香港電車 · 88 號線'}
+        {'叮叮電車 · 88 號線'}
       </Text>
 
       {/* === ROUTE LINE === */}
@@ -141,7 +141,7 @@ export function RouteMap() {
         {'Westbound · 往西行'}
       </Text>
 
-      {/* === HKT LOGO STAMP === */}
+      {/* === DDT LOGO STAMP === */}
       <group position={[-0.55, -0.35, 0.031]}>
         <mesh>
           <circleGeometry args={[0.04, 12]} />
@@ -154,7 +154,7 @@ export function RouteMap() {
           anchorY="middle"
           position={[0, 0, 0.001]}
         >
-          HKT
+          DDT
         </Text>
       </group>
 
