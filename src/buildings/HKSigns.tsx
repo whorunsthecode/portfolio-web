@@ -77,17 +77,29 @@ function seededRandom(seed: number) {
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Sign 1: Vertical hanger — projects off the facade, long thin
-   rectangle, 2-4 Chinese characters stacked. The iconic 龍門大酒樓
-   style. Has a black-framed arm bracket holding it to the building.
+   Geometry conventions
+   ──────────────────────────────────────────────────────────────────
+   Buildings are centred at world x = ±9 with depth 7, so their
+   road-facing FACADE sits at world x = ±5.5 (= ROAD_HALF in
+   TenementRow). Signs mount on the facade and project OUTWARD across
+   the road — this is the authentic 1980s look where massive vertical
+   hangers jutted over tram tracks. Sign `projection` values below
+   are "metres past the facade toward the road centre."
+   ────────────────────────────────────────────────────────────────── */
+const FACADE_X = 5.5
+
+/* ──────────────────────────────────────────────────────────────────
+   Sign 1: Vertical hanger — massive 龍門大酒樓-style plate that hangs
+   off the facade, suspended by a black steel arm, 2-4 characters
+   stacked vertically. Huge at night.
    ────────────────────────────────────────────────────────────────── */
 function VerticalHanger({
   side,
   y,
   text,
   color,
-  height = 2.2,
-  width = 0.55,
+  height = 3.2,
+  width = 0.75,
 }: {
   side: 1 | -1
   y: number
@@ -96,52 +108,75 @@ function VerticalHanger({
   height?: number
   width?: number
 }) {
-  const projection = 0.9 // how far out from the building face
-  const buildingX = side * 9
-  const signX = side * (9 - projection)
+  // How far past the facade the sign hangs. Big: ~2.4m over the road.
+  const projection = 2.4
+  const facadeX = side * FACADE_X
+  const signX = side * (FACADE_X - projection) // out over the road
   const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
-  // Characters stacked vertically
   const chars = text.split('')
 
   return (
     <group>
-      {/* Support arm from building to sign */}
-      <mesh
-        position={[side * (9 - projection / 2), y, 0]}
-        rotation={[0, 0, Math.PI / 2]}
-      >
-        <cylinderGeometry args={[0.025, 0.025, projection, 8]} />
+      {/* Wall bracket anchoring the arm to the facade */}
+      <mesh position={[facadeX - side * 0.05, y, 0]}>
+        <boxGeometry args={[0.1, 0.3, 0.3]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
 
-      {/* Sign frame — thin dark border box */}
+      {/* Support arm — steel beam from facade to sign */}
+      <mesh
+        position={[side * (FACADE_X - projection / 2), y + height / 2 + 0.1, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
+        <cylinderGeometry args={[0.04, 0.04, projection, 8]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+      {/* Short vertical drop from arm to top of sign */}
+      <mesh position={[signX, y + height / 2 + 0.05, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.2, 8]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+
+      {/* Sign frame — thick dark border box behind the face */}
       <mesh position={[signX, y, 0]} rotation={[0, rotY, 0]}>
-        <boxGeometry args={[width + 0.05, height + 0.05, 0.04]} />
+        <boxGeometry args={[width + 0.1, height + 0.1, 0.1]} />
         <meshStandardMaterial color="#1a1410" roughness={0.8} />
       </mesh>
 
-      {/* Sign face (both sides visible) */}
-      <mesh position={[signX + side * 0.025, y, 0]} rotation={[0, rotY, 0]}>
+      {/* Sign face — emissive plane that lights up at night */}
+      <mesh position={[signX + side * 0.055, y, 0]} rotation={[0, rotY, 0]}>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial
           color={color.bg}
           emissive={color.bg}
           emissiveIntensity={0.18}
-          roughness={0.7}
-          side={THREE.DoubleSide}
+          roughness={0.55}
+          metalness={0.05}
         />
       </mesh>
 
-      {/* Vertical stack of Chinese characters — one Text per char so
-          anchoring is clean and the plane always faces the road. */}
+      {/* Halo behind the sign — only really visible at night because of the
+          additive blending + emissive bump. Gives the neon-tube bleed look. */}
+      <mesh position={[signX + side * 0.05, y, 0]} rotation={[0, rotY, 0]}>
+        <planeGeometry args={[width * 1.8, height * 1.25]} />
+        <meshBasicMaterial
+          color={color.bg}
+          transparent
+          opacity={0.35}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Vertical stack of Chinese characters */}
       {chars.map((ch, i) => {
-        const charSize = Math.min(width * 0.75, height / chars.length * 0.72)
+        const charSize = Math.min(width * 0.78, height / chars.length * 0.78)
         const charY = y + (height / 2) - (i + 0.5) * (height / chars.length)
         return (
           <Text
             key={i}
-            position={[signX + side * 0.027, charY, 0]}
+            position={[signX + side * 0.057, charY, 0]}
             rotation={[0, rotY, 0]}
             fontSize={charSize}
             color={color.text}
@@ -153,90 +188,15 @@ function VerticalHanger({
           </Text>
         )
       })}
-
-      {/* Reference buildingX in an effect-free expression so the linter
-          doesn't flag the variable as unused — it documents the outer
-          geometry intent (building face lives at ±9). */}
-      {buildingX !== 0 && null}
     </group>
   )
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Sign 2: Horizontal banner — wide bilingual ad mounted flat on the
-   facade. Reference: 龍門大酒樓 plaques, ELGIN rooftop-style ad.
+   Sign 2: Horizontal banner — wide bilingual plate mounted just off
+   the facade. Projects a short distance so it has visual depth.
    ────────────────────────────────────────────────────────────────── */
 function HorizontalBanner({
-  side,
-  y,
-  text,
-  color,
-  width = 2.6,
-  height = 0.6,
-}: {
-  side: 1 | -1
-  y: number
-  text: { zh: string; en: string }
-  color: { bg: string; text: string }
-  width?: number
-  height?: number
-}) {
-  const facadeX = side * 9.001
-  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
-
-  return (
-    <group>
-      {/* Frame */}
-      <mesh position={[facadeX - side * 0.02, y, 0]} rotation={[0, rotY, 0]}>
-        <boxGeometry args={[width + 0.06, height + 0.06, 0.08]} />
-        <meshStandardMaterial color="#1a1410" roughness={0.8} />
-      </mesh>
-      {/* Face */}
-      <mesh position={[facadeX - side * 0.06, y, 0]} rotation={[0, rotY, 0]}>
-        <planeGeometry args={[width, height]} />
-        <meshStandardMaterial
-          color={color.bg}
-          emissive={color.bg}
-          emissiveIntensity={0.18}
-          roughness={0.7}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {/* Chinese text (larger, top) */}
-      <Text
-        position={[facadeX - side * 0.065, y + height * 0.2, 0]}
-        rotation={[0, rotY, 0]}
-        fontSize={height * 0.45}
-        color={color.text}
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
-        letterSpacing={0.08}
-      >
-        {text.zh}
-      </Text>
-      {/* English text (smaller, bottom) */}
-      <Text
-        position={[facadeX - side * 0.065, y - height * 0.25, 0]}
-        rotation={[0, rotY, 0]}
-        fontSize={height * 0.22}
-        color={color.text}
-        anchorX="center"
-        anchorY="middle"
-        fontWeight="bold"
-        letterSpacing={0.15}
-      >
-        {text.en}
-      </Text>
-    </group>
-  )
-}
-
-/* ──────────────────────────────────────────────────────────────────
-   Sign 3: Rooftop billboard — bilingual ad standing atop a low-rise
-   building like the ELGIN sign in pic 1. Reads from both sides.
-   ────────────────────────────────────────────────────────────────── */
-function RooftopBillboard({
   side,
   y,
   text,
@@ -251,37 +211,134 @@ function RooftopBillboard({
   width?: number
   height?: number
 }) {
-  const x = side * 9.5
+  // Banners project ~0.5m from the facade — less than vertical hangers
+  // but enough to cast real shadow.
+  const projection = 0.5
+  const signX = side * (FACADE_X - projection)
+  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   return (
-    <group position={[x, y, 0]}>
-      {/* Support legs */}
-      {[-width / 2 + 0.2, width / 2 - 0.2].map((lx, i) => (
-        <mesh key={i} position={[lx, -0.4, 0]}>
-          <boxGeometry args={[0.08, 0.8, 0.08]} />
+    <group>
+      {/* Frame */}
+      <mesh position={[signX, y, 0]} rotation={[0, rotY, 0]}>
+        <boxGeometry args={[width + 0.08, height + 0.08, 0.12]} />
+        <meshStandardMaterial color="#1a1410" roughness={0.8} />
+      </mesh>
+      {/* Face */}
+      <mesh position={[signX + side * 0.07, y, 0]} rotation={[0, rotY, 0]}>
+        <planeGeometry args={[width, height]} />
+        <meshStandardMaterial
+          color={color.bg}
+          emissive={color.bg}
+          emissiveIntensity={0.18}
+          roughness={0.55}
+          metalness={0.05}
+        />
+      </mesh>
+      {/* Halo */}
+      <mesh position={[signX + side * 0.065, y, 0]} rotation={[0, rotY, 0]}>
+        <planeGeometry args={[width * 1.4, height * 1.6]} />
+        <meshBasicMaterial
+          color={color.bg}
+          transparent
+          opacity={0.3}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Chinese text (larger, top) */}
+      <Text
+        position={[signX + side * 0.075, y + height * 0.2, 0]}
+        rotation={[0, rotY, 0]}
+        fontSize={height * 0.48}
+        color={color.text}
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+        letterSpacing={0.08}
+      >
+        {text.zh}
+      </Text>
+      {/* English text (smaller, bottom) */}
+      <Text
+        position={[signX + side * 0.075, y - height * 0.26, 0]}
+        rotation={[0, rotY, 0]}
+        fontSize={height * 0.24}
+        color={color.text}
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+        letterSpacing={0.15}
+      >
+        {text.en}
+      </Text>
+    </group>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Sign 3: Rooftop billboard — bilingual board standing on the roof of
+   a low-rise, facing the road. ELGIN-style.
+   ────────────────────────────────────────────────────────────────── */
+function RooftopBillboard({
+  side,
+  y,
+  text,
+  color,
+  width = 4.2,
+  height = 1.2,
+}: {
+  side: 1 | -1
+  y: number
+  text: { zh: string; en: string }
+  color: { bg: string; text: string }
+  width?: number
+  height?: number
+}) {
+  // Sits on the road-facing edge of the roof and faces the road centre.
+  const x = side * (FACADE_X + 0.3)
+  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
+
+  return (
+    <group position={[x, y, 0]} rotation={[0, rotY, 0]}>
+      {/* Support legs dropping from the board to the roof */}
+      {[-width / 2 + 0.3, width / 2 - 0.3].map((lx, i) => (
+        <mesh key={i} position={[lx, -height / 2 - 0.5, 0]}>
+          <boxGeometry args={[0.12, 1.0, 0.12]} />
           <meshStandardMaterial color="#1a1410" roughness={0.85} />
         </mesh>
       ))}
       {/* Billboard frame */}
       <mesh>
-        <boxGeometry args={[width + 0.06, height + 0.06, 0.06]} />
+        <boxGeometry args={[width + 0.08, height + 0.08, 0.08]} />
         <meshStandardMaterial color="#1a1410" roughness={0.8} />
       </mesh>
-      {/* Face (double-sided so visible from both tram directions) */}
-      <mesh>
+      {/* Face */}
+      <mesh position={[0, 0, 0.055]}>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial
           color={color.bg}
           emissive={color.bg}
           emissiveIntensity={0.2}
-          roughness={0.7}
-          side={THREE.DoubleSide}
+          roughness={0.55}
+          metalness={0.05}
+        />
+      </mesh>
+      {/* Halo */}
+      <mesh position={[0, 0, 0.05]}>
+        <planeGeometry args={[width * 1.25, height * 1.6]} />
+        <meshBasicMaterial
+          color={color.bg}
+          transparent
+          opacity={0.32}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
       </mesh>
       {/* Chinese text */}
       <Text
-        position={[0, height * 0.2, 0.001]}
-        fontSize={height * 0.42}
+        position={[0, height * 0.2, 0.06]}
+        fontSize={height * 0.45}
         color={color.text}
         anchorX="center"
         anchorY="middle"
@@ -292,8 +349,8 @@ function RooftopBillboard({
       </Text>
       {/* English text */}
       <Text
-        position={[0, -height * 0.25, 0.001]}
-        fontSize={height * 0.24}
+        position={[0, -height * 0.26, 0.06]}
+        fontSize={height * 0.26}
         color={color.text}
         anchorX="center"
         anchorY="middle"
@@ -410,10 +467,16 @@ const SCROLL_SPEED = 6
 const ROUTE_LENGTH = 140
 const RESET_THRESHOLD = 15
 
-// Emissive intensity base (day) and night multiplier. At night all sign
-// faces glow ~8x brighter — neon-street look without swapping materials.
+// Emissive intensity base (day) and night ceiling. At night we push the
+// sign faces hard so they genuinely read as lit neon boards from across
+// the street, not dim painted plates.
 const DAY_EMISSIVE = 0.18
-const NIGHT_EMISSIVE = 1.6
+const NIGHT_EMISSIVE = 3.2
+// The additive-blended halo planes behind each sign face. Near-invisible
+// during the day so signs look like painted boards; at night they bloom
+// into the neon-tube bleed you see in 1980s HK photos.
+const DAY_HALO_OPACITY = 0.04
+const NIGHT_HALO_OPACITY = 0.7
 const EMISSIVE_LERP_SPEED = 3
 
 export function HKSigns() {
@@ -439,6 +502,11 @@ export function HKSigns() {
       NIGHT_EMISSIVE,
       blend.current,
     )
+    const haloOpacity = THREE.MathUtils.lerp(
+      DAY_HALO_OPACITY,
+      NIGHT_HALO_OPACITY,
+      blend.current,
+    )
 
     const children = groupRef.current.children
     for (let i = 0; i < children.length; i++) {
@@ -449,22 +517,34 @@ export function HKSigns() {
       }
       children[i].position.z = offsets.current[i]
 
-      // Update emissive intensity on every face mesh (MeshStandardMaterial
-      // with an emissive color). Walk descendants.
+      // Walk descendants: bump emissive on the lit face planes, and scale
+      // opacity on the additive halo planes behind them.
       children[i].traverse((obj) => {
-        if ((obj as THREE.Mesh).isMesh) {
-          const mesh = obj as THREE.Mesh
-          const mat = mesh.material as THREE.MeshStandardMaterial
-          if (mat && mat.emissive && mat.emissiveIntensity !== undefined) {
-            // Only bump faces that already have emissive (the face planes),
-            // not the dark frame boxes (emissive is black there)
-            if (
-              mat.emissive.r > 0.05 ||
-              mat.emissive.g > 0.05 ||
-              mat.emissive.b > 0.05
-            ) {
-              mat.emissiveIntensity = emissiveIntensity
-            }
+        if (!(obj as THREE.Mesh).isMesh) return
+        const mesh = obj as THREE.Mesh
+        const mat = mesh.material as
+          | THREE.MeshStandardMaterial
+          | THREE.MeshBasicMaterial
+        if (!mat) return
+
+        // MeshBasicMaterial with AdditiveBlending → it's a halo plane.
+        if (
+          (mat as THREE.MeshBasicMaterial).isMeshBasicMaterial &&
+          (mat as THREE.MeshBasicMaterial).blending === THREE.AdditiveBlending
+        ) {
+          ;(mat as THREE.MeshBasicMaterial).opacity = haloOpacity
+          return
+        }
+
+        // MeshStandardMaterial with coloured emissive → it's a sign face.
+        const std = mat as THREE.MeshStandardMaterial
+        if (std.emissive && std.emissiveIntensity !== undefined) {
+          if (
+            std.emissive.r > 0.05 ||
+            std.emissive.g > 0.05 ||
+            std.emissive.b > 0.05
+          ) {
+            std.emissiveIntensity = emissiveIntensity
           }
         }
       })
