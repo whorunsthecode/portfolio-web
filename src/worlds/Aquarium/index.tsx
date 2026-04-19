@@ -5,6 +5,7 @@ import { WaterEffects } from './WaterEffects'
 import { AquariumLighting } from './AquariumLighting'
 import { WorldOrbit } from '../../scene/components/WorldOrbit'
 import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
+import { TapHint } from '../../scene/components/TapHint'
 import { useStore } from '../../store'
 
 /**
@@ -16,6 +17,7 @@ import { useStore } from '../../store'
  */
 export function Aquarium() {
   const setModal = useStore((s) => s.setModal)
+  const modal = useStore((s) => s.modal)
 
   return (
     <group
@@ -39,6 +41,14 @@ export function Aquarium() {
       <InteractiveGlow radius={0.6} color="#ffd878" y={-0.5} />
       <WaterEffects />
       <WorldOrbit target={[0, -27.5, -2]} minDistance={2} maxDistance={8} />
+
+      {/* Hint floats above the hatching egg — the world's focal point. */}
+      <TapHint
+        label="Tap the tank · 點擊魚缸"
+        storageKey="aquarium-tank"
+        offset={[0, 0.7, -1.5]}
+        dismissWhen={modal === 'aquarium'}
+      />
     </group>
   )
 }

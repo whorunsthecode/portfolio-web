@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Text } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
 import { CONTACT_CHANNELS, type ContactChannel } from '../../config/contact'
+import { TapHint } from '../../scene/components/TapHint'
 
 const TRAM_GREEN_VINTAGE = '#2a5238'
 const TRAM_GREEN_WEATHERED = '#3a6248'
@@ -240,6 +241,14 @@ function RouteStrip() {
           isCurrent={i === STOPS.length - 1}
         />
       ))}
+
+      {/* One shared hint above the tickets — the board itself is the
+          "this is a row of contact links" signal. Don't nag per-ticket. */}
+      <TapHint
+        label="Tap any ticket to reach me · 點擊車票"
+        storageKey="terminus-tickets"
+        offset={[0, 0.68, 0]}
+      />
     </group>
   )
 }

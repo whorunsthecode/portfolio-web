@@ -4,10 +4,12 @@ import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useStore } from '../../store'
 import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
+import { TapHint } from '../../scene/components/TapHint'
 
 export function GestureGalleryExhibit() {
   const handRef = useRef<THREE.Group>(null)
   const setModal = useStore((s) => s.setModal)
+  const modal = useStore((s) => s.modal)
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
@@ -112,6 +114,12 @@ export function GestureGalleryExhibit() {
         ))}
       </group>
 
+      <TapHint
+        label="Tap the hand · 點擊手型"
+        storageKey="museum-hand"
+        offset={[0, 3.1, 0]}
+        dismissWhen={modal === 'museum'}
+      />
     </group>
   )
 }

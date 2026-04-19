@@ -5,12 +5,14 @@ import type { Group } from 'three'
 import { Text } from '@react-three/drei'
 import { useStore } from '../../store'
 import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
+import { TapHint } from '../../scene/components/TapHint'
 
 export function Drift() {
   const groupRef = useRef<Group>(null)
   const envelopeRef = useRef<Group>(null)
   const [hovered, setHovered] = useState(false)
   const setModal = useStore((s) => s.setModal)
+  const modal = useStore((s) => s.modal)
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
@@ -164,6 +166,13 @@ export function Drift() {
       </group>
 
       <InteractiveGlow radius={0.7} color="#b098d8" y={-0.5} />
+
+      <TapHint
+        label="Meet Drift · 點擊 Drift"
+        storageKey="dreamery-drift"
+        offset={[0, 0.9, 0]}
+        dismissWhen={modal === 'fantasy'}
+      />
     </group>
   )
 }
