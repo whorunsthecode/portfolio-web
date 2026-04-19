@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useCityFacadeMaterial, CityFacadeMaterial } from '../CityFacade'
 import { useStore } from '../../store'
+import { InfoTag } from '../../scene/components/InfoTag'
 
 /**
  * Bank of China Tower — THE hero landmark.
@@ -240,6 +241,8 @@ export function BoC() {
           </group>
         )
       })}
+
+      <InfoTag label="Bank of China · I.M. Pei's blade" offset={[0, baseH + peakH + 10, 0]} />
     </group>
   )
 }

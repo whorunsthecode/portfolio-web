@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useStore } from '../../store'
+import { InfoTag } from '../../scene/components/InfoTag'
 
 /**
  * Man Mo Temple (1847, Hollywood Road, Sheung Wan) — a small Qing-dynasty
@@ -158,6 +159,8 @@ export function ManMoTemple() {
           />
         </mesh>
       ))}
+
+      <InfoTag label="Man Mo Temple · since 1847" offset={[0, 0.6 + wallHeight + roofRise + 2.5, 0]} />
     </group>
   )
 }

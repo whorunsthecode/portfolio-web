@@ -10,6 +10,8 @@ export function HUD() {
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
   const setShowDriverCard = useStore((s) => s.setShowDriverCard)
+  const showDetails = useStore((s) => s.showDetails)
+  const toggleDetails = useStore((s) => s.toggleDetails)
 
   const currentStop = STOPS[blindIndex]
   const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
@@ -96,6 +98,45 @@ export function HUD() {
               this HUD affordance guarantees the contact entry point is
               always discoverable. Brass gradient matches the in-cabin
               badge; the keyframe pulse draws the eye without being loud. */}
+      {/* Details toggle — reveals Sims-style captions on cultural references
+          (Anita Mui, Leslie Cheung, Jardine House, KMB bus, etc.) so non-HK
+          visitors can see what we snuck in. Off by default; the pill state
+          mirrors the store flag. */}
+      {!activeRoom && (
+        <button
+          onClick={toggleDetails}
+          aria-label={showDetails ? 'Hide details' : 'Show details'}
+          title={showDetails ? 'Hide details' : 'Show details'}
+          style={{
+            position: 'absolute',
+            top: 164,
+            right: 16,
+            pointerEvents: 'auto',
+            background: showDetails
+              ? 'linear-gradient(180deg, #f5ead0 0%, #ead9b2 100%)'
+              : pillBg,
+            color: showDetails ? '#1a1410' : textColor,
+            border: showDetails ? '1px solid #8a6f3a' : 'none',
+            borderRadius: 24,
+            padding: '8px 14px',
+            cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            lineHeight: 1,
+            transition: 'background 160ms ease, color 160ms ease',
+          }}
+        >
+          <span style={{ fontSize: 14, fontStyle: 'italic', fontFamily: '"Playfair Display", Georgia, serif' }}>
+            ℹ
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+            Details
+          </span>
+        </button>
+      )}
+
       <button
         onClick={() => setShowDriverCard(true)}
         aria-label="Contact the driver"

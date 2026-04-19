@@ -21,6 +21,7 @@ import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useStore } from '../store'
+import { InfoTag } from '../scene/components/InfoTag'
 
 /* ── Shop vocabulary — authentic HK shop types ──────────────────── */
 const SHOPS_CHINESE = [
@@ -605,41 +606,47 @@ export function HKSigns() {
   })
 
   return (
-    <group ref={groupRef}>
-      {signs.map((s, i) => (
-        <group key={i} position={[0, 0, s.z]}>
-          {s.kind === 'vertical' && (
-            <VerticalHanger
-              side={s.side}
-              y={s.y}
-              text={s.text}
-              color={s.color}
-              height={s.height}
-              width={s.width}
-            />
-          )}
-          {s.kind === 'horizontal' && (
-            <HorizontalBanner
-              side={s.side}
-              y={s.y}
-              text={s.text}
-              color={s.color}
-              width={s.width}
-              height={s.height}
-            />
-          )}
-          {s.kind === 'rooftop' && (
-            <RooftopBillboard
-              side={s.side}
-              y={s.y}
-              text={s.text}
-              color={s.color}
-              width={s.width}
-              height={s.height}
-            />
-          )}
-        </group>
-      ))}
+    <group>
+      {/* Inner group holds the scrolling children; the scroll loop in
+          useFrame iterates its `.children` by index, so non-sign children
+          must live in the outer group as siblings. */}
+      <group ref={groupRef}>
+        {signs.map((s, i) => (
+          <group key={i} position={[0, 0, s.z]}>
+            {s.kind === 'vertical' && (
+              <VerticalHanger
+                side={s.side}
+                y={s.y}
+                text={s.text}
+                color={s.color}
+                height={s.height}
+                width={s.width}
+              />
+            )}
+            {s.kind === 'horizontal' && (
+              <HorizontalBanner
+                side={s.side}
+                y={s.y}
+                text={s.text}
+                color={s.color}
+                width={s.width}
+                height={s.height}
+              />
+            )}
+            {s.kind === 'rooftop' && (
+              <RooftopBillboard
+                side={s.side}
+                y={s.y}
+                text={s.text}
+                color={s.color}
+                width={s.width}
+                height={s.height}
+              />
+            )}
+          </group>
+        ))}
+      </group>
+      <InfoTag label="Neon signs · disappearing craft" offset={[-6, 11, -4]} />
     </group>
   )
 }

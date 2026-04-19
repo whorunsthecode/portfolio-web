@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { useStore } from '../../store'
+import { InfoTag } from '../../scene/components/InfoTag'
 
 /**
  * Central Market (1938) — Bauhaus-era streamline moderne market hall on
@@ -131,6 +132,8 @@ export function CentralMarket() {
           <meshStandardMaterial color="#4a4038" roughness={0.8} />
         </mesh>
       ))}
+
+      <InfoTag label="Central Market · 1938 Bauhaus" offset={[0, height + 5, 0]} />
     </group>
   )
 }

@@ -1,4 +1,5 @@
 import { Text } from '@react-three/drei'
+import { InfoTag } from '../scene/components/InfoTag'
 
 const KMB_RED = '#c62828'
 const KMB_CREAM = '#f4e4c8'
@@ -193,6 +194,8 @@ export function KmbBus({ variantSeed = 0 }: { variantSeed?: number }) {
         <boxGeometry args={[0.05, 0.2, 0.25]} />
         <meshBasicMaterial color="#ff2020" />
       </mesh>
+
+      <InfoTag label="KMB Leyland · '80s double-decker" offset={[0, 5.8, 0]} />
     </group>
   )
 }
