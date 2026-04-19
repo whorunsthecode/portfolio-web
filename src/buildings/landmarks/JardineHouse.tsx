@@ -119,7 +119,11 @@ export function JardineHouse() {
         <meshStandardMaterial color="#8a8a82" roughness={0.7} />
       </mesh>
 
-      <InfoTag label="Jardine House · 1,748 portholes" offset={[0, height + 8, 0]} />
+      <InfoTag
+        label="Jardine House · 1,748 portholes"
+        offset={[width / 2 + 3, height * 0.6, 0]}
+        side="right"
+      />
     </group>
   )
 }

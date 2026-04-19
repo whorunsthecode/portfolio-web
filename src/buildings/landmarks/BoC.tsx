@@ -242,7 +242,11 @@ export function BoC() {
         )
       })}
 
-      <InfoTag label="Bank of China · I.M. Pei's blade" offset={[0, baseH + peakH + 10, 0]} />
+      <InfoTag
+        label="Bank of China · I.M. Pei's blade"
+        offset={[baseW / 2 + 4, baseH * 0.7, 0]}
+        side="right"
+      />
     </group>
   )
 }
