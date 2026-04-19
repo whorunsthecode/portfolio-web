@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
 
 export function HUD() {
@@ -45,6 +46,10 @@ export function HUD() {
           ← Return to tram
         </button>
       )}
+
+      {/* Terminus context banner — a tram terminus is abstract; spell out that
+          this is the contact room. Other worlds stand on their own visually. */}
+      {activeRoom === 'terminus' && <TerminusContextBanner />}
 
       {/* ── Day/Night toggle — top right. Briefly overlaps with the
               Skip button during the ~5s boarding intro (App.tsx);
@@ -184,6 +189,64 @@ export function HUD() {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+/* ── Terminus context banner — fades in when entering, auto-hides after 6s ── */
+function TerminusContextBanner() {
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setVisible(false), 6000)
+    return () => window.clearTimeout(t)
+  }, [])
+
+  return (
+    <div
+      onClick={() => setVisible(false)}
+      style={{
+        position: 'absolute',
+        top: 72,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        pointerEvents: 'auto',
+        background: 'linear-gradient(180deg, rgba(26,20,16,0.88) 0%, rgba(10,8,6,0.88) 100%)',
+        color: '#f5ead0',
+        padding: '10px 18px',
+        borderRadius: 20,
+        border: '1px solid rgba(138,111,58,0.55)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        maxWidth: 'min(92vw, 440px)',
+        textAlign: 'center',
+        boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 600ms ease',
+        cursor: 'pointer',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: '"Playfair Display", Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: 13,
+          lineHeight: 1.45,
+        }}
+      >
+        Whitty Street terminus — every ticket on the board is a way to reach me.
+      </div>
+      <div
+        style={{
+          fontFamily: '"Noto Serif TC", serif',
+          fontSize: 11,
+          letterSpacing: '0.12em',
+          opacity: 0.75,
+          marginTop: 4,
+        }}
+      >
+        屈地街總站 · 每張車票都是聯絡方式
+      </div>
     </div>
   )
 }

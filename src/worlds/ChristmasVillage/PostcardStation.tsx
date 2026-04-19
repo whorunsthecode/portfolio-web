@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import { Text } from '@react-three/drei'
 import { useStore } from '../../store'
+import { TapHint } from '../../scene/components/TapHint'
 
 const CARD_CREAM = '#f4ead4'
 const POST_RED = '#c82820'
@@ -16,6 +17,7 @@ const STAMP_GREEN = '#2a6a3c'
 export function PostcardStation() {
   const [hovered, setHovered] = useState(false)
   const setShowGreetingCard = useStore((s) => s.setShowGreetingCard)
+  const showGreetingCard = useStore((s) => s.showGreetingCard)
 
   return (
     <group
@@ -86,6 +88,13 @@ export function PostcardStation() {
           tap to open your postcard ↓
         </Text>
       </group>
+
+      <TapHint
+        label="Tap the card to download · 下載賀卡"
+        storageKey="xmas-postcard"
+        offset={[0, 0.55, 0]}
+        dismissWhen={showGreetingCard}
+      />
     </group>
   )
 }

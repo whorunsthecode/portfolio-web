@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { useTexture } from '@react-three/drei'
 import { useStore } from '../../store'
 import { InteractiveGlow } from '../../scene/components/InteractiveGlow'
+import { TapHint } from '../../scene/components/TapHint'
 
 const GLOBE_RADIUS = 0.9
 const SNOW_COUNT = 80
@@ -12,6 +13,7 @@ export function SnowGlobe() {
   const globeRef = useRef<THREE.Group>(null)
   const snowRefs = useRef<THREE.Mesh[]>([])
   const setModal = useStore((s) => s.setModal)
+  const modal = useStore((s) => s.modal)
 
   const villageTex = useTexture('/assets/xmas-village.png')
 
@@ -144,6 +146,13 @@ export function SnowGlobe() {
       <pointLight position={[0, GLOBE_RADIUS, 0]} color="#ffd880" intensity={1.2} distance={2.5} decay={2} />
 
       <InteractiveGlow radius={1.0} color="#ffd040" y={-0.02} />
+
+      <TapHint
+        label="Tap the snow globe · 點擊水晶球"
+        storageKey="xmas-snowglobe"
+        offset={[0, 2.35, 0]}
+        dismissWhen={modal === 'christmas'}
+      />
     </group>
   )
 }
