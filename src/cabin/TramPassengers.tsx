@@ -420,9 +420,11 @@ export function Auntie() {
         <MahjongTile />
         <InfoTag label="紅中 · off to 麻雀館" offset={[0, 0.14, 0]} />
       </group>
-      {/* 紅白藍 bag — THE iconic HK object. Sits at her feet between
-          her and the aisle. */}
-      <group position={[0, -0.45, 0.32]}>
+      {/* 紅白藍 bag — THE iconic HK object. Sits ON the bench next to
+          her (local +X along the bench length), tilted slightly. The
+          old position at y=-0.45 dropped it through the seat onto the
+          floor behind her shins. */}
+      <group position={[0.32, 0.08, 0.02]} rotation={[0, -0.2, 0.06]}>
         <RedWhiteBlueBag />
       </group>
     </group>
@@ -872,13 +874,13 @@ function AnitaMui() {
         <LemonTeaCarton />
         <InfoTag label="Vita Lemon Tea · HK staple" offset={[0, 0.18, 0]} />
       </group>
-      {/* 紅白藍 nylon tote tucked next to her on the bench — slightly
+      {/* 紅白藍 nylon tote tucked on the bench next to her — slightly
           smaller than Auntie's so it reads as a second, personal bag
-          (not a duplicate). Sits on the bench to her aisle-side so
-          it's not hidden by the torso from the driver's POV. */}
-      <group position={[-0.36, -0.2, 0.05]} rotation={[0, 0.25, 0.08]}>
+          (not a duplicate). Lifted to bench level so it sits on the
+          seat rather than sinking through it. */}
+      <group position={[-0.32, 0.05, 0.02]} rotation={[0, 0.25, 0.08]}>
         <RedWhiteBlueBag scale={0.82} />
-        <InfoTag label="紅白藍 · HK's utility tote" offset={[0, 0.35, 0]} />
+        <InfoTag label="紅白藍 · HK's utility tote" offset={[0, 0.3, 0]} />
       </group>
       <InfoTag label="Anita Mui · Madonna of Asia" offset={[0, 0.95, 0]} />
     </group>

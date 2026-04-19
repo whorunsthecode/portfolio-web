@@ -361,7 +361,7 @@ function SideDestinationBoards() {
             {/* Chinese destination — 屈地街, offset RIGHT of the route box */}
             <Text
               position={[x + side * 0.02, boardY + 0.035, boardZ + 0.6]}
-              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              rotation={[0, side === 1 ? Math.PI / 2 : -Math.PI / 2, 0]}
               fontSize={0.075}
               color="#0d3a1e"
               anchorX="center"
@@ -374,7 +374,7 @@ function SideDestinationBoards() {
             {/* English destination — WHITTY STREET, fits within board length */}
             <Text
               position={[x + side * 0.02, boardY - 0.055, boardZ + 0.6]}
-              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              rotation={[0, side === 1 ? Math.PI / 2 : -Math.PI / 2, 0]}
               fontSize={0.045}
               color="#0d3a1e"
               anchorX="center"
@@ -395,7 +395,7 @@ function SideDestinationBoards() {
             </mesh>
             <Text
               position={[x + side * 0.022, boardY, boardZ - boardLen / 2 + 0.25]}
-              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
+              rotation={[0, side === 1 ? Math.PI / 2 : -Math.PI / 2, 0]}
               fontSize={0.13}
               color="#c82020"
               anchorX="center"
