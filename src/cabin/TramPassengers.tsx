@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { InfoTag } from '../scene/components/InfoTag'
 
@@ -412,6 +413,13 @@ export function Auntie() {
       </mesh>
       {/* Loose black pants */}
       <SeatedLegs color="#2a2a2a" radius={0.07} spread={0.14} />
+      {/* 中 mahjong tile on her lap — foreshadows her destination,
+          the 麻雀館 up the street. Slightly tilted as if just pulled
+          out of her handbag. */}
+      <group position={[-0.08, 0.04, 0.2]} rotation={[-0.6, 0.2, 0.15]}>
+        <MahjongTile />
+        <InfoTag label="紅中 · off to 麻雀館" offset={[0, 0.14, 0]} />
+      </group>
       {/* 紅白藍 bag — THE iconic HK object. Sits at her feet between
           her and the aisle. */}
       <group position={[0, -0.45, 0.32]}>
@@ -636,6 +644,42 @@ function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
           <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
         </mesh>
       ))}
+    </group>
+  )
+}
+
+/** Mahjong 中 tile — cream porcelain with bevelled cream-white face
+ *  and a painted red 中 (red-dragon) character. Small enough to sit
+ *  on a passenger's lap or palm, readable as a tile at conversational
+ *  distance. */
+function MahjongTile() {
+  const W = 0.09
+  const H = 0.12
+  const D = 0.045
+  return (
+    <group>
+      {/* Cream body with green back (real tiles have a bamboo-green
+          lamination on the back) */}
+      <mesh>
+        <boxGeometry args={[W, H, D]} />
+        <meshStandardMaterial color="#2a6848" roughness={0.6} />
+      </mesh>
+      {/* Cream-white face slightly proud of the body for the bevel */}
+      <mesh position={[0, 0, D / 2 + 0.001]}>
+        <boxGeometry args={[W * 0.94, H * 0.94, 0.006]} />
+        <meshStandardMaterial color="#f4ead0" roughness={0.5} metalness={0.1} />
+      </mesh>
+      {/* Red 中 character painted on the face */}
+      <Text
+        position={[0, 0, D / 2 + 0.005]}
+        fontSize={H * 0.6}
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+      >
+        <meshStandardMaterial color="#c81818" roughness={0.55} />
+        中
+      </Text>
     </group>
   )
 }
