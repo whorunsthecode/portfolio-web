@@ -133,7 +133,11 @@ export function CentralMarket() {
         </mesh>
       ))}
 
-      <InfoTag label="Central Market · 1938 Bauhaus" offset={[0, height + 5, 0]} />
+      <InfoTag
+        label="Central Market · 1938 Bauhaus"
+        offset={[width / 2 + 2.5, height * 0.6, 0]}
+        side="right"
+      />
     </group>
   )
 }

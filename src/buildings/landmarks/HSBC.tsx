@@ -114,7 +114,11 @@ export function HSBC() {
         </>
       )}
 
-      <InfoTag label="HSBC · world's priciest building, 1985" offset={[0, 72, 0]} />
+      <InfoTag
+        label="HSBC · world's priciest building, 1985"
+        offset={[12, 30, 0]}
+        side="right"
+      />
     </group>
   )
 }
