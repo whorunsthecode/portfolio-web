@@ -134,7 +134,8 @@ export function TongLau() {
       ))}
       <InfoTag
         label="Tong lau · pre-war walk-up"
-        offset={[buildings[0].x, 10, buildings[0].z]}
+        offset={[buildings[0].x + 3, 5, buildings[0].z]}
+        side="right"
       />
     </group>
   )

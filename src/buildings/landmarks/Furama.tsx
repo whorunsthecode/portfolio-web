@@ -129,7 +129,11 @@ export function Furama() {
         <meshStandardMaterial color="#8a8a82" metalness={0.6} roughness={0.3} />
       </mesh>
 
-      <InfoTag label="Furama · rooftop revolved till 2001" offset={[0, height + rondaHeight + 8, 0]} />
+      <InfoTag
+        label="Furama · rooftop revolved till 2001"
+        offset={[radius + 3, height * 0.55, 0]}
+        side="right"
+      />
     </group>
   )
 }

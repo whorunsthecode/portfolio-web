@@ -160,7 +160,11 @@ export function ManMoTemple() {
         </mesh>
       ))}
 
-      <InfoTag label="Man Mo Temple · since 1847" offset={[0, 0.6 + wallHeight + roofRise + 2.5, 0]} />
+      <InfoTag
+        label="Man Mo Temple · since 1847"
+        offset={[width / 2 + 2, 0.6 + wallHeight * 0.8, 0]}
+        side="right"
+      />
     </group>
   )
 }
