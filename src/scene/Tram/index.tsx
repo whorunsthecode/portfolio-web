@@ -56,7 +56,9 @@ export function TramExteriorShell() {
       <RearFace />
       <RearPlatformDoor />
       <SideDestinationBoards />
-      <SideBrandingPanels />
+      {/* SideBrandingPanels removed — "HK Tram Green / PANTONE" was a
+          real-world promo sticker that only reads at a specific angle;
+          at oblique views it showed up as fragmented floating letters. */}
       <Undercarriage />
       <TrolleyPole />
     </group>
@@ -321,77 +323,6 @@ function SideSlidingDoor({
         <cylinderGeometry args={[0.012, 0.012, 0.6, 8]} />
         <meshStandardMaterial color="#c8a048" metalness={0.75} roughness={0.3} />
       </mesh>
-    </group>
-  )
-}
-
-/**
- * Side branding panels — "HK Tram Green / Color created by PANTONE" panel
- * on the lower-deck side cream skirt, matching reference tram #88.
- * This is THE detail that screams "we built this to match a real photo."
- */
-function SideBrandingPanels() {
-  // Position: lower-deck skirt, centered vertically below the windows
-  // Lower-deck window vertical range per current code: ~y=-1.05 to y=0.28
-  // Skirt below: y=-1.7 to y=-1.05 approx
-  const brandY = LOWER_BOT + 0.3
-  const brandLen = 2.2
-  const brandZ = Z_CENTER - 1.5  // offset toward the front-middle area
-
-  return (
-    <group>
-      {[-1, 1].map((side) => {
-        const x = side * (HW + 0.02)  // flush against the body
-        return (
-          <group key={`brand-${side}`}>
-            {/* "HK Tram Green" main text — sized to fit the skirt */}
-            <Text
-              position={[x, brandY + 0.02, brandZ]}
-              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.065}
-              color={CREAM}
-              anchorX="center"
-              anchorY="middle"
-              fontWeight="bold"
-              letterSpacing={0.02}
-            >
-              HK Tram Green
-            </Text>
-            {/* Smaller "Color created by" line */}
-            <Text
-              position={[x, brandY - 0.045, brandZ]}
-              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.028}
-              color={CREAM}
-              anchorX="center"
-              anchorY="middle"
-              letterSpacing={0.08}
-            >
-              Color created by
-            </Text>
-            {/* PANTONE wordmark */}
-            <Text
-              position={[x, brandY - 0.095, brandZ]}
-              rotation={[0, side === 1 ? 0 : Math.PI, 0]}
-              fontSize={0.04}
-              color={CREAM}
-              anchorX="center"
-              anchorY="middle"
-              fontWeight="bold"
-              letterSpacing={0.16}
-            >
-              PANTONE
-            </Text>
-            {/* Tiny PANTONE chip icon to the right of wordmark */}
-            <mesh
-              position={[x + side * 0.19, brandY - 0.095, brandZ]}
-            >
-              <boxGeometry args={[0.015, 0.05, 0.04]} />
-              <meshStandardMaterial color={GREEN} roughness={0.5} />
-            </mesh>
-          </group>
-        )
-      })}
     </group>
   )
 }
@@ -876,13 +807,13 @@ function FrontFace() {
         </Text>
       </group>
 
-      {/* Fleet number "088" — bigger, on upper corners of front face (reference #110 style) */}
-      {[-0.88, 0.88].map((x, i) => (
-        <Text key={`ffl-${i}`} position={[x, UPPER_TOP - 0.14, Z_FRONT - 0.05]} rotation={[0, Math.PI, 0]}
-          fontSize={0.1} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
-          088
-        </Text>
-      ))}
+      {/* Fleet number "088" — single centred panel on the upper
+          front frame, matches the rear treatment. The earlier pair
+          of numerals at each upper corner read as floating text. */}
+      <Text position={[0, UPPER_TOP - 0.14, Z_FRONT - 0.05]} rotation={[0, Math.PI, 0]}
+        fontSize={0.11} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold" letterSpacing={0.05}>
+        088
+      </Text>
 
       {/* Headlights */}
       {[-0.45, 0.45].map((x, i) => (
@@ -907,56 +838,71 @@ function FrontFace() {
   )
 }
 
-/* Rear face — similar frame construction */
+/* Rear face — mostly-solid green panel with a small destination
+ * blind at the top of the lower deck and a single upper-deck rear
+ * window. Matches a real HK Ding Ding back: the earlier full-height
+ * translucent glass read as a big black rectangle at distance. */
 function RearFace() {
   const z = Z_REAR + 0.01
   const lh = LOWER_TOP - LOWER_BOT
   const lcy = (LOWER_BOT + LOWER_TOP) / 2
+  const uh = UPPER_TOP - LOWER_TOP
 
   return (
     <group>
-      {/* Lower rear frame */}
-      <mesh position={[0, LOWER_BOT + 0.2, z]}>
-        <planeGeometry args={[W, 0.4]} />
+      {/* Solid green lower-deck rear panel — fills the whole back of
+          the lower deck so it doesn't read as a black void at dusk. */}
+      <mesh position={[0, lcy, z]}>
+        <planeGeometry args={[W, lh]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
       </mesh>
-      <mesh position={[0, LOWER_TOP - 0.06, z]}>
+      {/* Cream waistline stripe — matches the flanks */}
+      <mesh position={[0, LOWER_TOP - 0.06, z + 0.001]}>
         <planeGeometry args={[W, 0.12]} />
-        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
+        <meshStandardMaterial color={CREAM} roughness={0.6} side={FrontSide} />
       </mesh>
-      <mesh position={[-HW + 0.12, lcy, z]}>
-        <planeGeometry args={[0.24, lh]} />
-        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
-      </mesh>
-      <mesh position={[HW - 0.12, lcy, z]}>
-        <planeGeometry args={[0.24, lh]} />
-        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
-      </mesh>
+      {/* Small rear destination blind at the top of the lower deck —
+          cream plate framed in dark, route "88" + 屈地街 shorthand */}
+      <group position={[0, LOWER_TOP - 0.24, z + 0.002]}>
+        <mesh>
+          <planeGeometry args={[1.5, 0.22]} />
+          <meshStandardMaterial color={FRAME} roughness={0.6} side={FrontSide} />
+        </mesh>
+        <mesh position={[0, 0, 0.001]}>
+          <planeGeometry args={[1.42, 0.16]} />
+          <meshStandardMaterial color={CREAM} roughness={0.6} side={FrontSide} />
+        </mesh>
+        <Text position={[-0.58, 0, 0.002]} fontSize={0.12} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
+          88
+        </Text>
+        <Text position={[0.12, 0, 0.002]} fontSize={0.08} color="#1a1a18" anchorX="center" anchorY="middle" letterSpacing={0.04}>
+          屈地街 WHITTY
+        </Text>
+      </group>
 
-      {/* Rear glass */}
-      <mesh position={[0, lcy + 0.15, z - 0.001]}>
-        <planeGeometry args={[W - 0.5, lh * 0.65]} />
-        <meshPhysicalMaterial color="#a0c0c8" transparent opacity={0.2} transmission={0.6} roughness={0.1} side={DoubleSide} />
-      </mesh>
-
-      {/* Upper rear frame */}
+      {/* Upper rear frame — pillars + top strip */}
       <mesh position={[-HW + 0.1, (UPPER_TOP + LOWER_TOP) / 2, z]}>
-        <planeGeometry args={[0.2, UPPER_TOP - LOWER_TOP]} />
+        <planeGeometry args={[0.2, uh]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
       </mesh>
       <mesh position={[HW - 0.1, (UPPER_TOP + LOWER_TOP) / 2, z]}>
-        <planeGeometry args={[0.2, UPPER_TOP - LOWER_TOP]} />
+        <planeGeometry args={[0.2, uh]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
       </mesh>
       <mesh position={[0, UPPER_TOP - 0.06, z]}>
         <planeGeometry args={[W, 0.12]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
       </mesh>
+      <mesh position={[0, LOWER_TOP + 0.06, z]}>
+        <planeGeometry args={[W, 0.12]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
+      </mesh>
 
-      {/* Upper rear glass */}
+      {/* Upper rear window — single panel, slightly brighter cyan
+          glass so it reads as a window not a void even in shadow */}
       <mesh position={[0, (UPPER_TOP + LOWER_TOP) / 2, z - 0.001]}>
-        <planeGeometry args={[W - 0.4, UPPER_TOP - LOWER_TOP - 0.2]} />
-        <meshPhysicalMaterial color="#a0c0c8" transparent opacity={0.2} transmission={0.6} roughness={0.1} side={DoubleSide} />
+        <planeGeometry args={[W - 0.4, uh - 0.24]} />
+        <meshPhysicalMaterial color="#bcd8dc" transparent opacity={0.55} transmission={0.4} roughness={0.2} side={DoubleSide} />
       </mesh>
 
       {/* Tail lights */}
@@ -967,32 +913,11 @@ function RearFace() {
         </mesh>
       ))}
 
-      {/* Rear route plate — pushed clear of the rear green strip */}
-      <group position={[-0.72, LOWER_TOP - 0.14, Z_REAR + 0.1]}>
-        <mesh>
-          <boxGeometry args={[0.32, 0.26, 0.02]} />
-          <meshStandardMaterial color="#1a1a18" roughness={0.6} />
-        </mesh>
-        <mesh position={[0, 0, 0.011]}>
-          <boxGeometry args={[0.28, 0.22, 0.01]} />
-          <meshBasicMaterial color="#f8dd66" />
-        </mesh>
-        <Text position={[0, 0, 0.02]} fontSize={0.17} color="#c81a1a" anchorX="center" anchorY="middle" fontWeight="bold">
-          88
-        </Text>
-      </group>
-
-      {/* Rear fleet number "088" on upper corners */}
-      {[-0.88, 0.88].map((x, i) => (
-        <Text key={`rfl-${i}`} position={[x, UPPER_TOP - 0.14, Z_REAR + 0.05]}
-          fontSize={0.1} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
-          088
-        </Text>
-      ))}
-
-      {/* Rear fleet number (bottom) */}
-      <Text position={[0, LOWER_BOT + 0.12, z + 0.008]}
-        fontSize={0.09} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold">
+      {/* Rear fleet number "088" — single centred panel on the upper
+          frame, not duplicated on every corner (the old two "088 088"
+          pairs read as floating labels rather than painted numerals). */}
+      <Text position={[0, UPPER_TOP - 0.14, z + 0.005]}
+        fontSize={0.11} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold" letterSpacing={0.05}>
         088
       </Text>
 

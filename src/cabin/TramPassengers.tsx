@@ -587,17 +587,25 @@ function Walkman() {
 }
 
 /** 紅白藍 nylon tote — iconic red/white/blue woven-plastic HK bag.
- *  Reusable prop: renders at local origin with its top at y=height/2,
- *  so callers can place it on the floor beside a passenger. Scale
- *  controls overall size for secondary (smaller) uses. */
+ *  Stripe pattern follows the classic Chan Pak Lam tote: wide white
+ *  bands broken up by wide BLUE bands, with THIN RED pin-stripes
+ *  flanking each blue band — the authentic W-R-B-R-W-R-B-R-W run.
+ *  Reusable prop: callers place it on the floor beside a passenger.
+ *  `scale` controls overall size for smaller secondary uses. */
 function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
-  const stripes = [
-    { x: -0.12, color: '#1a3a8a' },
-    { x: -0.07, color: '#c82820' },
-    { x: -0.02, color: '#1a3a8a' },
-    { x:  0.03, color: '#c82820' },
-    { x:  0.08, color: '#1a3a8a' },
-    { x:  0.13, color: '#c82820' },
+  const RED = '#c82820'
+  const BLUE = '#1a3a8a'
+  // W-R-B-R-W-R-B-R-W across the 0.3m face: two wide blue bands
+  // flanked by thin red pin-stripes, wide white fills between.
+  // `w` is stripe width, `x` is local-X centre. White body shows
+  // through the gaps automatically.
+  const stripes: Array<{ x: number; w: number; color: string }> = [
+    { x: -0.10, w: 0.010, color: RED },
+    { x: -0.08, w: 0.030, color: BLUE },
+    { x: -0.06, w: 0.010, color: RED },
+    { x:  0.06, w: 0.010, color: RED },
+    { x:  0.08, w: 0.030, color: BLUE },
+    { x:  0.10, w: 0.010, color: RED },
   ]
   return (
     <group scale={[scale, scale, scale]}>
@@ -609,14 +617,14 @@ function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
       {/* Vertical stripes — front */}
       {stripes.map((s, i) => (
         <mesh key={`f-${i}`} position={[s.x, 0, 0.0911]}>
-          <planeGeometry args={[0.03, 0.34]} />
+          <planeGeometry args={[s.w, 0.34]} />
           <meshStandardMaterial color={s.color} roughness={0.85} />
         </mesh>
       ))}
       {/* Vertical stripes — back */}
       {stripes.map((s, i) => (
         <mesh key={`b-${i}`} position={[s.x, 0, -0.0911]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[0.03, 0.34]} />
+          <planeGeometry args={[s.w, 0.34]} />
           <meshStandardMaterial color={s.color} roughness={0.85} />
         </mesh>
       ))}
