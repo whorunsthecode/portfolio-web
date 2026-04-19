@@ -189,6 +189,13 @@ function NeonText({
 /* ──────────────────────────────────────────────────────────────────
    Sign 1: Vertical hanger — tall plate suspended from the facade,
    stacked characters glowing in neon tube strokes.
+
+   Orientation: the FLAT FACE of the sign points ALONG the street
+   (+Z, toward the approaching driver) — matches real 1980s HK
+   signage where signs project out from the facade perpendicular to
+   the wall so passers-by walking the sidewalk see them head-on as
+   they approach. Previously signs were rotated 90° and only legible
+   when the tram was directly adjacent.
    ────────────────────────────────────────────────────────────────── */
 function VerticalHanger({
   side,
@@ -208,14 +215,13 @@ function VerticalHanger({
   const projection = 2.4
   const facadeX = side * FACADE_X
   const signX = side * (FACADE_X - projection)
-  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   const chars = text.split('')
 
   return (
     <group>
       {/* Wall bracket + support arm + drop pin — kept outside the
-          rotated group because they live in world-X space. */}
+          sign body so they live in world-X space. */}
       <mesh position={[facadeX - side * 0.05, y, 0]}>
         <boxGeometry args={[0.1, 0.3, 0.3]} />
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
@@ -232,8 +238,9 @@ function VerticalHanger({
         <meshStandardMaterial color="#1a1a18" roughness={0.85} />
       </mesh>
 
-      {/* Rotated sign body — dark board, tube border, glowing chars */}
-      <group position={[signX, y, 0]} rotation={[0, rotY, 0]}>
+      {/* Sign body — face normal = +Z (toward the driver approaching
+          from further down the street). No Y-rotation. */}
+      <group position={[signX, y, 0]}>
         {/* Dark board — absorbs scene lighting, no emissive */}
         <mesh>
           <boxGeometry args={[width, height, 0.1]} />
@@ -298,10 +305,9 @@ function HorizontalBanner({
 }) {
   const projection = 0.5
   const signX = side * (FACADE_X - projection)
-  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   return (
-    <group position={[signX, y, 0]} rotation={[0, rotY, 0]}>
+    <group position={[signX, y, 0]}>
       <mesh>
         <boxGeometry args={[width, height, 0.12]} />
         <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
@@ -363,10 +369,9 @@ function RooftopBillboard({
   height?: number
 }) {
   const x = side * (FACADE_X + 0.3)
-  const rotY = side === 1 ? -Math.PI / 2 : Math.PI / 2
 
   return (
-    <group position={[x, y, 0]} rotation={[0, rotY, 0]}>
+    <group position={[x, y, 0]}>
       {/* Support legs */}
       {[-width / 2 + 0.3, width / 2 - 0.3].map((lx, i) => (
         <mesh key={i} position={[lx, -height / 2 - 0.5, 0]}>
@@ -418,6 +423,171 @@ function RooftopBillboard({
 }
 
 /* ──────────────────────────────────────────────────────────────────
+   Sign 4: Pawnshop (大押) — the iconic calabash / gourd-shaped HK
+   pawnshop sign. Two stacked discs on a red board: smaller top disc
+   with the shop-name characters, larger bottom disc with a single
+   大 / 押 character. Yellow-neon ring borders on both discs (the
+   tube border that made them glow at night), white-neon strokes on
+   the characters themselves. Mounted perpendicular to the facade,
+   face pointing +Z so the approaching driver sees it head-on.
+   ────────────────────────────────────────────────────────────────── */
+function PawnshopSign({
+  side,
+  y,
+  shopName = '昌和',
+  borderColor = '#ffcc20',
+  bgColor = '#c82820',
+  textColor = '#fafaf0',
+}: {
+  side: 1 | -1
+  y: number
+  shopName?: string
+  borderColor?: string
+  bgColor?: string
+  textColor?: string
+}) {
+  const projection = 2.4
+  const facadeX = side * FACADE_X
+  const signX = side * (FACADE_X - projection)
+  const topR = 0.55
+  const botR = 0.7
+  // Stack the two discs with a small overlap to form the gourd silhouette
+  const topY = botR * 0.8
+  const botY = -topR * 0.25
+  const totalTop = topY + topR
+  const shopChars = shopName.split('')
+
+  return (
+    <group>
+      {/* Wall bracket + horizontal arm + drop pin — matches VerticalHanger. */}
+      <mesh position={[facadeX - side * 0.05, y + 0.2, 0]}>
+        <boxGeometry args={[0.1, 0.35, 0.32]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+      <mesh
+        position={[side * (FACADE_X - projection / 2), y + totalTop + 0.25, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
+        <cylinderGeometry args={[0.045, 0.045, projection, 8]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+      <mesh position={[signX, y + totalTop + 0.1, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.3, 8]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+
+      {/* Sign body — face normal +Z, toward driver. */}
+      <group position={[signX, y, 0]}>
+        {/* TOP disc — dark backer, red board, yellow neon ring, name */}
+        <group position={[0, topY, 0]}>
+          {/* Dark backing (keeps the board reading as a solid shape at dusk) */}
+          <mesh position={[0, 0, -0.02]}>
+            <circleGeometry args={[topR + 0.03, 28]} />
+            <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
+          </mesh>
+          {/* Red painted disc face */}
+          <mesh>
+            <circleGeometry args={[topR, 28]} />
+            <meshStandardMaterial
+              color={bgColor}
+              emissive={bgColor}
+              emissiveIntensity={0.25}
+              roughness={0.8}
+              toneMapped={false}
+            />
+          </mesh>
+          {/* Yellow neon-tube ring */}
+          <mesh position={[0, 0, 0.03]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[topR - 0.04, TUBE_RADIUS, 10, 36]} />
+            <meshStandardMaterial
+              color={borderColor}
+              emissive={borderColor}
+              emissiveIntensity={0.3}
+              roughness={0.3}
+              metalness={0.1}
+              toneMapped={false}
+            />
+          </mesh>
+          {/* Halo bleed behind */}
+          <mesh position={[0, 0, -0.06]}>
+            <planeGeometry args={[topR * 2.4, topR * 2.4]} />
+            <meshBasicMaterial
+              color={borderColor}
+              transparent
+              opacity={0.04}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Shop-name characters — side-by-side white-neon */}
+          {shopChars.map((ch, i) => {
+            const n = shopChars.length
+            const slot = (topR * 1.2) / n
+            const cx = (i - (n - 1) / 2) * slot
+            return (
+              <NeonText
+                key={i}
+                color={textColor}
+                fontSize={topR * 0.82}
+                position={[cx, 0, 0.05]}
+              >
+                {ch}
+              </NeonText>
+            )
+          })}
+        </group>
+
+        {/* BOTTOM disc — 押 character */}
+        <group position={[0, botY, 0]}>
+          <mesh position={[0, 0, -0.02]}>
+            <circleGeometry args={[botR + 0.03, 32]} />
+            <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
+          </mesh>
+          <mesh>
+            <circleGeometry args={[botR, 32]} />
+            <meshStandardMaterial
+              color={bgColor}
+              emissive={bgColor}
+              emissiveIntensity={0.25}
+              roughness={0.8}
+              toneMapped={false}
+            />
+          </mesh>
+          <mesh position={[0, 0, 0.03]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[botR - 0.05, TUBE_RADIUS, 10, 40]} />
+            <meshStandardMaterial
+              color={borderColor}
+              emissive={borderColor}
+              emissiveIntensity={0.3}
+              roughness={0.3}
+              metalness={0.1}
+              toneMapped={false}
+            />
+          </mesh>
+          <mesh position={[0, 0, -0.06]}>
+            <planeGeometry args={[botR * 2.6, botR * 2.6]} />
+            <meshBasicMaterial
+              color={borderColor}
+              transparent
+              opacity={0.04}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          <NeonText
+            color={textColor}
+            fontSize={botR * 1.4}
+            position={[0, 0, 0.05]}
+          >
+            押
+          </NeonText>
+        </group>
+      </group>
+    </group>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────────
    Composite — distributed along the scrolling corridor
    ────────────────────────────────────────────────────────────────── */
 
@@ -452,6 +622,15 @@ type Sign =
       width?: number
       height?: number
     }
+  | {
+      kind: 'pawnshop'
+      z: number
+      side: 1 | -1
+      y: number
+      shopName: string
+    }
+
+const PAWN_SHOP_NAMES = ['昌和', '永和', '福泰', '同泰', '榮昌', '德榮']
 
 function buildSigns(): Sign[] {
   const r = seededRandom(5309)
@@ -465,13 +644,31 @@ function buildSigns(): Sign[] {
     z -= 4 + r() * 3   // 4-7m spacing
   }
 
-  for (const zp of positions) {
+  // Guarantee at least 2 pawnshop signs — stream them in at dedicated
+  // positions rather than leaving their appearance to chance.
+  const pawnshopSlots = new Set<number>()
+  if (positions.length >= 3) pawnshopSlots.add(Math.floor(positions.length * 0.2))
+  if (positions.length >= 10) pawnshopSlots.add(Math.floor(positions.length * 0.65))
+
+  positions.forEach((zp, idx) => {
     const side: 1 | -1 = r() < 0.5 ? 1 : -1
     const kind = r()
     const colorIdx = Math.floor(r() * COLORS.length)
     const color = COLORS[colorIdx]
 
-    if (kind < 0.55) {
+    if (pawnshopSlots.has(idx)) {
+      const name = PAWN_SHOP_NAMES[Math.floor(r() * PAWN_SHOP_NAMES.length)]
+      signs.push({
+        kind: 'pawnshop',
+        z: zp,
+        side,
+        y: 4.2 + r() * 1.8,
+        shopName: name,
+      })
+      return
+    }
+
+    if (kind < 0.5) {
       // Vertical hanger — most common
       const chars = SHOPS_CHINESE[Math.floor(r() * SHOPS_CHINESE.length)]
       // Taller for longer text
@@ -486,7 +683,7 @@ function buildSigns(): Sign[] {
         height,
         width: 0.45 + r() * 0.15,
       })
-    } else if (kind < 0.85) {
+    } else if (kind < 0.78) {
       // Horizontal banner
       const pair = SHOPS_BILINGUAL[Math.floor(r() * SHOPS_BILINGUAL.length)]
       signs.push({
@@ -499,7 +696,7 @@ function buildSigns(): Sign[] {
         width: 2.2 + r() * 1.0,
         height: 0.5 + r() * 0.2,
       })
-    } else {
+    } else if (kind < 0.92) {
       // Rooftop billboard — rarer, higher
       const pair = SHOPS_BILINGUAL[Math.floor(r() * SHOPS_BILINGUAL.length)]
       signs.push({
@@ -512,8 +709,18 @@ function buildSigns(): Sign[] {
         width: 3.0 + r() * 0.8,
         height: 0.7 + r() * 0.2,
       })
+    } else {
+      // Pawnshop (大押) gourd sign — occasional
+      const name = PAWN_SHOP_NAMES[Math.floor(r() * PAWN_SHOP_NAMES.length)]
+      signs.push({
+        kind: 'pawnshop',
+        z: zp,
+        side,
+        y: 4.2 + r() * 1.8,
+        shopName: name,
+      })
     }
-  }
+  })
   return signs
 }
 
@@ -641,6 +848,13 @@ export function HKSigns() {
                 color={s.color}
                 width={s.width}
                 height={s.height}
+              />
+            )}
+            {s.kind === 'pawnshop' && (
+              <PawnshopSign
+                side={s.side}
+                y={s.y}
+                shopName={s.shopName}
               />
             )}
           </group>
