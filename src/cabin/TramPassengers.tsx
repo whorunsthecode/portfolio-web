@@ -153,6 +153,13 @@ export function OfficeMale() {
       <group position={[0.02, 0.105, 0.2]} rotation={[0, 0.15, 0]}>
         <Newspaper />
       </group>
+      {/* Double A paper ream tucked beside him on the bench — the
+          office worker's unmistakeable accessory back from the
+          stationers. Sits on the seat to his aisle-side. */}
+      <group position={[-0.34, -0.09, 0.02]} rotation={[0, -0.25, 0.05]}>
+        <DoubleAPaperReam />
+        <InfoTag label="Double A · office paper staple" offset={[0, 0.22, 0]} />
+      </group>
     </group>
   )
 }
@@ -405,71 +412,10 @@ export function Auntie() {
       </mesh>
       {/* Loose black pants */}
       <SeatedLegs color="#2a2a2a" radius={0.07} spread={0.14} />
-      {/* 紅白藍 bag — THE iconic HK object, now with proper VERTICAL
-          stripes (not horizontal) + red border piping + twin rope
-          handles, matching the real woven-plastic tote. Sits at her
-          feet between her and the aisle. */}
+      {/* 紅白藍 bag — THE iconic HK object. Sits at her feet between
+          her and the aisle. */}
       <group position={[0, -0.45, 0.32]}>
-        {/* White woven body */}
-        <mesh>
-          <boxGeometry args={[0.3, 0.36, 0.18]} />
-          <meshStandardMaterial color="#f4f4ea" roughness={0.85} />
-        </mesh>
-        {/* Vertical stripes — red and blue alternating on FRONT face */}
-        {[
-          { x: -0.12, color: '#1a3a8a' },   // blue
-          { x: -0.07, color: '#c82820' },   // red
-          { x: -0.02, color: '#1a3a8a' },   // blue
-          { x:  0.03, color: '#c82820' },   // red
-          { x:  0.08, color: '#1a3a8a' },   // blue
-          { x:  0.13, color: '#c82820' },   // red
-        ].map((s, i) => (
-          <mesh key={`front-${i}`} position={[s.x, 0, 0.0911]}>
-            <planeGeometry args={[0.03, 0.34]} />
-            <meshStandardMaterial color={s.color} roughness={0.85} />
-          </mesh>
-        ))}
-        {/* Same vertical stripes on BACK face */}
-        {[
-          { x: -0.12, color: '#1a3a8a' },
-          { x: -0.07, color: '#c82820' },
-          { x: -0.02, color: '#1a3a8a' },
-          { x:  0.03, color: '#c82820' },
-          { x:  0.08, color: '#1a3a8a' },
-          { x:  0.13, color: '#c82820' },
-        ].map((s, i) => (
-          <mesh key={`back-${i}`} position={[s.x, 0, -0.0911]} rotation={[0, Math.PI, 0]}>
-            <planeGeometry args={[0.03, 0.34]} />
-            <meshStandardMaterial color={s.color} roughness={0.85} />
-          </mesh>
-        ))}
-        {/* Red border piping — top */}
-        <mesh position={[0, 0.183, 0]}>
-          <boxGeometry args={[0.31, 0.015, 0.19]} />
-          <meshStandardMaterial color="#c82820" roughness={0.75} />
-        </mesh>
-        {/* Red border piping — bottom */}
-        <mesh position={[0, -0.183, 0]}>
-          <boxGeometry args={[0.31, 0.015, 0.19]} />
-          <meshStandardMaterial color="#c82820" roughness={0.75} />
-        </mesh>
-        {/* Red side piping — left */}
-        <mesh position={[-0.153, 0, 0]}>
-          <boxGeometry args={[0.013, 0.38, 0.19]} />
-          <meshStandardMaterial color="#c82820" roughness={0.75} />
-        </mesh>
-        {/* Red side piping — right */}
-        <mesh position={[0.153, 0, 0]}>
-          <boxGeometry args={[0.013, 0.38, 0.19]} />
-          <meshStandardMaterial color="#c82820" roughness={0.75} />
-        </mesh>
-        {/* Twin blue rope handle loops on top */}
-        {[-0.08, 0.08].map((hx, i) => (
-          <mesh key={`handle-${i}`} position={[hx, 0.24, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.055, 0.01, 6, 14]} />
-            <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
-          </mesh>
-        ))}
+        <RedWhiteBlueBag />
       </group>
     </group>
   )
@@ -632,6 +578,118 @@ function Walkman() {
   )
 }
 
+/** 紅白藍 nylon tote — iconic red/white/blue woven-plastic HK bag.
+ *  Reusable prop: renders at local origin with its top at y=height/2,
+ *  so callers can place it on the floor beside a passenger. Scale
+ *  controls overall size for secondary (smaller) uses. */
+function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
+  const stripes = [
+    { x: -0.12, color: '#1a3a8a' },
+    { x: -0.07, color: '#c82820' },
+    { x: -0.02, color: '#1a3a8a' },
+    { x:  0.03, color: '#c82820' },
+    { x:  0.08, color: '#1a3a8a' },
+    { x:  0.13, color: '#c82820' },
+  ]
+  return (
+    <group scale={[scale, scale, scale]}>
+      {/* White woven body */}
+      <mesh>
+        <boxGeometry args={[0.3, 0.36, 0.18]} />
+        <meshStandardMaterial color="#f4f4ea" roughness={0.85} />
+      </mesh>
+      {/* Vertical stripes — front */}
+      {stripes.map((s, i) => (
+        <mesh key={`f-${i}`} position={[s.x, 0, 0.0911]}>
+          <planeGeometry args={[0.03, 0.34]} />
+          <meshStandardMaterial color={s.color} roughness={0.85} />
+        </mesh>
+      ))}
+      {/* Vertical stripes — back */}
+      {stripes.map((s, i) => (
+        <mesh key={`b-${i}`} position={[s.x, 0, -0.0911]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[0.03, 0.34]} />
+          <meshStandardMaterial color={s.color} roughness={0.85} />
+        </mesh>
+      ))}
+      {/* Red border piping — top, bottom, sides */}
+      <mesh position={[0, 0.183, 0]}>
+        <boxGeometry args={[0.31, 0.015, 0.19]} />
+        <meshStandardMaterial color="#c82820" roughness={0.75} />
+      </mesh>
+      <mesh position={[0, -0.183, 0]}>
+        <boxGeometry args={[0.31, 0.015, 0.19]} />
+        <meshStandardMaterial color="#c82820" roughness={0.75} />
+      </mesh>
+      <mesh position={[-0.153, 0, 0]}>
+        <boxGeometry args={[0.013, 0.38, 0.19]} />
+        <meshStandardMaterial color="#c82820" roughness={0.75} />
+      </mesh>
+      <mesh position={[0.153, 0, 0]}>
+        <boxGeometry args={[0.013, 0.38, 0.19]} />
+        <meshStandardMaterial color="#c82820" roughness={0.75} />
+      </mesh>
+      {/* Twin blue rope handle loops on top */}
+      {[-0.08, 0.08].map((hx, i) => (
+        <mesh key={`h-${i}`} position={[hx, 0.24, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.055, 0.01, 6, 14]} />
+          <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+/** Double A copy-paper ream — thin white A4 box with the iconic
+ *  blue diagonal wrap + "Double A" wordmark. Common sight in 80s HK
+ *  office lobbies and in the arms of office workers heading back
+ *  from the stationers. */
+function DoubleAPaperReam() {
+  const DOUBLE_A_BLUE = '#0ea5d4'
+  const DOUBLE_A_DEEP = '#0b3a8a'
+  const W = 0.34
+  const H = 0.06
+  const D = 0.24
+  return (
+    <group>
+      {/* White paper box body */}
+      <mesh>
+        <boxGeometry args={[W, H, D]} />
+        <meshStandardMaterial color="#f4f4ea" roughness={0.82} />
+      </mesh>
+      {/* Diagonal blue band wrapping the front long face (iconic on
+          real Double A reams). Rendered as a thin plane slightly
+          proud of the box front. */}
+      <mesh position={[0, 0, D / 2 + 0.001]} rotation={[0, 0, -0.35]}>
+        <planeGeometry args={[W * 1.3, H * 0.55]} />
+        <meshStandardMaterial color={DOUBLE_A_BLUE} roughness={0.7} />
+      </mesh>
+      {/* Deep-blue sub-band for the Premium strip */}
+      <mesh position={[0, -0.002, D / 2 + 0.0015]} rotation={[0, 0, -0.35]}>
+        <planeGeometry args={[W * 1.3, H * 0.18]} />
+        <meshStandardMaterial color={DOUBLE_A_DEEP} roughness={0.7} />
+      </mesh>
+      {/* Stylised large "A" on the left — a blue triangle + white
+          cross-bar, readable from a short distance. */}
+      <mesh position={[-W * 0.32, 0, D / 2 + 0.002]} rotation={[0, 0, 0]}>
+        <planeGeometry args={[H * 0.8, H * 0.8]} />
+        <meshStandardMaterial color={DOUBLE_A_BLUE} roughness={0.7} />
+      </mesh>
+      {/* Top label strip — duplicates the band on the top face so the
+          brand reads when the ream is carried flat. */}
+      <mesh position={[0, H / 2 + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[W * 0.95, D * 0.35]} />
+        <meshStandardMaterial color={DOUBLE_A_BLUE} roughness={0.7} />
+      </mesh>
+      {/* Premium sub-line on top */}
+      <mesh position={[0, H / 2 + 0.0015, D * 0.08]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[W * 0.6, D * 0.08]} />
+        <meshStandardMaterial color={DOUBLE_A_DEEP} roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
 // ── Shared beverage props — iconic HK drinks held by passengers ─────
 
 /** Vitasoy-style paper carton (brown body, green side stripe, straw).
@@ -761,6 +819,14 @@ function AnitaMui() {
       <group position={[0.1, 0.04, 0.22]} rotation={[-0.4, 0.3, 0]}>
         <LemonTeaCarton />
         <InfoTag label="Vita Lemon Tea · HK staple" offset={[0, 0.18, 0]} />
+      </group>
+      {/* 紅白藍 nylon tote tucked next to her on the bench — slightly
+          smaller than Auntie's so it reads as a second, personal bag
+          (not a duplicate). Sits on the bench to her aisle-side so
+          it's not hidden by the torso from the driver's POV. */}
+      <group position={[-0.36, -0.2, 0.05]} rotation={[0, 0.25, 0.08]}>
+        <RedWhiteBlueBag scale={0.82} />
+        <InfoTag label="紅白藍 · HK's utility tote" offset={[0, 0.35, 0]} />
       </group>
       <InfoTag label="Anita Mui · Madonna of Asia" offset={[0, 0.95, 0]} />
     </group>
