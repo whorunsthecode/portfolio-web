@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import CustomShaderMaterial from 'three-custom-shader-material'
 import { useStore } from '../../store'
+import { InfoTag } from '../../scene/components/InfoTag'
 
 /**
  * Tong lau — old HK walk-up tenements.
@@ -131,6 +132,10 @@ export function TongLau() {
       {buildings.map((b, i) => (
         <TongLauBuilding key={i} x={b.x} z={b.z} seed={b.seed} color={b.color} />
       ))}
+      <InfoTag
+        label="Tong lau · pre-war walk-up"
+        offset={[buildings[0].x, 10, buildings[0].z]}
+      />
     </group>
   )
 }

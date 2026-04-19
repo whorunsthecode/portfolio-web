@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useStore } from '../../store'
+import { InfoTag } from '../../scene/components/InfoTag'
 
 /**
  * Furama Hotel (1973–2001) — cylindrical Central hotel tower famous for La
@@ -127,6 +128,8 @@ export function Furama() {
         <cylinderGeometry args={[0.08, 0.12, 4, 8]} />
         <meshStandardMaterial color="#8a8a82" metalness={0.6} roughness={0.3} />
       </mesh>
+
+      <InfoTag label="Furama · rooftop revolved till 2001" offset={[0, height + rondaHeight + 8, 0]} />
     </group>
   )
 }

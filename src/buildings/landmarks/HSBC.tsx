@@ -1,5 +1,6 @@
 import { useCityFacadeMaterial, CityFacadeMaterial } from '../CityFacade'
 import { useStore } from '../../store'
+import { InfoTag } from '../../scene/components/InfoTag'
 
 /**
  * HSBC Main Building — three stacked boxes with setbacks.
@@ -112,6 +113,8 @@ export function HSBC() {
           ))}
         </>
       )}
+
+      <InfoTag label="HSBC · world's priciest building, 1985" offset={[0, 72, 0]} />
     </group>
   )
 }

@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { InfoTag } from '../scene/components/InfoTag'
 
 /*
  * Stylized low-poly tram passengers — architectural-viz silhouette figures.
@@ -759,7 +760,9 @@ function AnitaMui() {
       {/* Lemon-tea carton held in lap */}
       <group position={[0.1, 0.04, 0.22]} rotation={[-0.4, 0.3, 0]}>
         <LemonTeaCarton />
+        <InfoTag label="Vita Lemon Tea · HK staple" offset={[0, 0.18, 0]} />
       </group>
+      <InfoTag label="Anita Mui · Madonna of Asia" offset={[0, 0.95, 0]} />
     </group>
   )
 }
@@ -832,7 +835,9 @@ function LeslieCheung() {
       {/* Vitasoy carton held casually */}
       <group position={[-0.08, 0.04, 0.22]} rotation={[-0.3, -0.2, 0.1]}>
         <VitasoyCarton />
+        <InfoTag label="Vitasoy · HK's childhood soy milk" offset={[0, 0.2, 0]} />
       </group>
+      <InfoTag label="Leslie Cheung · Cantopop icon, 1984" offset={[0, 0.95, 0]} />
     </group>
   )
 }

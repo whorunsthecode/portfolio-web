@@ -22,6 +22,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { BUILDINGS, TENEMENT_DEPTH, type BuildingDef } from './TenementRow'
+import { InfoTag } from '../scene/components/InfoTag'
 
 const BAMBOO = '#a08a50'
 const BAMBOO_DARK = '#7a6a3c'
@@ -204,18 +205,24 @@ export function BambooScaffold() {
   })
 
   return (
-    <group ref={groupRef}>
-      {scaffolds.map((s, i) => (
-        <group key={i} position={[0, 0, s.z]}>
-          <ScaffoldWrap
-            x={s.x}
-            side={s.side}
-            height={s.height}
-            width={s.width}
-            hasNetting={s.hasNetting}
-          />
-        </group>
-      ))}
+    <group>
+      {/* Inner group holds the scrolling children; the scroll loop iterates
+          its `.children` by index, so we must NOT add non-scaffold children
+          here. InfoTag lives in the outer group as a sibling. */}
+      <group ref={groupRef}>
+        {scaffolds.map((s, i) => (
+          <group key={i} position={[0, 0, s.z]}>
+            <ScaffoldWrap
+              x={s.x}
+              side={s.side}
+              height={s.height}
+              width={s.width}
+              hasNetting={s.hasNetting}
+            />
+          </group>
+        ))}
+      </group>
+      <InfoTag label="Bamboo scaffold · UNESCO craft" offset={[6, 14, -4]} />
     </group>
   )
 }

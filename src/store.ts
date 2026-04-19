@@ -34,6 +34,10 @@ interface State {
   /** When true, the vintage greeting-card overlay is shown. Opened by tapping
    *  the PostcardStation prop inside the Christmas Village world. */
   showGreetingCard: boolean
+  /** When true, Sims-style <InfoTag> captions float above the 1982 HK
+   *  references (celeb passengers, landmarks, vehicles) so non-HK visitors
+   *  can catch the easter eggs. Toggled via the ℹ pill in the HUD. */
+  showDetails: boolean
   setMode: (m: 'day' | 'night') => void
   setRoom: (r: State['activeRoom']) => void
   setModal: (m: State['modal']) => void
@@ -43,6 +47,7 @@ interface State {
   toggleMute: () => void
   setShowDriverCard: (v: boolean) => void
   setShowGreetingCard: (v: boolean) => void
+  toggleDetails: () => void
 }
 
 export const useStore = create<State>((set) => ({
@@ -54,6 +59,7 @@ export const useStore = create<State>((set) => ({
   muted: false,
   showDriverCard: false,
   showGreetingCard: false,
+  showDetails: false,
   setMode: (mode) => set({ mode }),
   setRoom: (activeRoom) => set({ activeRoom, modal: null }),
   setModal: (modal) => set({ modal }),
@@ -67,4 +73,5 @@ export const useStore = create<State>((set) => ({
   toggleMute: () => set((s) => ({ muted: !s.muted })),
   setShowDriverCard: (v) => set({ showDriverCard: v }),
   setShowGreetingCard: (v) => set({ showGreetingCard: v }),
+  toggleDetails: () => set((s) => ({ showDetails: !s.showDetails })),
 }))

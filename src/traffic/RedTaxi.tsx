@@ -1,4 +1,5 @@
 import { Text } from '@react-three/drei'
+import { InfoTag } from '../scene/components/InfoTag'
 
 const TAXI_RED = '#c8272e'
 const SILVER_ROOF = '#b8b8b8'
@@ -140,6 +141,8 @@ export function RedTaxi() {
           <meshStandardMaterial color={DARK} roughness={0.8} />
         </mesh>
       ))}
+
+      <InfoTag label="Red taxi · Nissan Cedric Y31" offset={[0, 2.6, 0]} />
     </group>
   )
 }
