@@ -153,15 +153,18 @@ function hash(seed: number) {
   return s - Math.floor(s)
 }
 
-/** Pick ~1-in-3 tenements for scaffolding. Uses each building's own seed so
- *  the choice is deterministic across renders. Returns one ScaffoldDef per
- *  selected building, positioned just outside its facade. */
+/** Pick ~1-in-1.8 tenements for scaffolding. Uses each building's own seed so
+ *  the choice is deterministic across renders. Landmark buildings are
+ *  automatically excluded because BUILDINGS in TenementRow doesn't list
+ *  them. Returns one ScaffoldDef per selected building. */
 function selectScaffolds(buildings: BuildingDef[]): ScaffoldDef[] {
   const out: ScaffoldDef[] = []
   for (let i = 0; i < buildings.length; i++) {
     const b = buildings[i]
-    // Probability gate — ~1-in-3 buildings get scaffolded
-    if (hash(b.seed + 13) > 0.35) continue
+    // Probability gate — ~55% of non-landmark tenements get scaffolded.
+    // Real 1980s HK corridors were dense with bamboo: most low-rise
+    // blocks were either under repair or had just been wrapped.
+    if (hash(b.seed + 13) > 0.55) continue
 
     const sideNum: 1 | -1 = b.side === 'right' ? 1 : -1
     // Facade plane (road-facing edge of the building) sits at

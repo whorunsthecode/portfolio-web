@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { InfoTag } from '../scene/components/InfoTag'
 
@@ -412,9 +413,18 @@ export function Auntie() {
       </mesh>
       {/* Loose black pants */}
       <SeatedLegs color="#2a2a2a" radius={0.07} spread={0.14} />
-      {/* 紅白藍 bag — THE iconic HK object. Sits at her feet between
-          her and the aisle. */}
-      <group position={[0, -0.45, 0.32]}>
+      {/* 中 mahjong tile on her lap — foreshadows her destination,
+          the 麻雀館 up the street. Slightly tilted as if just pulled
+          out of her handbag. */}
+      <group position={[-0.08, 0.04, 0.2]} rotation={[-0.6, 0.2, 0.15]}>
+        <MahjongTile />
+        <InfoTag label="紅中 · off to 麻雀館" offset={[0, 0.14, 0]} />
+      </group>
+      {/* 紅白藍 bag — THE iconic HK object. Sits ON the bench next to
+          her (local +X along the bench length), tilted slightly. The
+          old position at y=-0.45 dropped it through the seat onto the
+          floor behind her shins. */}
+      <group position={[0.32, 0.08, 0.02]} rotation={[0, -0.2, 0.06]}>
         <RedWhiteBlueBag />
       </group>
     </group>
@@ -579,17 +589,25 @@ function Walkman() {
 }
 
 /** 紅白藍 nylon tote — iconic red/white/blue woven-plastic HK bag.
- *  Reusable prop: renders at local origin with its top at y=height/2,
- *  so callers can place it on the floor beside a passenger. Scale
- *  controls overall size for secondary (smaller) uses. */
+ *  Stripe pattern follows the classic Chan Pak Lam tote: wide white
+ *  bands broken up by wide BLUE bands, with THIN RED pin-stripes
+ *  flanking each blue band — the authentic W-R-B-R-W-R-B-R-W run.
+ *  Reusable prop: callers place it on the floor beside a passenger.
+ *  `scale` controls overall size for smaller secondary uses. */
 function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
-  const stripes = [
-    { x: -0.12, color: '#1a3a8a' },
-    { x: -0.07, color: '#c82820' },
-    { x: -0.02, color: '#1a3a8a' },
-    { x:  0.03, color: '#c82820' },
-    { x:  0.08, color: '#1a3a8a' },
-    { x:  0.13, color: '#c82820' },
+  const RED = '#c82820'
+  const BLUE = '#1a3a8a'
+  // W-R-B-R-W-R-B-R-W across the 0.3m face: two wide blue bands
+  // flanked by thin red pin-stripes, wide white fills between.
+  // `w` is stripe width, `x` is local-X centre. White body shows
+  // through the gaps automatically.
+  const stripes: Array<{ x: number; w: number; color: string }> = [
+    { x: -0.10, w: 0.010, color: RED },
+    { x: -0.08, w: 0.030, color: BLUE },
+    { x: -0.06, w: 0.010, color: RED },
+    { x:  0.06, w: 0.010, color: RED },
+    { x:  0.08, w: 0.030, color: BLUE },
+    { x:  0.10, w: 0.010, color: RED },
   ]
   return (
     <group scale={[scale, scale, scale]}>
@@ -601,14 +619,14 @@ function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
       {/* Vertical stripes — front */}
       {stripes.map((s, i) => (
         <mesh key={`f-${i}`} position={[s.x, 0, 0.0911]}>
-          <planeGeometry args={[0.03, 0.34]} />
+          <planeGeometry args={[s.w, 0.34]} />
           <meshStandardMaterial color={s.color} roughness={0.85} />
         </mesh>
       ))}
       {/* Vertical stripes — back */}
       {stripes.map((s, i) => (
         <mesh key={`b-${i}`} position={[s.x, 0, -0.0911]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[0.03, 0.34]} />
+          <planeGeometry args={[s.w, 0.34]} />
           <meshStandardMaterial color={s.color} roughness={0.85} />
         </mesh>
       ))}
@@ -636,6 +654,42 @@ function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
           <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
         </mesh>
       ))}
+    </group>
+  )
+}
+
+/** Mahjong 中 tile — cream porcelain with bevelled cream-white face
+ *  and a painted red 中 (red-dragon) character. Small enough to sit
+ *  on a passenger's lap or palm, readable as a tile at conversational
+ *  distance. */
+function MahjongTile() {
+  const W = 0.09
+  const H = 0.12
+  const D = 0.045
+  return (
+    <group>
+      {/* Cream body with green back (real tiles have a bamboo-green
+          lamination on the back) */}
+      <mesh>
+        <boxGeometry args={[W, H, D]} />
+        <meshStandardMaterial color="#2a6848" roughness={0.6} />
+      </mesh>
+      {/* Cream-white face slightly proud of the body for the bevel */}
+      <mesh position={[0, 0, D / 2 + 0.001]}>
+        <boxGeometry args={[W * 0.94, H * 0.94, 0.006]} />
+        <meshStandardMaterial color="#f4ead0" roughness={0.5} metalness={0.1} />
+      </mesh>
+      {/* Red 中 character painted on the face */}
+      <Text
+        position={[0, 0, D / 2 + 0.005]}
+        fontSize={H * 0.6}
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+      >
+        <meshStandardMaterial color="#c81818" roughness={0.55} />
+        中
+      </Text>
     </group>
   )
 }
@@ -820,13 +874,13 @@ function AnitaMui() {
         <LemonTeaCarton />
         <InfoTag label="Vita Lemon Tea · HK staple" offset={[0, 0.18, 0]} />
       </group>
-      {/* 紅白藍 nylon tote tucked next to her on the bench — slightly
+      {/* 紅白藍 nylon tote tucked on the bench next to her — slightly
           smaller than Auntie's so it reads as a second, personal bag
-          (not a duplicate). Sits on the bench to her aisle-side so
-          it's not hidden by the torso from the driver's POV. */}
-      <group position={[-0.36, -0.2, 0.05]} rotation={[0, 0.25, 0.08]}>
+          (not a duplicate). Lifted to bench level so it sits on the
+          seat rather than sinking through it. */}
+      <group position={[-0.32, 0.05, 0.02]} rotation={[0, 0.25, 0.08]}>
         <RedWhiteBlueBag scale={0.82} />
-        <InfoTag label="紅白藍 · HK's utility tote" offset={[0, 0.35, 0]} />
+        <InfoTag label="紅白藍 · HK's utility tote" offset={[0, 0.3, 0]} />
       </group>
       <InfoTag label="Anita Mui · Madonna of Asia" offset={[0, 0.95, 0]} />
     </group>

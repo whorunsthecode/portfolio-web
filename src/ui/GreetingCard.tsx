@@ -160,13 +160,15 @@ export function GreetingCard() {
           </span>
         </div>
 
-        {/* Merry Post stamp — top right */}
+        {/* Merry Post stamp — top right. Widened + padded so the
+            "MERRY POST" wordmark sits on a single centred line and
+            the Chinese + price align cleanly under it. */}
         <div
           style={{
             position: 'absolute',
             top: 14,
             right: 14,
-            width: 52,
+            width: 68,
             height: 64,
             background: '#1a5838',
             border: '2px solid rgba(240,230,200,0.5)',
@@ -174,55 +176,69 @@ export function GreetingCard() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 1,
+            gap: 3,
+            padding: '4px 0',
+            boxSizing: 'border-box',
             zIndex: 10,
           }}
         >
           <span
             style={{
               fontFamily: "'DM Mono', monospace",
-              fontSize: 6,
+              fontSize: 7,
               color: '#f0e6c8',
-              letterSpacing: 1.5,
+              letterSpacing: 1,
               textTransform: 'uppercase',
+              textAlign: 'center',
+              width: '100%',
+              lineHeight: 1,
             }}
           >
-            Merry Post
+            Merry&nbsp;Post
           </span>
-          <span style={{ fontSize: 8, color: '#c8a048', letterSpacing: 2 }}>
+          <span
+            style={{
+              fontSize: 9,
+              color: '#c8a048',
+              letterSpacing: 1.5,
+              textAlign: 'center',
+              width: '100%',
+              lineHeight: 1,
+            }}
+          >
             聖誕快樂
           </span>
           <span
             style={{
               fontFamily: "'DM Mono', monospace",
-              fontSize: 5,
+              fontSize: 6,
               color: '#c8a048',
+              textAlign: 'center',
+              width: '100%',
+              lineHeight: 1,
             }}
           >
             $3.70
           </span>
         </div>
 
-        {/* Footer — sits on the cobblestone street */}
+        {/* Footer — solid dark strip with readable credit line. The
+            earlier 7px / 1.5 letter-spacing over a transparent fade
+            rendered as stretched, low-contrast text on the cobble
+            texture; swap for a taller opaque band. */}
         <div
           style={{
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
-            height: 30,
-            background: 'linear-gradient(transparent, rgba(0,0,0,0.3))',
-            zIndex: 9,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 12,
-            left: 0,
-            right: 0,
-            textAlign: 'center',
+            height: 28,
+            background: 'rgba(16,12,8,0.78)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             zIndex: 10,
+            padding: '0 16px',
           }}
         >
           <a
@@ -231,13 +247,14 @@ export function GreetingCard() {
             rel="noopener noreferrer"
             style={{
               fontFamily: "'DM Mono', monospace",
-              fontSize: 7,
-              color: '#f0e6c8',
+              fontSize: 10,
+              color: '#f5ead0',
               textDecoration: 'none',
-              letterSpacing: 1.5,
+              letterSpacing: 0.5,
+              whiteSpace: 'nowrap',
             }}
           >
-            Karmen Yip · karmenyip.vercel.app
+            Karmen Yip&nbsp;·&nbsp;karmenyip.vercel.app
           </a>
         </div>
       </div>

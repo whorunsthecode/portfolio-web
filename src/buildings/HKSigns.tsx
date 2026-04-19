@@ -588,6 +588,133 @@ function PawnshopSign({
 }
 
 /* ──────────────────────────────────────────────────────────────────
+   Sign 5: Mahjong parlour (麻雀館) — big bold street-level sign.
+   Red board with huge green/yellow 麻雀 characters stacked vertical,
+   flanked by a tiny white 中 (red-dragon winning tile) motif at the
+   bottom. The 麻雀館 was a ubiquitous 1980s HK shop; these signs
+   were noticeably larger and louder than the neighbours to draw
+   punters off the street. Face normal +Z, driver-facing.
+   ────────────────────────────────────────────────────────────────── */
+function MahjongSign({
+  side,
+  y,
+}: {
+  side: 1 | -1
+  y: number
+}) {
+  const projection = 2.4
+  const facadeX = side * FACADE_X
+  const signX = side * (FACADE_X - projection)
+  const width = 1.1
+  const height = 2.8
+  // Two-character 麻雀 dominant green-on-red palette (the other common
+  // local palette is red-on-yellow; picked green because it reads
+  // cleanest against our warm street lighting).
+  const borderColor = '#ffd850'     // yellow tube border
+  const bgColor = '#b01818'         // deep red board
+  const charColor = '#6eeac0'       // green neon chars (麻雀)
+
+  return (
+    <group>
+      {/* Wall bracket + horizontal arm + drop pin */}
+      <mesh position={[facadeX - side * 0.05, y, 0]}>
+        <boxGeometry args={[0.1, 0.4, 0.34]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+      <mesh
+        position={[side * (FACADE_X - projection / 2), y + height / 2 + 0.1, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
+        <cylinderGeometry args={[0.05, 0.05, projection, 8]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+      <mesh position={[signX, y + height / 2 + 0.05, 0]}>
+        <cylinderGeometry args={[0.032, 0.032, 0.2, 8]} />
+        <meshStandardMaterial color="#1a1a18" roughness={0.85} />
+      </mesh>
+
+      <group position={[signX, y, 0]}>
+        {/* Dark backing */}
+        <mesh position={[0, 0, -0.02]}>
+          <boxGeometry args={[width + 0.08, height + 0.08, 0.04]} />
+          <meshStandardMaterial color={BOARD_DARK} roughness={0.9} />
+        </mesh>
+        {/* Red painted board face — mildly emissive so the red reads
+            as a lit panel, not flat paint */}
+        <mesh>
+          <boxGeometry args={[width, height, 0.1]} />
+          <meshStandardMaterial
+            color={bgColor}
+            emissive={bgColor}
+            emissiveIntensity={0.2}
+            roughness={0.8}
+            toneMapped={false}
+          />
+        </mesh>
+        {/* Yellow neon tube border (inset) */}
+        <group position={[0, 0, 0.055]}>
+          <NeonTube width={width * 0.92} height={height * 0.96} color={borderColor} />
+        </group>
+        {/* Halo bleed — day near-zero, night bright */}
+        <mesh position={[0, 0, -0.06]}>
+          <planeGeometry args={[width * 2.6, height * 1.35]} />
+          <meshBasicMaterial
+            color={borderColor}
+            transparent
+            opacity={0.04}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+
+        {/* 麻 — top character, huge green-neon stroke */}
+        <NeonText
+          color={charColor}
+          fontSize={width * 0.8}
+          position={[0, height * 0.27, 0.08]}
+        >
+          麻
+        </NeonText>
+        {/* 雀 — middle character */}
+        <NeonText
+          color={charColor}
+          fontSize={width * 0.8}
+          position={[0, -height * 0.02, 0.08]}
+        >
+          雀
+        </NeonText>
+
+        {/* 中 winning-tile motif — small cream tile with red 中 at the
+            bottom of the board. Distinctive mahjong shorthand. */}
+        <group position={[0, -height * 0.37, 0.065]}>
+          {/* Tile face */}
+          <mesh>
+            <boxGeometry args={[width * 0.48, width * 0.64, 0.02]} />
+            <meshStandardMaterial color="#f4ead0" roughness={0.55} metalness={0.1} />
+          </mesh>
+          {/* Tile bevel edge — a slightly brighter rim */}
+          <mesh position={[0, 0, 0.001]}>
+            <boxGeometry args={[width * 0.46, width * 0.62, 0.022]} />
+            <meshStandardMaterial color="#fafaf0" roughness={0.45} metalness={0.15} />
+          </mesh>
+          {/* Red 中 character (not neon — painted on porcelain) */}
+          <Text
+            position={[0, 0, 0.014]}
+            fontSize={width * 0.42}
+            anchorX="center"
+            anchorY="middle"
+            fontWeight="bold"
+          >
+            <meshStandardMaterial color="#c81818" roughness={0.55} metalness={0} />
+            中
+          </Text>
+        </group>
+      </group>
+    </group>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────────
    Composite — distributed along the scrolling corridor
    ────────────────────────────────────────────────────────────────── */
 
@@ -629,6 +756,12 @@ type Sign =
       y: number
       shopName: string
     }
+  | {
+      kind: 'mahjong'
+      z: number
+      side: 1 | -1
+      y: number
+    }
 
 const PAWN_SHOP_NAMES = ['昌和', '永和', '福泰', '同泰', '榮昌', '德榮']
 
@@ -650,6 +783,13 @@ function buildSigns(): Sign[] {
   if (positions.length >= 3) pawnshopSlots.add(Math.floor(positions.length * 0.2))
   if (positions.length >= 10) pawnshopSlots.add(Math.floor(positions.length * 0.65))
 
+  // Same for mahjong parlour signs — anchored to fixed slots so the
+  // punter always catches one within the first third of the route.
+  const mahjongSlots = new Set<number>()
+  if (positions.length >= 3) mahjongSlots.add(Math.floor(positions.length * 0.12))
+  if (positions.length >= 10) mahjongSlots.add(Math.floor(positions.length * 0.48))
+  if (positions.length >= 20) mahjongSlots.add(Math.floor(positions.length * 0.82))
+
   positions.forEach((zp, idx) => {
     const side: 1 | -1 = r() < 0.5 ? 1 : -1
     const kind = r()
@@ -664,6 +804,16 @@ function buildSigns(): Sign[] {
         side,
         y: 4.2 + r() * 1.8,
         shopName: name,
+      })
+      return
+    }
+
+    if (mahjongSlots.has(idx)) {
+      signs.push({
+        kind: 'mahjong',
+        z: zp,
+        side,
+        y: 4.5 + r() * 1.6,
       })
       return
     }
@@ -855,6 +1005,12 @@ export function HKSigns() {
                 side={s.side}
                 y={s.y}
                 shopName={s.shopName}
+              />
+            )}
+            {s.kind === 'mahjong' && (
+              <MahjongSign
+                side={s.side}
+                y={s.y}
               />
             )}
           </group>
