@@ -16,12 +16,15 @@
  */
 
 import { useEffect, useState } from 'react'
+import { useStore } from '../store'
 
 const ONBOARD_KEY = 'tram_onboarded_v1'
 
 export function OnboardingOverlay() {
   // Start true on the server/first render to avoid flash; real state hydrates in effect
   const [open, setOpen] = useState(true)
+  const showOnboarding = useStore((s) => s.showOnboarding)
+  const setShowOnboarding = useStore((s) => s.setShowOnboarding)
 
   useEffect(() => {
     try {
@@ -31,6 +34,12 @@ export function OnboardingOverlay() {
       // localStorage can be blocked in private mode — just keep showing the overlay
     }
   }, [])
+
+  // Re-open when the HUD help button flips the store flag, so repeat
+  // visitors can review the "how to ride" card at any time.
+  useEffect(() => {
+    if (showOnboarding) setOpen(true)
+  }, [showOnboarding])
 
   useEffect(() => {
     if (!open) return
@@ -52,6 +61,7 @@ export function OnboardingOverlay() {
       // no-op
     }
     setOpen(false)
+    setShowOnboarding(false)
   }
 
   if (!open) return null

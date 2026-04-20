@@ -32,15 +32,17 @@ const SLEIGH_GOLD = '#d4a848'
 const RUDOLF_NOSE = '#ff3030'
 const REIN = '#3a2818'
 
-// Santa orbits in the OUTDOOR space east of the post office window.
-// Window is at x=4.95, y=2.2; Santa flies a slow wide loop in x=[6, 11]
-// and z=[-5, 3] at y≈3.5 so he's clearly visible through the window
-// as he passes across it. Loop takes ~28s.
+// Santa orbits in the OUTDOOR space east of the post-office window.
+// Window centre is at x=4.95, y=2.2 with a 1.9m-tall opening (top edge
+// at y≈3.15). Santa flies a slow loop past +X of the window so he's
+// framed by the pane. Y dropped from 3.5 → 2.4 because the old height
+// put him just above the window's top edge — he was invisible from
+// inside the room. Loop takes ~28s.
 const ORBIT_CX = 8.5
 const ORBIT_CZ = -1
 const ORBIT_RX = 2.2
 const ORBIT_RZ = 4.0
-const ORBIT_Y = 3.5
+const ORBIT_Y = 2.4
 const ORBIT_SPEED = 0.22 // radians/sec — slow, dreamy
 
 export function SantaSleigh() {
