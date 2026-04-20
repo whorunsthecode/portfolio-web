@@ -84,6 +84,95 @@ export default function App() {
         <FilmGrade />
       </Canvas>
 
+      {/* Boarding-time title card — tells first-time visitors what
+          this actually is before they sit down at the driver's seat.
+          Fades out with the boarding animation; hidden after. */}
+      {!boardingDone && (
+        <>
+          <style>{`
+            @keyframes boardingTitleIn {
+              from { opacity: 0; transform: translate(-50%, -12px); }
+              to   { opacity: 1; transform: translate(-50%, 0); }
+            }
+          `}</style>
+          <div
+            style={{
+              position: 'fixed',
+              top: 'min(14vh, 96px)',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 150,
+              // Card itself ignores clicks so 3D drag still works; the
+              // LinkedIn link below re-enables pointer events on its
+              // own scope.
+              pointerEvents: 'none',
+              textAlign: 'center',
+              color: '#f5ead0',
+              padding: '14px 22px',
+              borderRadius: 14,
+              background: 'linear-gradient(180deg, rgba(20,16,12,0.72) 0%, rgba(10,8,6,0.72) 100%)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: '1px solid rgba(200,164,104,0.35)',
+              boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
+              maxWidth: 'min(92vw, 520px)',
+              animation: 'boardingTitleIn 600ms ease-out both',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: '"Playfair Display", Georgia, serif',
+                fontStyle: 'italic',
+                fontWeight: 700,
+                fontSize: 20,
+                letterSpacing: '0.02em',
+                lineHeight: 1.2,
+              }}
+            >
+              <a
+                href="https://www.linkedin.com/in/karmenyipnm"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  pointerEvents: 'auto',
+                  color: 'inherit',
+                  textDecoration: 'none',
+                  borderBottom: '1px dashed rgba(245,234,208,0.55)',
+                  paddingBottom: 1,
+                  transition: 'color 160ms ease, border-color 160ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  const a = e.currentTarget
+                  a.style.color = '#ffe6b0'
+                  a.style.borderBottomColor = 'rgba(255,230,176,0.9)'
+                }}
+                onMouseLeave={(e) => {
+                  const a = e.currentTarget
+                  a.style.color = 'inherit'
+                  a.style.borderBottomColor = 'rgba(245,234,208,0.55)'
+                }}
+                title="Open Karmen's LinkedIn in a new tab"
+              >
+                Karmen Yip
+              </a>
+              <span> · Portfolio</span>
+            </div>
+            <div
+              style={{
+                fontFamily: '"DM Mono", monospace',
+                fontSize: 11,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                opacity: 0.82,
+                marginTop: 6,
+              }}
+            >
+              Ride a 1982 Hong Kong tram
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Skip button during boarding */}
       {!boardingDone && (
         <button

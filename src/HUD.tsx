@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
 
+const GO_HINT_KEY = 'tram.seenGoHint.v1'
+
 export function HUD() {
   const activeRoom = useStore((s) => s.activeRoom)
   const setRoom = useStore((s) => s.setRoom)
@@ -12,6 +14,46 @@ export function HUD() {
   const setShowDriverCard = useStore((s) => s.setShowDriverCard)
   const showDetails = useStore((s) => s.showDetails)
   const toggleDetails = useStore((s) => s.toggleDetails)
+
+  // First-visit hint over the GO / destination pill. Stored in
+  // localStorage so returning visitors don't see it again.
+  const [showGoHint, setShowGoHint] = useState(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return window.localStorage.getItem(GO_HINT_KEY) !== '1'
+    } catch {
+      return false
+    }
+  })
+  useEffect(() => {
+    if (!showGoHint) return
+    const t = window.setTimeout(() => {
+      setShowGoHint(false)
+      try {
+        window.localStorage.setItem(GO_HINT_KEY, '1')
+      } catch {
+        // ignore private-mode storage failures
+      }
+    }, 9000)
+    return () => window.clearTimeout(t)
+  }, [showGoHint])
+  const dismissGoHint = () => {
+    setShowGoHint(false)
+    try {
+      window.localStorage.setItem(GO_HINT_KEY, '1')
+    } catch {
+      // ignore
+    }
+  }
+
+  // Stronger contact pulse in the first 10 seconds of the session
+  // so first-time visitors notice the CTA before it settles into the
+  // gentle background pulse.
+  const [contactBoost, setContactBoost] = useState(true)
+  useEffect(() => {
+    const t = window.setTimeout(() => setContactBoost(false), 10000)
+    return () => window.clearTimeout(t)
+  }, [])
 
   const currentStop = STOPS[blindIndex]
   const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
@@ -28,12 +70,24 @@ export function HUD() {
       zIndex: 10,
       color: textColor,
     }}>
-      {/* Keyframes for the Contact chip pulse — scoped to the HUD so the
-          animation is visible on mobile without relying on hover state. */}
+      {/* Keyframes for the HUD animations — scoped here so they work
+          on mobile without relying on hover state. */}
       <style>{`
         @keyframes contactPulse {
           0%, 100% { box-shadow: 0 2px 10px rgba(200,164,104,0.35), inset 0 1px 0 rgba(255,255,255,0.35); }
           50%      { box-shadow: 0 2px 18px rgba(200,164,104,0.85), inset 0 1px 0 rgba(255,255,255,0.35); }
+        }
+        @keyframes contactPulseStrong {
+          0%, 100% { box-shadow: 0 2px 14px rgba(232,196,136,0.55), inset 0 1px 0 rgba(255,255,255,0.45); transform: scale(1); }
+          50%      { box-shadow: 0 2px 28px rgba(255,220,150,1), 0 0 0 6px rgba(255,220,150,0.15), inset 0 1px 0 rgba(255,255,255,0.45); transform: scale(1.04); }
+        }
+        @keyframes goHintBounce {
+          0%, 100% { transform: translate(-50%, 0); }
+          50%      { transform: translate(-50%, -4px); }
+        }
+        @keyframes goHintFadeIn {
+          from { opacity: 0; transform: translate(-50%, 8px); }
+          to   { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
       {/* Back button */}
@@ -156,7 +210,9 @@ export function HUD() {
           alignItems: 'center',
           gap: 6,
           lineHeight: 1,
-          animation: 'contactPulse 2.4s ease-in-out infinite',
+          animation: contactBoost
+            ? 'contactPulseStrong 1.2s ease-in-out infinite'
+            : 'contactPulse 2.4s ease-in-out infinite',
         }}
       >
         <span style={{ fontSize: 16 }}>✉</span>
@@ -164,6 +220,37 @@ export function HUD() {
           Contact
         </span>
       </button>
+
+      {/* ── First-visit hint above the GO pill — auto-hides after 9s
+              or on tap. Explains what the mystery bottom bar is for. */}
+      {!activeRoom && showGoHint && (
+        <div
+          onClick={dismissGoHint}
+          style={{
+            position: 'absolute',
+            bottom: 96,
+            left: '50%',
+            pointerEvents: 'auto',
+            background: 'linear-gradient(180deg, rgba(26,20,16,0.92) 0%, rgba(10,8,6,0.92) 100%)',
+            color: '#f5ead0',
+            padding: '8px 14px',
+            borderRadius: 18,
+            border: '1px solid rgba(200,164,104,0.5)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.45)',
+            cursor: 'pointer',
+            fontFamily: '"Playfair Display", Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: 13,
+            whiteSpace: 'nowrap',
+            animation:
+              'goHintFadeIn 400ms ease-out 200ms both, goHintBounce 1.6s ease-in-out 600ms infinite',
+          }}
+        >
+          ↓ Tap a stop, then GO — each is a world to explore
+        </div>
+      )}
 
       {/* ── Destination navigation pill — bottom center ──── */}
       {!activeRoom && (
@@ -218,7 +305,10 @@ export function HUD() {
 
           {/* GO button */}
           <button
-            onClick={() => setRoom(currentStop.id)}
+            onClick={() => {
+              dismissGoHint()
+              setRoom(currentStop.id)
+            }}
             style={{
               background: '#c82820', border: 'none', borderRadius: 16,
               color: '#fff', fontSize: 12, fontWeight: 700,
