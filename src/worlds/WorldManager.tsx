@@ -1,19 +1,25 @@
-import { useRef } from 'react'
+import { lazy, Suspense, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import { useStore, type StopId } from '../store'
-import { Museum } from './Museum/index'
-import { ChristmasVillage } from './ChristmasVillage/index'
-import { Terminus } from './Terminus/index'
-import { Dreamery } from './Dreamery/index'
-import { Gym } from './Gym/index'
-import { Aquarium } from './Aquarium/index'
 
 /**
  * Manages world mounting and camera transitions.
  * When activeRoom is set, camera flies to the world's position.
  * When cleared (back button), camera returns to seated tram view.
+ *
+ * Worlds are code-split via React.lazy so the initial bundle only
+ * ships the tram + street. Each world downloads on demand the first
+ * time a user taps GO on that stop; the 2.5s camera fly gives the
+ * chunk time to arrive before the world pops in.
  */
+
+const Museum           = lazy(() => import('./Museum/index').then((m) => ({ default: m.Museum })))
+const ChristmasVillage = lazy(() => import('./ChristmasVillage/index').then((m) => ({ default: m.ChristmasVillage })))
+const Dreamery         = lazy(() => import('./Dreamery/index').then((m) => ({ default: m.Dreamery })))
+const Aquarium         = lazy(() => import('./Aquarium/index').then((m) => ({ default: m.Aquarium })))
+const Gym              = lazy(() => import('./Gym/index').then((m) => ({ default: m.Gym })))
+const Terminus         = lazy(() => import('./Terminus/index').then((m) => ({ default: m.Terminus })))
 
 const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number] }> = {
   // Pulled forward from z=3.5/-3.5 to frame the centerpiece at its new z=-2.0
@@ -98,13 +104,17 @@ export function Worlds() {
   return (
     <>
       <WorldCamera />
-      {/* Lazy-mount: only render the world that's active */}
-      {activeRoom === 'museum' && <Museum />}
-      {activeRoom === 'christmas' && <ChristmasVillage />}
-      {activeRoom === 'fantasy' && <Dreamery />}
-      {activeRoom === 'aquarium' && <Aquarium />}
-      {activeRoom === 'gym' && <Gym />}
-      {activeRoom === 'terminus' && <Terminus />}
+      {/* Lazy-mount: only render the world that's active. Suspense
+          fallback is null because the camera is still mid-fly when
+          the chunk arrives — no spinner needed in 3D space. */}
+      <Suspense fallback={null}>
+        {activeRoom === 'museum' && <Museum />}
+        {activeRoom === 'christmas' && <ChristmasVillage />}
+        {activeRoom === 'fantasy' && <Dreamery />}
+        {activeRoom === 'aquarium' && <Aquarium />}
+        {activeRoom === 'gym' && <Gym />}
+        {activeRoom === 'terminus' && <Terminus />}
+      </Suspense>
     </>
   )
 }

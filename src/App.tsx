@@ -63,7 +63,10 @@ export default function App() {
     <>
       <Canvas
         shadows
-        dpr={[1, 2]}
+        // Mobile retina panels were rendering at dpr 2, doubling the
+        // pixel count for no visible gain on 3D at phone distance —
+        // cap at 1.5 there to claw back frame budget.
+        dpr={mobile ? [1, 1.5] : [1, 2]}
         camera={{
           position: boardingDone || prefersReduced ? [0, 1.7, -9.0] : [5.5, 0.8, -2.0],
           fov: boardingDone || prefersReduced ? (mobile ? 88 : 72) : (mobile ? 78 : 65),
