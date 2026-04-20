@@ -87,49 +87,71 @@ export default function App() {
         <FilmGrade />
       </Canvas>
 
-      {/* Boarding-time title card — tells first-time visitors what
-          this actually is before they sit down at the driver's seat.
-          Fades out with the boarding animation; hidden after. */}
+      {/* Boarding-time title card — big cinematic "welcome to ___"
+          moment played over the boarding intro. Card itself is
+          pointer-transparent so the 3D scene still takes drag; the
+          LinkedIn link re-enables pointer events on its own span. */}
       {!boardingDone && (
         <>
           <style>{`
             @keyframes boardingTitleIn {
-              from { opacity: 0; transform: translate(-50%, -12px); }
-              to   { opacity: 1; transform: translate(-50%, 0); }
+              from { opacity: 0; transform: translate(-50%, -16px) scale(0.96); letter-spacing: 0.3em; }
+              to   { opacity: 1; transform: translate(-50%, 0) scale(1);       letter-spacing: inherit; }
+            }
+            @keyframes boardingEyebrowIn {
+              from { opacity: 0; transform: translateY(-4px); }
+              to   { opacity: 0.78; transform: translateY(0); }
+            }
+            @keyframes boardingRuleIn {
+              from { opacity: 0; width: 0; }
+              to   { opacity: 0.9; width: 72px; }
             }
           `}</style>
           <div
             style={{
               position: 'fixed',
-              top: 'min(14vh, 96px)',
+              top: 'min(18vh, 120px)',
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 150,
-              // Card itself ignores clicks so 3D drag still works; the
-              // LinkedIn link below re-enables pointer events on its
-              // own scope.
               pointerEvents: 'none',
               textAlign: 'center',
               color: '#f5ead0',
-              padding: '14px 22px',
-              borderRadius: 14,
-              background: 'linear-gradient(180deg, rgba(20,16,12,0.72) 0%, rgba(10,8,6,0.72) 100%)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(200,164,104,0.35)',
-              boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
-              maxWidth: 'min(92vw, 520px)',
-              animation: 'boardingTitleIn 600ms ease-out both',
+              padding: '28px 36px',
+              borderRadius: 18,
+              background: 'linear-gradient(180deg, rgba(20,16,12,0.78) 0%, rgba(10,8,6,0.78) 100%)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(200,164,104,0.45)',
+              boxShadow: '0 14px 48px rgba(0,0,0,0.55)',
+              maxWidth: 'min(92vw, 640px)',
+              animation: 'boardingTitleIn 900ms cubic-bezier(0.22, 0.9, 0.28, 1) both',
             }}
           >
+            {/* Eyebrow label — the "WELCOME ABOARD" stamp over a film title */}
+            <div
+              style={{
+                fontFamily: '"DM Mono", monospace',
+                fontSize: 11,
+                letterSpacing: '0.32em',
+                textTransform: 'uppercase',
+                color: '#d4b07a',
+                marginBottom: 10,
+                animation: 'boardingEyebrowIn 700ms ease-out 250ms both',
+              }}
+            >
+              ⸻&nbsp; Welcome aboard &nbsp;⸻
+            </div>
+
+            {/* Main title — big serif, film-opening scale */}
             <div
               style={{
                 fontFamily: '"Playfair Display", Georgia, serif',
                 fontStyle: 'italic',
                 fontWeight: 700,
-                fontSize: 20,
-                letterSpacing: '0.02em',
-                lineHeight: 1.2,
+                fontSize: 'clamp(34px, 6vw, 54px)',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.05,
               }}
             >
               <a
@@ -141,7 +163,7 @@ export default function App() {
                   color: 'inherit',
                   textDecoration: 'none',
                   borderBottom: '1px dashed rgba(245,234,208,0.55)',
-                  paddingBottom: 1,
+                  paddingBottom: 2,
                   transition: 'color 160ms ease, border-color 160ms ease',
                 }}
                 onMouseEnter={(e) => {
@@ -158,16 +180,28 @@ export default function App() {
               >
                 Karmen Yip
               </a>
-              <span> · Portfolio</span>
+              <span style={{ opacity: 0.9 }}> · Portfolio</span>
             </div>
+
+            {/* Gold rule divider */}
+            <div
+              style={{
+                height: 1.5,
+                background: 'linear-gradient(90deg, transparent, #c8a048, transparent)',
+                margin: '16px auto 12px',
+                animation: 'boardingRuleIn 900ms ease-out 400ms both',
+              }}
+            />
+
+            {/* Subtitle — tagline, uppercased + spaced */}
             <div
               style={{
                 fontFamily: '"DM Mono", monospace',
-                fontSize: 11,
-                letterSpacing: '0.18em',
+                fontSize: 'clamp(11px, 1.4vw, 13px)',
+                letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 opacity: 0.82,
-                marginTop: 6,
+                animation: 'boardingEyebrowIn 800ms ease-out 500ms both',
               }}
             >
               Ride a 1982 Hong Kong tram

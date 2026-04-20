@@ -1,20 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
-import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
+import { useEffect, useState } from 'react'
+import { useStore, STOPS, type StopId } from './store'
 
 const GO_HINT_KEY = 'tram.seenGoHint.v1'
 
 /**
- * District → project hint shown by <DistrictCaption /> as the tram
- * scrolls through each zone. Reuses the same 1982 HK geography as
- * ROUTE_DISTRICTS but adds a project tagline so first-time riders
- * realise each district has an explorable world attached to it.
+ * StopId → project hint shown as a tooltip above the destination
+ * selector pill at the bottom of the screen. Previously we popped
+ * the same copy as a top banner (DistrictCaption) simultaneously
+ * with the boarding title — that forced the eye between top and
+ * bottom. The tooltip anchors all stop-related copy to the selector
+ * it belongs to, and updates instantly when the user cycles ◀/▶.
  */
-const DISTRICT_PROJECT_HINTS: Record<string, { project: string; tagline: string }> = {
-  '中環 CENTRAL':        { project: 'Gesture Gallery',    tagline: 'A private museum you walk through by hand' },
-  '上環 SHEUNG WAN':     { project: 'The Christmas Sims', tagline: 'A daily Advent mini-world you can click into' },
-  '西營盤 SAI YING PUN': { project: 'DreamDump',          tagline: 'An AI cloud named Drift reads your dreams' },
-  '石塘咀 SHEK TONG TSUI':{ project: 'PomoReef',          tagline: 'A focus timer that grows a koi pond' },
-  '堅尼地城 KENNEDY TOWN': { project: 'stiff',             tagline: 'Your apps lock until you stretch' },
+const STOP_PROJECT_HINTS: Record<StopId, { project: string; tagline: string }> = {
+  museum:    { project: 'Gesture Gallery',    tagline: 'A private museum you walk through by hand' },
+  christmas: { project: 'The Christmas Sims', tagline: 'A daily Advent mini-world you can click into' },
+  fantasy:   { project: 'DreamDump',          tagline: 'An AI cloud named Drift reads your dreams · iOS' },
+  aquarium:  { project: 'PomoReef',           tagline: 'A focus timer that grows a koi pond' },
+  gym:       { project: 'stiff',              tagline: 'Your apps lock until you stretch · iOS' },
+  terminus:  { project: 'Contact',            tagline: 'End of the line — all the ways to reach me' },
 }
 
 export function HUD() {
@@ -102,10 +105,6 @@ export function HUD() {
           to   { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
-      {/* District caption — auto-appears as the tram crosses into each
-          new zone, hinting which project is attached to this stop. */}
-      {!activeRoom && <DistrictCaption />}
-
       {/* Back button */}
       {activeRoom && (
         <button onClick={() => setRoom(null)} style={{
@@ -268,6 +267,79 @@ export function HUD() {
         </div>
       )}
 
+      {/* ── Stop-project tooltip — anchored above the destination pill.
+              Updates instantly when the user cycles ◀/▶ so every stop
+              gets its project + one-line pitch where the user is
+              already looking. Replaces the old top-edge DistrictCaption
+              which forced the eye between two corners of the screen. */}
+      {!activeRoom && (
+        <div
+          key={currentStop.id}
+          style={{
+            position: 'absolute',
+            bottom: 108,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            pointerEvents: 'none',
+            background: 'linear-gradient(180deg, rgba(20,16,12,0.88) 0%, rgba(10,8,6,0.88) 100%)',
+            color: '#f5ead0',
+            padding: '10px 18px',
+            borderRadius: 14,
+            border: '1px solid rgba(200,164,104,0.4)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            maxWidth: 'min(86vw, 360px)',
+            textAlign: 'center',
+            animation: 'stopTooltipIn 280ms ease-out both',
+          }}
+        >
+          <style>{`
+            @keyframes stopTooltipIn {
+              from { opacity: 0; transform: translate(-50%, 6px); }
+              to   { opacity: 1; transform: translate(-50%, 0); }
+            }
+          `}</style>
+          <div
+            style={{
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontStyle: 'italic',
+              fontWeight: 700,
+              fontSize: 16,
+              color: '#ffe6b0',
+              lineHeight: 1.15,
+            }}
+          >
+            {STOP_PROJECT_HINTS[currentStop.id].project}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.04em',
+              opacity: 0.82,
+              marginTop: 3,
+              lineHeight: 1.35,
+            }}
+          >
+            {STOP_PROJECT_HINTS[currentStop.id].tagline}
+          </div>
+          {/* Arrow tail pointing at the pill */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: -6,
+              transform: 'translateX(-50%) rotate(45deg)',
+              width: 12,
+              height: 12,
+              background: 'rgba(10,8,6,0.88)',
+              borderRight: '1px solid rgba(200,164,104,0.4)',
+              borderBottom: '1px solid rgba(200,164,104,0.4)',
+            }}
+          />
+        </div>
+      )}
+
       {/* ── Destination navigation pill — bottom center ──── */}
       {!activeRoom && (
         <div style={{
@@ -336,124 +408,6 @@ export function HUD() {
           </button>
         </div>
       )}
-    </div>
-  )
-}
-
-/* ── District caption — slides in on district change, auto-hides after 6s
-       so first-timers learn that each zone hides a playable world. ── */
-function DistrictCaption() {
-  const routePos = useStore((s) => s.routePos)
-  const district =
-    ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ??
-    ROUTE_DISTRICTS[0].label
-
-  // Track district transitions + hold the currently-shown label so the
-  // banner stays visible for its full 6s window even if the tram has
-  // already crossed into the next zone.
-  const [visibleDistrict, setVisibleDistrict] = useState<string | null>(null)
-  const prevRef = useRef<string | null>(null)
-  const timerRef = useRef<number | undefined>(undefined)
-
-  useEffect(() => {
-    // First render: show the opening district after a short settle delay.
-    if (prevRef.current === null) {
-      prevRef.current = district
-      const settle = window.setTimeout(() => {
-        setVisibleDistrict(district)
-        timerRef.current = window.setTimeout(() => setVisibleDistrict(null), 6000)
-      }, 1800)
-      return () => {
-        window.clearTimeout(settle)
-        if (timerRef.current) window.clearTimeout(timerRef.current)
-      }
-    }
-
-    if (prevRef.current !== district) {
-      prevRef.current = district
-      if (timerRef.current) window.clearTimeout(timerRef.current)
-      setVisibleDistrict(district)
-      timerRef.current = window.setTimeout(() => setVisibleDistrict(null), 6000)
-    }
-  }, [district])
-
-  useEffect(() => () => {
-    if (timerRef.current) window.clearTimeout(timerRef.current)
-  }, [])
-
-  if (!visibleDistrict) return null
-  const hint = DISTRICT_PROJECT_HINTS[visibleDistrict]
-  if (!hint) return null
-
-  const [zh, ...enParts] = visibleDistrict.split(' ')
-  const en = enParts.join(' ')
-
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 20,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        pointerEvents: 'none',
-        zIndex: 11,
-        animation: 'districtCaptionIn 500ms ease-out both',
-      }}
-    >
-      <style>{`
-        @keyframes districtCaptionIn {
-          from { opacity: 0; transform: translate(-50%, -8px); }
-          to   { opacity: 1; transform: translate(-50%, 0); }
-        }
-      `}</style>
-      <div
-        style={{
-          background: 'linear-gradient(180deg, rgba(20,16,12,0.82) 0%, rgba(10,8,6,0.82) 100%)',
-          color: '#f5ead0',
-          padding: '10px 18px',
-          borderRadius: 18,
-          border: '1px solid rgba(200,164,104,0.4)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          boxShadow: '0 6px 22px rgba(0,0,0,0.45)',
-          maxWidth: 'min(92vw, 440px)',
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            fontFamily: '"Noto Serif TC", Georgia, serif',
-            fontSize: 13,
-            letterSpacing: '0.14em',
-            opacity: 0.88,
-          }}
-        >
-          <span style={{ fontWeight: 700 }}>{zh}</span>
-          <span style={{ opacity: 0.55, marginLeft: 8, fontSize: 11 }}>{en}</span>
-        </div>
-        <div
-          style={{
-            fontFamily: '"Playfair Display", Georgia, serif',
-            fontStyle: 'italic',
-            fontSize: 15,
-            fontWeight: 700,
-            marginTop: 4,
-            color: '#ffe6b0',
-          }}
-        >
-          {hint.project}
-        </div>
-        <div
-          style={{
-            fontSize: 11,
-            letterSpacing: '0.05em',
-            opacity: 0.7,
-            marginTop: 2,
-          }}
-        >
-          {hint.tagline}
-        </div>
-      </div>
     </div>
   )
 }
