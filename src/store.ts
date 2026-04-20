@@ -59,7 +59,10 @@ export const useStore = create<State>((set) => ({
   muted: false,
   showDriverCard: false,
   showGreetingCard: false,
-  showDetails: false,
+  // Details orbs on by default so first-time visitors immediately see
+  // the captions explaining every 1982-HK reference. They can toggle
+  // off via the HUD pill if they want a cleaner ride.
+  showDetails: true,
   setMode: (mode) => set({ mode }),
   setRoom: (activeRoom) => set({ activeRoom, modal: null }),
   setModal: (modal) => set({ modal }),
