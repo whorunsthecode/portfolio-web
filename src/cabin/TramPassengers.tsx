@@ -589,25 +589,28 @@ function Walkman() {
 }
 
 /** 紅白藍 nylon tote — iconic red/white/blue woven-plastic HK bag.
- *  Stripe pattern follows the classic Chan Pak Lam tote: wide white
- *  bands broken up by wide BLUE bands, with THIN RED pin-stripes
- *  flanking each blue band — the authentic W-R-B-R-W-R-B-R-W run.
- *  Reusable prop: callers place it on the floor beside a passenger.
+ *  Redesigned so all three colours read at a glance in the 3D scene:
+ *  a white body with 5 WIDE alternating red/blue vertical bands and
+ *  TWO dark-navy webbing arch-handles standing upright on top. The
+ *  previous thin pin-stripe version read as a white bag with specks,
+ *  and the flat torus handles looked like a ribbon lying on the lid.
+ *  Reusable prop: callers place it on the bench beside a passenger.
  *  `scale` controls overall size for smaller secondary uses. */
 function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
   const RED = '#c82820'
   const BLUE = '#1a3a8a'
-  // W-R-B-R-W-R-B-R-W across the 0.3m face: two wide blue bands
-  // flanked by thin red pin-stripes, wide white fills between.
-  // `w` is stripe width, `x` is local-X centre. White body shows
-  // through the gaps automatically.
-  const stripes: Array<{ x: number; w: number; color: string }> = [
-    { x: -0.10, w: 0.010, color: RED },
-    { x: -0.08, w: 0.030, color: BLUE },
-    { x: -0.06, w: 0.010, color: RED },
-    { x:  0.06, w: 0.010, color: RED },
-    { x:  0.08, w: 0.030, color: BLUE },
-    { x:  0.10, w: 0.010, color: RED },
+  const HANDLE = '#0a1430' // dark navy webbing
+  // Wide R-B-R-B-R bands across the 0.3m front face — 0.04 wide
+  // colour bands separated by 0.025 of exposed white body. Net
+  // colour coverage ~2/3 of the face, so red + white + blue each
+  // read as a dominant stripe at tram-interior distance.
+  const bandW = 0.04
+  const stripes: Array<{ x: number; color: string }> = [
+    { x: -0.12, color: RED },
+    { x: -0.06, color: BLUE },
+    { x:  0.00, color: RED },
+    { x:  0.06, color: BLUE },
+    { x:  0.12, color: RED },
   ]
   return (
     <group scale={[scale, scale, scale]}>
@@ -616,43 +619,66 @@ function RedWhiteBlueBag({ scale = 1 }: { scale?: number }) {
         <boxGeometry args={[0.3, 0.36, 0.18]} />
         <meshStandardMaterial color="#f4f4ea" roughness={0.85} />
       </mesh>
-      {/* Vertical stripes — front */}
+      {/* Wide vertical bands — front */}
       {stripes.map((s, i) => (
         <mesh key={`f-${i}`} position={[s.x, 0, 0.0911]}>
-          <planeGeometry args={[s.w, 0.34]} />
+          <planeGeometry args={[bandW, 0.34]} />
           <meshStandardMaterial color={s.color} roughness={0.85} />
         </mesh>
       ))}
-      {/* Vertical stripes — back */}
+      {/* Wide vertical bands — back */}
       {stripes.map((s, i) => (
         <mesh key={`b-${i}`} position={[s.x, 0, -0.0911]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[s.w, 0.34]} />
+          <planeGeometry args={[bandW, 0.34]} />
           <meshStandardMaterial color={s.color} roughness={0.85} />
         </mesh>
       ))}
-      {/* Red border piping — top, bottom, sides */}
+      {/* Same bands on the 0.18-thick SIDE faces so the colours wrap
+          around the bag instead of stopping at the corners (prevents
+          the bag reading as plain white when viewed from an angle). */}
+      {[-1, 1].map((sx) => (
+        <group key={`side-${sx}`}>
+          {stripes.map((s, i) => (
+            <mesh
+              key={`s${sx}-${i}`}
+              position={[sx * 0.1511, 0, 0]}
+              rotation={[0, sx * Math.PI / 2, 0]}
+            >
+              <planeGeometry args={[bandW * 0.4, 0.34]} />
+              <meshStandardMaterial color={s.color} roughness={0.85} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+      {/* Red border piping — top + bottom edges */}
       <mesh position={[0, 0.183, 0]}>
         <boxGeometry args={[0.31, 0.015, 0.19]} />
-        <meshStandardMaterial color="#c82820" roughness={0.75} />
+        <meshStandardMaterial color={RED} roughness={0.75} />
       </mesh>
       <mesh position={[0, -0.183, 0]}>
         <boxGeometry args={[0.31, 0.015, 0.19]} />
-        <meshStandardMaterial color="#c82820" roughness={0.75} />
+        <meshStandardMaterial color={RED} roughness={0.75} />
       </mesh>
-      <mesh position={[-0.153, 0, 0]}>
-        <boxGeometry args={[0.013, 0.38, 0.19]} />
-        <meshStandardMaterial color="#c82820" roughness={0.75} />
-      </mesh>
-      <mesh position={[0.153, 0, 0]}>
-        <boxGeometry args={[0.013, 0.38, 0.19]} />
-        <meshStandardMaterial color="#c82820" roughness={0.75} />
-      </mesh>
-      {/* Twin blue rope handle loops on top */}
+      {/* Twin upright webbing arch-handles — dark-navy strap rising
+          from the top edge of the bag, not a flat ribbon. Rendered
+          as half-tori (arc = π) so only the visible arch draws. */}
       {[-0.08, 0.08].map((hx, i) => (
-        <mesh key={`h-${i}`} position={[hx, 0.24, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.055, 0.01, 6, 14]} />
-          <meshStandardMaterial color="#1a3a8a" roughness={0.8} />
-        </mesh>
+        <group key={`h-${i}`} position={[hx, 0.183, 0]}>
+          {/* Arch strap */}
+          <mesh>
+            <torusGeometry args={[0.05, 0.012, 8, 18, Math.PI]} />
+            <meshStandardMaterial color={HANDLE} roughness={0.75} />
+          </mesh>
+          {/* Small base plates where the strap meets the bag */}
+          <mesh position={[-0.05, 0, 0]}>
+            <boxGeometry args={[0.03, 0.018, 0.04]} />
+            <meshStandardMaterial color={HANDLE} roughness={0.75} />
+          </mesh>
+          <mesh position={[0.05, 0, 0]}>
+            <boxGeometry args={[0.03, 0.018, 0.04]} />
+            <meshStandardMaterial color={HANDLE} roughness={0.75} />
+          </mesh>
+        </group>
       ))}
     </group>
   )
