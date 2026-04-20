@@ -80,7 +80,7 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
           <group key={`glass-${i}`}>
             <mesh position={[x, 1.57, midZ]} rotation={[0, Math.PI / 2, 0]}>
               <planeGeometry args={[spanZ, 1.0]} />
-              <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
+              <meshStandardMaterial color="#d8e8ec" transparent opacity={0.18} roughness={0.15} metalness={0.1} depthWrite={false} side={2} />
             </mesh>
             {/* Horizontal center mullion — the sliding window divider */}
             <mesh position={[x + side * 0.01, 1.57, midZ]}>
@@ -94,13 +94,13 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
       {/* Glass pane between last post (z=-7) and windshield (z=-10) */}
       <mesh position={[x, 1.57, -8.5]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[2.8, 1.0]} />
-        <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
+        <meshStandardMaterial color="#d8e8ec" transparent opacity={0.18} roughness={0.15} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
       {/* Glass pane from first post (z=3) to rear entrance (z=3.25) — short rear pane */}
       <mesh position={[x, 1.57, 3.12]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[0.2, 1.0]} />
-        <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
+        <meshStandardMaterial color="#d8e8ec" transparent opacity={0.18} roughness={0.15} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
       {/* Solid upper wall — green (matching all-green exterior) */}
@@ -137,7 +137,7 @@ function Dashboard() {
       {/* Upper windshield header — nearly clear glass */}
       <mesh position={[0, 2.35, 0.01]}>
         <planeGeometry args={[2.2, 0.35]} />
-        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
+        <meshStandardMaterial color="#eef4f6" transparent opacity={0.1} roughness={0.1} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
       {/* Left windshield post */}
@@ -161,13 +161,13 @@ function Dashboard() {
       {/* Full windshield glass — nearly clear so you see the road */}
       <mesh position={[0, 1.57, 0.01]}>
         <planeGeometry args={[2.2, 1.0]} />
-        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
+        <meshStandardMaterial color="#eef4f6" transparent opacity={0.1} roughness={0.1} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
       {/* Upper glass — also clear */}
       <mesh position={[0, 2.25, 0.01]}>
         <planeGeometry args={[2.2, 0.22]} />
-        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
+        <meshStandardMaterial color="#eef4f6" transparent opacity={0.1} roughness={0.1} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
     </group>
   )
