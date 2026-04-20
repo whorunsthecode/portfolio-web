@@ -38,8 +38,9 @@ const PROJECTS: Record<string, ProjectData> = {
     tagline: 'An AI dream journal with a cloud named Drift who actually wants to hear about it.',
     description: 'Log dreams and get AI-generated interpretations plus weekly pattern summaries that surface recurring themes. Drift the cloud mascot turns journaling into a cozy bedtime ritual.',
     tech: 'React (Vite) · Capacitor iOS · Gemini AI · Vercel · PostHog',
-    status: 'coming-soon',
-    ctaLabel: 'Coming soon',
+    status: 'live',
+    ctaLabel: 'Download on the App Store',
+    ctaUrl: 'https://apps.apple.com/hk/app/dreamdump-ai-dream-journal/id6759308934?l=en-GB',
   },
   aquarium: {
     name: 'PomoReef',
@@ -56,8 +57,9 @@ const PROJECTS: Record<string, ProjectData> = {
     tagline: 'Your apps get blocked until you stretch. The shrimp is watching.',
     description: 'Set a daily limit on apps wrecking your spine; once you hit it they\'re locked until you complete a 2-minute stretch routine verified by your camera. A judgmental shrimp tracks streaks and drops collectible cards.',
     tech: 'Swift · SwiftUI · FamilyControls · AVFoundation · Vision · HealthKit',
-    status: 'coming-soon',
-    ctaLabel: 'Coming soon',
+    status: 'live',
+    ctaLabel: 'Download on the App Store',
+    ctaUrl: 'https://apps.apple.com/hk/app/stiff-screen-time-blocker/id6761408741?l=en-GB',
   },
   terminus: {
     name: 'Contacts',
