@@ -86,11 +86,13 @@ export function GreetingCard() {
           boxShadow: '0 24px 60px rgba(0,0,0,0.55)',
         }}
       >
-        {/* Text overlay — sits in the cream sky area at the top */}
+        {/* Text overlay — nudged lower in the cream sky so "Season's
+            Greetings" clears the horizon sunburst on the card poster
+            and the stamp doesn't fight the serif headline. */}
         <div
           style={{
             position: 'absolute',
-            top: 30,
+            top: 96,
             left: 0,
             right: 0,
             display: 'flex',
@@ -160,15 +162,15 @@ export function GreetingCard() {
           </span>
         </div>
 
-        {/* Merry Post stamp — top right. Widened + padded so the
-            "MERRY POST" wordmark sits on a single centred line and
-            the Chinese + price align cleanly under it. */}
+        {/* Merry Post stamp — top right. Width narrowed so the stamp
+            stops clipping the end of "Season's Greetings"; wordmark
+            broken into two lines so MERRY and POST stack cleanly. */}
         <div
           style={{
             position: 'absolute',
             top: 14,
-            right: 14,
-            width: 68,
+            right: 12,
+            width: 52,
             height: 64,
             background: '#1a5838',
             border: '2px solid rgba(240,230,200,0.5)',
@@ -177,7 +179,7 @@ export function GreetingCard() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 3,
-            padding: '4px 0',
+            padding: '4px 2px',
             boxSizing: 'border-box',
             zIndex: 10,
           }}
@@ -191,16 +193,16 @@ export function GreetingCard() {
               textTransform: 'uppercase',
               textAlign: 'center',
               width: '100%',
-              lineHeight: 1,
+              lineHeight: 1.05,
             }}
           >
-            Merry&nbsp;Post
+            Merry<br />Post
           </span>
           <span
             style={{
-              fontSize: 9,
+              fontSize: 8,
               color: '#c8a048',
-              letterSpacing: 1.5,
+              letterSpacing: 1,
               textAlign: 'center',
               width: '100%',
               lineHeight: 1,

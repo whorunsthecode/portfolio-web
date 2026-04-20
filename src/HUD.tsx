@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore, STOPS, type StopId } from './store'
 
 const GO_HINT_KEY = 'tram.seenGoHint.v1'
+const FIRST_RIDE_TIP_KEY = 'tram.seenFirstRideTip.v1'
 
 /**
  * StopId → project hint shown as a tooltip above the destination
@@ -30,6 +31,39 @@ export function HUD() {
   const setShowDriverCard = useStore((s) => s.setShowDriverCard)
   const showDetails = useStore((s) => s.showDetails)
   const toggleDetails = useStore((s) => s.toggleDetails)
+  const setShowOnboarding = useStore((s) => s.setShowOnboarding)
+
+  // First-ride tip above the top-right button stack, prompting the
+  // user to try scrolling to zoom and toggling night mode. Fires once
+  // per browser after a short settle delay so the boarding title has
+  // already faded; dismisses on click, tap, or auto-timer.
+  const [showFirstRideTip, setShowFirstRideTip] = useState(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return window.localStorage.getItem(FIRST_RIDE_TIP_KEY) !== '1'
+    } catch {
+      return false
+    }
+  })
+  useEffect(() => {
+    if (!showFirstRideTip) return
+    const settle = window.setTimeout(() => {
+      // revealed
+    }, 1400)
+    const autoHide = window.setTimeout(() => dismissFirstRideTip(), 12000)
+    return () => {
+      window.clearTimeout(settle)
+      window.clearTimeout(autoHide)
+    }
+  }, [showFirstRideTip])
+  const dismissFirstRideTip = () => {
+    setShowFirstRideTip(false)
+    try {
+      window.localStorage.setItem(FIRST_RIDE_TIP_KEY, '1')
+    } catch {
+      // ignore
+    }
+  }
 
   // First-visit hint over the GO / destination pill. Stored in
   // localStorage so returning visitors don't see it again.
@@ -235,6 +269,83 @@ export function HUD() {
           Contact
         </span>
       </button>
+
+      {/* ── Help (?) button — re-opens the "how to ride" OnboardingOverlay
+              at any time. Positioned below DETAILS in the top-right stack. */}
+      {!activeRoom && (
+        <button
+          onClick={() => setShowOnboarding(true)}
+          aria-label="How to ride"
+          title="How to ride"
+          style={{
+            position: 'absolute',
+            top: 212,
+            right: 16,
+            pointerEvents: 'auto',
+            background: pillBg,
+            border: 'none',
+            borderRadius: 24,
+            padding: '8px 14px',
+            color: textColor,
+            cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            lineHeight: 1,
+          }}
+        >
+          <span style={{ fontSize: 15, fontWeight: 700 }}>?</span>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+            How to ride
+          </span>
+        </button>
+      )}
+
+      {/* ── First-ride tip — anchored to the right edge next to the
+              top-right button stack. Points the user at the Night
+              toggle and hints that scroll/pinch zooms the scene. */}
+      {!activeRoom && showFirstRideTip && (
+        <div
+          onClick={dismissFirstRideTip}
+          style={{
+            position: 'absolute',
+            top: 74,
+            right: 164,
+            pointerEvents: 'auto',
+            background: 'linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(10,8,6,0.92) 100%)',
+            color: '#f5ead0',
+            padding: '10px 14px',
+            borderRadius: 16,
+            border: '1px solid rgba(200,164,104,0.55)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.55)',
+            cursor: 'pointer',
+            fontFamily: '"Playfair Display", Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: 13,
+            whiteSpace: 'nowrap',
+            maxWidth: 'min(90vw, 280px)',
+            animation: 'firstRideTipIn 500ms ease-out 1400ms both, firstRideTipBob 1.8s ease-in-out 1900ms infinite',
+          }}
+        >
+          <style>{`
+            @keyframes firstRideTipIn {
+              from { opacity: 0; transform: translateX(6px); }
+              to   { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes firstRideTipBob {
+              0%, 100% { transform: translateX(0); }
+              50%      { transform: translateX(4px); }
+            }
+          `}</style>
+          <div style={{ fontWeight: 700, fontStyle: 'normal', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#d4b07a', marginBottom: 4 }}>
+            First ride? →
+          </div>
+          Scroll / pinch to zoom · Tap 🌙 for night
+        </div>
+      )}
 
       {/* ── First-visit hint above the GO pill — auto-hides after 9s
               or on tap. Explains what the mystery bottom bar is for. */}

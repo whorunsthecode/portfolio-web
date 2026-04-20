@@ -125,8 +125,9 @@ export function Drift() {
         <meshBasicMaterial color="#F498B0" transparent opacity={0.5} />
       </mesh>
 
-      {/* Smile */}
-      <mesh position={[0.03, -0.12, 0.5]}>
+      {/* Smile — half-torus flipped so the arc curves DOWN from
+          the corners instead of up. Previously rendered as a frown. */}
+      <mesh position={[0.03, -0.12, 0.5]} rotation={[0, 0, Math.PI]}>
         <torusGeometry args={[0.07, 0.012, 6, 10, Math.PI]} />
         <meshBasicMaterial color="#5A4A7A" />
       </mesh>
@@ -152,7 +153,8 @@ export function Drift() {
           <cylinderGeometry args={[0.06, 0.06, 0.015, 16]} />
           <meshStandardMaterial color="#c82820" roughness={0.3} />
         </mesh>
-        {/* "COMING SOON" text */}
+        {/* "LIVE ON iOS" — DreamDump shipped to the App Store, so
+            the envelope no longer teases coming-soon. */}
         <Text
           position={[0, -0.15, 0.025]}
           fontSize={0.05}
@@ -161,7 +163,7 @@ export function Drift() {
           anchorY="middle"
           letterSpacing={0.1}
         >
-          COMING SOON
+          LIVE ON iOS
         </Text>
       </group>
 

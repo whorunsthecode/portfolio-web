@@ -2,13 +2,17 @@ import { create } from 'zustand'
 
 export type StopId = 'museum' | 'christmas' | 'fantasy' | 'aquarium' | 'gym' | 'terminus'
 
+// Stop cycle order (◀/▶ on the HUD). User-requested sequence — not
+// strictly geographic: open with the festive Xmas village to hook
+// visitors, then move through the calmer Studio / Museum / Dreamery
+// before ending on PomoReef + the Terminus contact room.
 export const STOPS: { id: StopId; label: string; subtitle: string }[] = [
+  { id: 'christmas', label: 'THE XMAS VILLAGE',    subtitle: '上環 SHEUNG WAN' },
+  { id: 'gym',       label: 'THE STUDIO',          subtitle: '堅尼地城 KENNEDY TOWN' },
   { id: 'museum',    label: 'THE MUSEUM',          subtitle: '中環 CENTRAL' },
-  { id: 'christmas', label: 'THE XMAS VILLAGE',      subtitle: '上環 SHEUNG WAN' },
-  { id: 'fantasy',   label: 'THE DREAMERY',         subtitle: '西營盤 SAI YING PUN' },
-  { id: 'aquarium',  label: 'THE AQUARIUM',         subtitle: '石塘咀 SHEK TONG TSUI' },
-  { id: 'gym',       label: 'THE STUDIO',            subtitle: '堅尼地城 KENNEDY TOWN' },
-  { id: 'terminus',  label: 'THE TERMINUS',          subtitle: '屈地街 WHITTY STREET' },
+  { id: 'fantasy',   label: 'THE DREAMERY',        subtitle: '西營盤 SAI YING PUN' },
+  { id: 'aquarium',  label: 'THE AQUARIUM',        subtitle: '石塘咀 SHEK TONG TSUI' },
+  { id: 'terminus',  label: 'THE TERMINUS',        subtitle: '屈地街 WHITTY STREET' },
 ]
 
 // Route zones — maps tram route position to district
@@ -38,6 +42,9 @@ interface State {
    *  references (celeb passengers, landmarks, vehicles) so non-HK visitors
    *  can catch the easter eggs. Toggled via the ℹ pill in the HUD. */
   showDetails: boolean
+  /** When true, the first-load OnboardingOverlay re-opens. Lets the
+   *  HUD "?" help button bring the welcome card back anytime. */
+  showOnboarding: boolean
   setMode: (m: 'day' | 'night') => void
   setRoom: (r: State['activeRoom']) => void
   setModal: (m: State['modal']) => void
@@ -48,6 +55,7 @@ interface State {
   setShowDriverCard: (v: boolean) => void
   setShowGreetingCard: (v: boolean) => void
   toggleDetails: () => void
+  setShowOnboarding: (v: boolean) => void
 }
 
 export const useStore = create<State>((set) => ({
@@ -59,10 +67,11 @@ export const useStore = create<State>((set) => ({
   muted: false,
   showDriverCard: false,
   showGreetingCard: false,
-  // Details orbs on by default so first-time visitors immediately see
-  // the captions explaining every 1982-HK reference. They can toggle
-  // off via the HUD pill if they want a cleaner ride.
-  showDetails: true,
+  // Details orbs off by default — the scene reads cleaner, and the
+  // HUD pill invites users to toggle them ON when they want the
+  // context captions on 1982-HK references.
+  showDetails: false,
+  showOnboarding: false,
   setMode: (mode) => set({ mode }),
   setRoom: (activeRoom) => set({ activeRoom, modal: null }),
   setModal: (modal) => set({ modal }),
@@ -77,4 +86,5 @@ export const useStore = create<State>((set) => ({
   setShowDriverCard: (v) => set({ showDriverCard: v }),
   setShowGreetingCard: (v) => set({ showGreetingCard: v }),
   toggleDetails: () => set((s) => ({ showDetails: !s.showDetails })),
+  setShowOnboarding: (v) => set({ showOnboarding: v }),
 }))

@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react'
-import { Text } from '@react-three/drei'
+import { Html, Text } from '@react-three/drei'
 import { useStore } from '../../store'
 import { TapHint } from '../../scene/components/TapHint'
 
@@ -88,6 +88,41 @@ export function PostcardStation() {
           tap to open your postcard ↓
         </Text>
       </group>
+
+      {/* Persistent attention chip — unlike the touch-only TapHint
+          (which dismisses after first pointerdown), this one is always
+          visible on both desktop and mobile until the user actually
+          taps the card and opens the greeting overlay. The TapHint
+          below still plays for the first-visit touch emphasis. */}
+      {!showGreetingCard && (
+        <Html position={[0, 0.42, 0]} center sprite style={{ pointerEvents: 'none' }}>
+          <style>{`
+            @keyframes postcardPromptBob {
+              0%, 100% { transform: translateY(0);   box-shadow: 0 6px 18px rgba(200,40,32,0.35), 0 0 0 2px rgba(255,230,176,0.4); }
+              50%      { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(200,40,32,0.55), 0 0 0 4px rgba(255,230,176,0.55); }
+            }
+          `}</style>
+          <div
+            style={{
+              padding: '8px 14px',
+              background: 'linear-gradient(180deg, #e8394a 0%, #b81818 100%)',
+              color: '#fff8e8',
+              borderRadius: 16,
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontStyle: 'italic',
+              fontWeight: 700,
+              fontSize: 13,
+              letterSpacing: '0.03em',
+              whiteSpace: 'nowrap',
+              animation: 'postcardPromptBob 1.6s ease-in-out infinite',
+              textShadow: '0 1px 2px rgba(0,0,0,0.35)',
+              border: '1px solid rgba(255,230,176,0.6)',
+            }}
+          >
+            ✉ Tap to download your postcard
+          </div>
+        </Html>
+      )}
 
       <TapHint
         label="Tap the card to download · 下載賀卡"
