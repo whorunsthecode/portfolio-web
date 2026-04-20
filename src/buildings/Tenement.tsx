@@ -39,15 +39,13 @@ function seededRandom(seed: number) {
 function Laundry({ width, height, floors, seed, side }: {
   width: number; height: number; floors: number; seed: number; side: 'left' | 'right'
 }) {
-  const rand = useMemo(() => seededRandom(seed + 777), [seed])
-  const poleCount = 2 + Math.floor(rand() * 3)
   const facadeX = side === 'left' ? -width / 2 : width / 2
   const outDir = side === 'left' ? -1 : 1
 
   const poles = useMemo(() => {
     const r = seededRandom(seed + 777)
     const count = 2 + Math.floor(r() * 3)
-    return Array.from({ length: count }, (_, i) => {
+    return Array.from({ length: count }, () => {
       const floor = 1 + Math.floor(r() * (floors - 1))
       const y = (floor / floors) * height
       const z = (r() - 0.5) * width * 0.6
@@ -139,11 +137,9 @@ function WallACUnits({ width, height, floors, seed, side }: {
 }
 
 /* ── Shop sign ─────────────────────────────────────────── */
-function ShopSign({ width, seed, facadeZ, side }: {
-  width: number; seed: number; facadeZ: number; side: 'left' | 'right'
+function ShopSign({ width, seed, side }: {
+  width: number; seed: number; side: 'left' | 'right'
 }) {
-  const r = useMemo(() => seededRandom(seed + 111), [seed])
-
   const tex = useMemo(() => {
     const rr = seededRandom(seed + 111)
     const name = SHOP_NAMES[Math.floor(rr() * SHOP_NAMES.length)]
@@ -233,7 +229,7 @@ export function Tenement({ position, width = 9, depth = 7, side, style, seed }: 
       <RoofACUnits width={width} depth={depth} roofY={height} seed={seed} />
       <WallACUnits width={width} height={height} floors={style.floors} seed={seed} side={side} />
       <Laundry width={width} height={height} floors={style.floors} seed={seed} side={side} />
-      <ShopSign width={width} seed={seed} facadeZ={0} side={side} />
+      <ShopSign width={width} seed={seed} side={side} />
     </group>
   )
 }

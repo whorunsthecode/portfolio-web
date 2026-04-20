@@ -19,8 +19,6 @@ const STALL_NAMES = ['海味', '乾貨', '參茸', '燕窩', '鮑魚', '花膠',
 const AWNING_COLORS = ['#c0392b', '#2e7d32', '#1565c0', '#e65100', '#6a1b9a']
 
 function Stall({ x, z, seed }: { x: number; z: number; seed: number }) {
-  const r = useMemo(() => seededRandom(seed), [seed])
-
   const awningColor = useMemo(() => {
     const rr = seededRandom(seed)
     return AWNING_COLORS[Math.floor(rr() * AWNING_COLORS.length)]

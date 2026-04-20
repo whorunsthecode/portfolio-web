@@ -47,7 +47,6 @@ function FabricStrip({ label, room, accent, yOffset }: StripProps) {
       <mesh
         onClick={(e) => {
           e.stopPropagation()
-          console.log(`[ding-ding] Tapped: ${room}`)
           setRoom(room)
         }}
         onPointerOver={(e) => {

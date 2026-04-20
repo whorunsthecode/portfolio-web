@@ -38,8 +38,8 @@ export function WaterEffects() {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[bubblePositions, 3]}
           count={NUM_BUBBLES}
-          array={bubblePositions}
           itemSize={3}
         />
       </bufferGeometry>
