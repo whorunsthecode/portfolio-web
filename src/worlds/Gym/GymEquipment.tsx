@@ -2,9 +2,6 @@ const PLANT_OLIVE = '#7a8870'
 const PLANT_OLIVE_LIGHT = '#9aa888'
 const PLANT_TRUNK = '#5a4838'
 const PLANTER_STONE = '#a0988a'
-const TRAVERTINE = '#e0d4b8'
-const TRAVERTINE_DARK = '#b8a888'
-const BOUCLE = '#e8dcc4'
 const BLOCK_CORK = '#c4a870'
 
 function OliveTree() {
@@ -47,33 +44,6 @@ function OliveTree() {
           <meshStandardMaterial color={i % 2 === 0 ? PLANT_OLIVE : PLANT_OLIVE_LIGHT} roughness={0.85} />
         </mesh>
       ))}
-    </group>
-  )
-}
-
-function TravertineBench() {
-  return (
-    <group position={[2, 0, -5.4]}>
-      <mesh position={[0, 0.22, 0]}>
-        <boxGeometry args={[1.4, 0.45, 0.5]} />
-        <meshStandardMaterial color={TRAVERTINE} roughness={0.85} />
-      </mesh>
-      <mesh position={[0, 0.46, 0]}>
-        <boxGeometry args={[1.42, 0.04, 0.52]} />
-        <meshStandardMaterial color={TRAVERTINE_DARK} roughness={0.8} />
-      </mesh>
-      <mesh position={[0, 0.55, 0]}>
-        <boxGeometry args={[1.3, 0.12, 0.4]} />
-        <meshStandardMaterial color={BOUCLE} roughness={0.95} />
-      </mesh>
-      <mesh position={[-0.4, 0.65, 0]}>
-        <boxGeometry args={[0.3, 0.08, 0.25]} />
-        <meshStandardMaterial color="#f0e8d8" roughness={0.95} />
-      </mesh>
-      <mesh position={[0.55, 0.65, 0]}>
-        <cylinderGeometry args={[0.04, 0.05, 0.18, 12]} />
-        <meshPhysicalMaterial color="#dceaf0" transparent opacity={0.5} transmission={0.8} roughness={0.1} />
-      </mesh>
     </group>
   )
 }

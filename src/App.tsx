@@ -8,7 +8,7 @@ import { TramExterior } from './scene/TramExterior'
 import { ProjectModal } from './ui/ProjectModal'
 import { FilmGrade } from './FilmGrade'
 import { OrbitControls } from '@react-three/drei'
-import { TOUCH } from 'three'
+import { TOUCH, PerspectiveCamera } from 'three'
 import { useStore } from './store'
 import { OnboardingOverlay } from './onboarding/OnboardingOverlay'
 import { DriverContactCard } from './onboarding/DriverContactCard'
@@ -263,8 +263,10 @@ function SeatedOrbit({ mobile }: { mobile: boolean }) {
   if (!initialized.current && !activeRoom) {
     camera.position.set(0, 1.7, -9.0)
     camera.lookAt(0, 1.6, -15)
-    camera.fov = mobile ? 88 : 72
-    camera.updateProjectionMatrix()
+    if (camera instanceof PerspectiveCamera) {
+      camera.fov = mobile ? 88 : 72
+      camera.updateProjectionMatrix()
+    }
     initialized.current = true
   }
 

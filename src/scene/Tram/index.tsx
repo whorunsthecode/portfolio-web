@@ -616,7 +616,6 @@ function UpperDeckExterior() {
 /* Lower deck body — solid green with window cutouts. Below camera so doesn't block view */
 function LowerDeckExterior() {
   const h = LOWER_TOP - LOWER_BOT  // 2.2
-  const cy = (LOWER_BOT + LOWER_TOP) / 2
 
   // Mostly GREEN body (signature HK tram look). Thin cream stripe at deck divider only.
   const bottomStripH = 0.5   // GREEN skirt below windows

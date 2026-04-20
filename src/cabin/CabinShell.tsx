@@ -1,6 +1,5 @@
 const WOOD = '#5c3a1e'
 const WOOD_LIGHT = '#8b6b3d'
-const CREAM = '#f4e4c8'
 const GREEN = '#007549'
 
 /* ── Floor ─────────────────────────────────────────────── */
@@ -211,8 +210,8 @@ function FrontFaceDetails() {
       {/* Two round headlights at bottom */}
       {[-0.45, 0.45].map((hx, i) => (
         <group key={`hl-${i}`} position={[hx, 0.65, fz]}>
-          <mesh>
-            <cylinderGeometry args={[0.08, 0.08, 0.03, 12]} rotation={[Math.PI / 2, 0, 0]} />
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.08, 0.08, 0.03, 12]} />
             <meshStandardMaterial color="#1a1a18" />
           </mesh>
           <mesh position={[0, 0, -0.02]}>

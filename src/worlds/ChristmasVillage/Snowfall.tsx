@@ -46,8 +46,8 @@ export function Snowfall() {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[positions, 3]}
           count={NUM_FLAKES}
-          array={positions}
           itemSize={3}
         />
       </bufferGeometry>

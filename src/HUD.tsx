@@ -1,14 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
 
 const GO_HINT_KEY = 'tram.seenGoHint.v1'
+
+/**
+ * District → project hint shown by <DistrictCaption /> as the tram
+ * scrolls through each zone. Reuses the same 1982 HK geography as
+ * ROUTE_DISTRICTS but adds a project tagline so first-time riders
+ * realise each district has an explorable world attached to it.
+ */
+const DISTRICT_PROJECT_HINTS: Record<string, { project: string; tagline: string }> = {
+  '中環 CENTRAL':        { project: 'Gesture Gallery',    tagline: 'A private museum you walk through by hand' },
+  '上環 SHEUNG WAN':     { project: 'The Christmas Sims', tagline: 'A daily Advent mini-world you can click into' },
+  '西營盤 SAI YING PUN': { project: 'DreamDump',          tagline: 'An AI cloud named Drift reads your dreams' },
+  '石塘咀 SHEK TONG TSUI':{ project: 'PomoReef',          tagline: 'A focus timer that grows a koi pond' },
+  '堅尼地城 KENNEDY TOWN': { project: 'stiff',             tagline: 'Your apps lock until you stretch' },
+}
 
 export function HUD() {
   const activeRoom = useStore((s) => s.activeRoom)
   const setRoom = useStore((s) => s.setRoom)
   const blindIndex = useStore((s) => s.blindIndex)
   const cycleBind = useStore((s) => s.cycleBind)
-  const routePos = useStore((s) => s.routePos)
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
   const setShowDriverCard = useStore((s) => s.setShowDriverCard)
@@ -56,7 +69,6 @@ export function HUD() {
   }, [])
 
   const currentStop = STOPS[blindIndex]
-  const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
 
   const pillBg = 'rgba(20,20,20,0.75)'
   const textColor = '#f0e6d0'
@@ -90,6 +102,10 @@ export function HUD() {
           to   { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
+      {/* District caption — auto-appears as the tram crosses into each
+          new zone, hinting which project is attached to this stop. */}
+      {!activeRoom && <DistrictCaption />}
+
       {/* Back button */}
       {activeRoom && (
         <button onClick={() => setRoom(null)} style={{
@@ -320,6 +336,124 @@ export function HUD() {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+/* ── District caption — slides in on district change, auto-hides after 6s
+       so first-timers learn that each zone hides a playable world. ── */
+function DistrictCaption() {
+  const routePos = useStore((s) => s.routePos)
+  const district =
+    ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ??
+    ROUTE_DISTRICTS[0].label
+
+  // Track district transitions + hold the currently-shown label so the
+  // banner stays visible for its full 6s window even if the tram has
+  // already crossed into the next zone.
+  const [visibleDistrict, setVisibleDistrict] = useState<string | null>(null)
+  const prevRef = useRef<string | null>(null)
+  const timerRef = useRef<number | undefined>(undefined)
+
+  useEffect(() => {
+    // First render: show the opening district after a short settle delay.
+    if (prevRef.current === null) {
+      prevRef.current = district
+      const settle = window.setTimeout(() => {
+        setVisibleDistrict(district)
+        timerRef.current = window.setTimeout(() => setVisibleDistrict(null), 6000)
+      }, 1800)
+      return () => {
+        window.clearTimeout(settle)
+        if (timerRef.current) window.clearTimeout(timerRef.current)
+      }
+    }
+
+    if (prevRef.current !== district) {
+      prevRef.current = district
+      if (timerRef.current) window.clearTimeout(timerRef.current)
+      setVisibleDistrict(district)
+      timerRef.current = window.setTimeout(() => setVisibleDistrict(null), 6000)
+    }
+  }, [district])
+
+  useEffect(() => () => {
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+  }, [])
+
+  if (!visibleDistrict) return null
+  const hint = DISTRICT_PROJECT_HINTS[visibleDistrict]
+  if (!hint) return null
+
+  const [zh, ...enParts] = visibleDistrict.split(' ')
+  const en = enParts.join(' ')
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 20,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        pointerEvents: 'none',
+        zIndex: 11,
+        animation: 'districtCaptionIn 500ms ease-out both',
+      }}
+    >
+      <style>{`
+        @keyframes districtCaptionIn {
+          from { opacity: 0; transform: translate(-50%, -8px); }
+          to   { opacity: 1; transform: translate(-50%, 0); }
+        }
+      `}</style>
+      <div
+        style={{
+          background: 'linear-gradient(180deg, rgba(20,16,12,0.82) 0%, rgba(10,8,6,0.82) 100%)',
+          color: '#f5ead0',
+          padding: '10px 18px',
+          borderRadius: 18,
+          border: '1px solid rgba(200,164,104,0.4)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          boxShadow: '0 6px 22px rgba(0,0,0,0.45)',
+          maxWidth: 'min(92vw, 440px)',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: '"Noto Serif TC", Georgia, serif',
+            fontSize: 13,
+            letterSpacing: '0.14em',
+            opacity: 0.88,
+          }}
+        >
+          <span style={{ fontWeight: 700 }}>{zh}</span>
+          <span style={{ opacity: 0.55, marginLeft: 8, fontSize: 11 }}>{en}</span>
+        </div>
+        <div
+          style={{
+            fontFamily: '"Playfair Display", Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: 15,
+            fontWeight: 700,
+            marginTop: 4,
+            color: '#ffe6b0',
+          }}
+        >
+          {hint.project}
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            letterSpacing: '0.05em',
+            opacity: 0.7,
+            marginTop: 2,
+          }}
+        >
+          {hint.tagline}
+        </div>
+      </div>
     </div>
   )
 }
