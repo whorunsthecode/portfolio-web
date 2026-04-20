@@ -7,7 +7,6 @@ import { TapHint } from '../../scene/components/TapHint'
 const TRAM_GREEN_VINTAGE = '#2a5238'
 const TRAM_GREEN_WEATHERED = '#3a6248'
 const CREAM_AGED = '#e8d8b8'
-const HAND_PAINT_RED = '#a82828'
 const WOOD_FRAME = '#5a3a20'
 const BOARD_WOOD = '#5a3a20'
 const TICKET_BG = '#f0e0c0'
@@ -122,7 +121,7 @@ function RouteNumberSign() {
 function ContactTicket({ stop, position, isCurrent }: {
   stop: Stop; position: [number, number, number]; isCurrent: boolean
 }) {
-  const [hovered, setHovered] = useState(false)
+  const [, setHovered] = useState(false)
 
   const handleTap = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()

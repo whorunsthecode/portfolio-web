@@ -41,8 +41,8 @@ export function DreamSparkles() {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[positions, 3]}
           count={NUM_SPARKLES}
-          array={positions}
           itemSize={3}
         />
       </bufferGeometry>

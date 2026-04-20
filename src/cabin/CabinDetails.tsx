@@ -14,11 +14,9 @@ const CEILING_Y = 2.5
 const CABIN_WIDTH = 2.3
 const Z_CENTER = -3
 const Z_LENGTH = 12.5
-const Z_START = Z_CENTER - Z_LENGTH / 2   // -9.25
 const Z_END = Z_CENTER + Z_LENGTH / 2     // 3.25
 
 const POLE_SILVER = '#c0c0c0'    // chrome/silver grab poles
-const BRASS = '#c8a048'
 const DARK_WOOD = '#3a2818'
 const AD_CREAM = '#f0e6c8'
 const AD_BORDER = '#5a3a1a'

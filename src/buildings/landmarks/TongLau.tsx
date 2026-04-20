@@ -116,7 +116,6 @@ function seededRandom(seed: number) {
 }
 
 export function TongLau() {
-  const r = seededRandom(800)
   const buildings = useMemo(() => {
     const rr = seededRandom(800)
     return Array.from({ length: 8 }, (_, i) => ({
