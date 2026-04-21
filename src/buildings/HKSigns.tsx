@@ -890,12 +890,24 @@ const DAY_HALO_OPACITY = 0.04
 const NIGHT_HALO_OPACITY = 0.7
 const EMISSIVE_LERP_SPEED = 3
 
+interface SignMatCache {
+  halos: THREE.MeshBasicMaterial[]
+  emissives: THREE.MeshStandardMaterial[]
+}
+
 export function HKSigns() {
   const groupRef = useRef<THREE.Group>(null)
   const signs = useMemo(() => buildSigns(), [])
   const offsets = useRef(signs.map((s) => s.z))
   const mode = useStore((s) => s.mode)
   const blend = useRef(mode === 'night' ? 1 : 0)
+  // Per-sign material caches. We traverse each sign subtree once the
+  // first time it's mounted, collect pointers to the halo / emissive
+  // materials, and thereafter update them directly — avoids walking
+  // every sign's ~4–10 descendants every frame at 60fps (which the
+  // mobile profile flagged as a top CPU cost).
+  const matCache = useRef<SignMatCache[]>([])
+  const cacheBuilt = useRef(false)
 
   useFrame((_, delta) => {
     if (!groupRef.current) return
@@ -920,6 +932,43 @@ export function HKSigns() {
     )
 
     const children = groupRef.current.children
+
+    // Build the cache on the first frame the group has its children
+    // mounted. All subsequent frames read from the cache.
+    if (!cacheBuilt.current && children.length === signs.length) {
+      matCache.current = children.map((child) => {
+        const halos: THREE.MeshBasicMaterial[] = []
+        const emissives: THREE.MeshStandardMaterial[] = []
+        child.traverse((obj) => {
+          if (!(obj as THREE.Mesh).isMesh) return
+          const mat = (obj as THREE.Mesh).material as
+            | THREE.MeshStandardMaterial
+            | THREE.MeshBasicMaterial
+            | undefined
+          if (!mat) return
+          if (
+            (mat as THREE.MeshBasicMaterial).isMeshBasicMaterial &&
+            (mat as THREE.MeshBasicMaterial).blending === THREE.AdditiveBlending
+          ) {
+            halos.push(mat as THREE.MeshBasicMaterial)
+            return
+          }
+          const std = mat as THREE.MeshStandardMaterial
+          if (
+            std.emissive &&
+            std.emissiveIntensity !== undefined &&
+            (std.emissive.r > 0.05 ||
+              std.emissive.g > 0.05 ||
+              std.emissive.b > 0.05)
+          ) {
+            emissives.push(std)
+          }
+        })
+        return { halos, emissives }
+      })
+      cacheBuilt.current = true
+    }
+
     for (let i = 0; i < children.length; i++) {
       // Scroll each sign
       offsets.current[i] += SCROLL_SPEED * delta
@@ -928,37 +977,13 @@ export function HKSigns() {
       }
       children[i].position.z = offsets.current[i]
 
-      // Walk descendants: bump emissive on the lit face planes, and scale
-      // opacity on the additive halo planes behind them.
-      children[i].traverse((obj) => {
-        if (!(obj as THREE.Mesh).isMesh) return
-        const mesh = obj as THREE.Mesh
-        const mat = mesh.material as
-          | THREE.MeshStandardMaterial
-          | THREE.MeshBasicMaterial
-        if (!mat) return
-
-        // MeshBasicMaterial with AdditiveBlending → it's a halo plane.
-        if (
-          (mat as THREE.MeshBasicMaterial).isMeshBasicMaterial &&
-          (mat as THREE.MeshBasicMaterial).blending === THREE.AdditiveBlending
-        ) {
-          ;(mat as THREE.MeshBasicMaterial).opacity = haloOpacity
-          return
-        }
-
-        // MeshStandardMaterial with coloured emissive → it's a sign face.
-        const std = mat as THREE.MeshStandardMaterial
-        if (std.emissive && std.emissiveIntensity !== undefined) {
-          if (
-            std.emissive.r > 0.05 ||
-            std.emissive.g > 0.05 ||
-            std.emissive.b > 0.05
-          ) {
-            std.emissiveIntensity = emissiveIntensity
-          }
-        }
-      })
+      // Fast path via the cache — no traverse().
+      const cached = matCache.current[i]
+      if (!cached) continue
+      const halos = cached.halos
+      for (let h = 0; h < halos.length; h++) halos[h].opacity = haloOpacity
+      const emissives = cached.emissives
+      for (let e = 0; e < emissives.length; e++) emissives[e].emissiveIntensity = emissiveIntensity
     }
   })
 

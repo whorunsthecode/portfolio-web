@@ -62,7 +62,12 @@ export default function App() {
   return (
     <>
       <Canvas
-        shadows
+        // Shadows are one of the biggest mobile-GPU costs — a directional
+        // light casting a 1024² shadow map + receiveShadow on every
+        // tenement/landmark/vehicle roughly doubles the per-frame render
+        // cost on low-end phones. Desktop keeps shadows; mobile gets the
+        // ambient/directional lighting without the cast-map pass.
+        shadows={!mobile}
         // Mobile retina panels were rendering at dpr 2, doubling the
         // pixel count for no visible gain on 3D at phone distance —
         // cap at 1.5 there to claw back frame budget.
