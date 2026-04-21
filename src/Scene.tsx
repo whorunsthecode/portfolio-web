@@ -12,12 +12,11 @@ import { BambooScaffold } from './buildings/BambooScaffold'
 import { TrafficSystem } from './traffic/TrafficSystem'
 import { Pedestrians } from './traffic/Pedestrians'
 import { useStore } from './store'
-import { Worlds } from './worlds/WorldManager'
 
 function RouteTracker() {
   const advanceRoute = useStore((s) => s.advanceRoute)
   useFrame((_, delta) => {
-    advanceRoute(delta * 6) // same speed as scroll (6 units/sec), route loops at 140
+    advanceRoute(delta * 6)
   })
   return null
 }
@@ -40,7 +39,6 @@ export function Scene() {
       <TrafficSystem />
       <Pedestrians />
       <RouteTracker />
-      <Worlds />
     </>
   )
 }

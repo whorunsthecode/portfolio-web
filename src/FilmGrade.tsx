@@ -35,10 +35,6 @@ function GateWeave() {
 
 export function FilmGrade() {
   const mode = useStore((s) => s.mode)
-  const activeRoom = useStore((s) => s.activeRoom)
-
-  // Don't apply film grade inside worlds — only in the tram view
-  if (activeRoom) return null
 
   return (
     <>

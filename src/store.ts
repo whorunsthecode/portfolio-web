@@ -1,17 +1,7 @@
 import { create } from 'zustand'
 
-export type StopId = 'museum' | 'christmas' | 'fantasy' | 'aquarium' | 'gym' | 'terminus'
-
-export const STOPS: { id: StopId; label: string; subtitle: string }[] = [
-  { id: 'museum',    label: 'THE MUSEUM',          subtitle: '中環 CENTRAL' },
-  { id: 'christmas', label: 'THE XMAS VILLAGE',      subtitle: '上環 SHEUNG WAN' },
-  { id: 'fantasy',   label: 'THE DREAMERY',         subtitle: '西營盤 SAI YING PUN' },
-  { id: 'aquarium',  label: 'THE AQUARIUM',         subtitle: '石塘咀 SHEK TONG TSUI' },
-  { id: 'gym',       label: 'THE STUDIO',            subtitle: '堅尼地城 KENNEDY TOWN' },
-  { id: 'terminus',  label: 'THE TERMINUS',          subtitle: '屈地街 WHITTY STREET' },
-]
-
-// Route zones — maps tram route position to district
+// Route zones — maps tram route position to district. Used by ambient HUD
+// readout; the tram loops through these continuously.
 export const ROUTE_DISTRICTS = [
   { from: 0,   to: 45,  label: '中環 CENTRAL' },
   { from: 45,  to: 70,  label: '上環 SHEUNG WAN' },
@@ -22,56 +12,24 @@ export const ROUTE_DISTRICTS = [
 
 interface State {
   mode: 'day' | 'night'
-  activeRoom: null | StopId
-  modal: null | StopId          // separate from activeRoom — only opens on exhibit click
-  blindIndex: number
-  routePos: number  // 0–140, advances with tram scroll speed
+  routePos: number
   muted: boolean
-  /** When true, the Driver contact-card overlay is shown. Opened by clicking
-   *  the small brass envelope badge on the driver's dashboard; dismissed via
-   *  backdrop / × / Esc. */
-  showDriverCard: boolean
-  /** When true, the vintage greeting-card overlay is shown. Opened by tapping
-   *  the PostcardStation prop inside the Christmas Village world. */
-  showGreetingCard: boolean
-  /** When true, Sims-style <InfoTag> captions float above the 1982 HK
-   *  references (celeb passengers, landmarks, vehicles) so non-HK visitors
-   *  can catch the easter eggs. Toggled via the ℹ pill in the HUD. */
   showDetails: boolean
   setMode: (m: 'day' | 'night') => void
-  setRoom: (r: State['activeRoom']) => void
-  setModal: (m: State['modal']) => void
-  setBlindIndex: (i: number) => void
-  cycleBind: (dir: 1 | -1) => void
   advanceRoute: (delta: number) => void
   toggleMute: () => void
-  setShowDriverCard: (v: boolean) => void
-  setShowGreetingCard: (v: boolean) => void
   toggleDetails: () => void
 }
 
 export const useStore = create<State>((set) => ({
   mode: 'day',
-  activeRoom: null,
-  modal: null,
-  blindIndex: 0,
   routePos: 0,
   muted: false,
-  showDriverCard: false,
-  showGreetingCard: false,
   showDetails: false,
   setMode: (mode) => set({ mode }),
-  setRoom: (activeRoom) => set({ activeRoom, modal: null }),
-  setModal: (modal) => set({ modal }),
-  setBlindIndex: (blindIndex) => set({ blindIndex }),
-  cycleBind: (dir) => set((s) => ({
-    blindIndex: (s.blindIndex + dir + STOPS.length) % STOPS.length,
-  })),
   advanceRoute: (delta) => set((s) => ({
     routePos: (s.routePos + delta) % 140,
   })),
   toggleMute: () => set((s) => ({ muted: !s.muted })),
-  setShowDriverCard: (v) => set({ showDriverCard: v }),
-  setShowGreetingCard: (v) => set({ showGreetingCard: v }),
   toggleDetails: () => set((s) => ({ showDetails: !s.showDetails })),
 }))

@@ -5,19 +5,12 @@ import { HUD } from './HUD'
 import { useThree } from '@react-three/fiber'
 import { CameraRig } from './scene/CameraRig'
 import { TramExterior } from './scene/TramExterior'
-import { ProjectModal } from './ui/ProjectModal'
 import { FilmGrade } from './FilmGrade'
 import { OrbitControls } from '@react-three/drei'
 import { TOUCH } from 'three'
-import { useStore } from './store'
-import { OnboardingOverlay } from './onboarding/OnboardingOverlay'
-import { DriverContactCard } from './onboarding/DriverContactCard'
-import { GreetingCard } from './ui/GreetingCard'
-import { MobileNavHint } from './onboarding/MobileNavHint'
 
 // Mobile viewports get a wider FOV + farther max-dolly so the spatial layout
-// of the cabin/street reads even when the screen is narrow. 88° mirrors a
-// typical phone-camera ultrawide; desktop keeps the cinematic 72°.
+// of the cabin/street reads even when the screen is narrow.
 const MOBILE_MQ = '(max-width: 768px)'
 function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia(MOBILE_MQ).matches
@@ -28,13 +21,11 @@ export default function App() {
   const [elapsed, setElapsed] = useState(0)
   const [mobile, setMobile] = useState(() => isMobileViewport())
 
-  // Reduced motion — auto-skip
   const [prefersReduced] = useState(() =>
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   )
 
-  // Keep mobile flag in sync with orientation/resize
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ)
     const onChange = () => setMobile(mq.matches)
@@ -46,7 +37,6 @@ export default function App() {
     if (prefersReduced) setBoardingDone(true)
   }, [prefersReduced])
 
-  // Track elapsed for TramExterior visibility
   useEffect(() => {
     if (boardingDone) return
     const start = performance.now()
@@ -76,7 +66,6 @@ export default function App() {
           <CameraRig onComplete={() => setBoardingDone(true)} />
         )}
 
-        {/* Tram exterior — visible during sidewalk beat */}
         <TramExterior visible={!boardingDone && elapsed < 3.5} />
 
         {boardingDone && <SeatedOrbit mobile={mobile} />}
@@ -84,7 +73,6 @@ export default function App() {
         <FilmGrade />
       </Canvas>
 
-      {/* Skip button during boarding */}
       {!boardingDone && (
         <button
           onClick={() => {
@@ -111,67 +99,15 @@ export default function App() {
       )}
 
       <HUD />
-      <ProjectModal />
-      <Toast />
-      <OnboardingOverlay />
-      <DriverContactCard />
-      <GreetingCard />
-      {boardingDone && mobile && <MobileNavHint />}
     </>
   )
 }
 
-/* ── Global toast — triggered via window.__showToast(msg) ── */
-function Toast() {
-  const [msg, setMsg] = useState<string | null>(null)
-
-  useEffect(() => {
-    const w = window as unknown as { __showToast?: (msg: string) => void }
-    let timer: number | undefined
-    w.__showToast = (m: string) => {
-      setMsg(m)
-      if (timer) window.clearTimeout(timer)
-      timer = window.setTimeout(() => setMsg(null), 2500)
-    }
-    return () => {
-      delete w.__showToast
-      if (timer) window.clearTimeout(timer)
-    }
-  }, [])
-
-  if (!msg) return null
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 80,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: 'rgba(20,20,20,0.9)',
-        color: '#f0e6d0',
-        padding: '12px 24px',
-        borderRadius: 24,
-        fontFamily: 'Georgia, serif',
-        fontSize: 14,
-        letterSpacing: 1.5,
-        zIndex: 200,
-        backdropFilter: 'blur(8px)',
-        pointerEvents: 'none',
-      }}
-    >
-      {msg}
-    </div>
-  )
-}
-
-/* ── Seated orbit — look around from the tram seat, disabled in worlds ── */
 function SeatedOrbit({ mobile }: { mobile: boolean }) {
-  const activeRoom = useStore((s) => s.activeRoom)
   const { camera } = useThree()
   const initialized = useRef(false)
 
-  if (!initialized.current && !activeRoom) {
+  if (!initialized.current) {
     camera.position.set(0, 1.7, -9.0)
     camera.lookAt(0, 1.6, -15)
     camera.fov = mobile ? 88 : 72
@@ -179,10 +115,6 @@ function SeatedOrbit({ mobile }: { mobile: boolean }) {
     initialized.current = true
   }
 
-  if (activeRoom) return null // WorldCamera handles it
-
-  // Driver POV — stable orbit. Mobile gets a higher max-dolly so users can
-  // pull back far enough to orient themselves relative to the tram/street.
   return (
     <OrbitControls
       target={[0, 1.65, -10.5]}
