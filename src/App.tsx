@@ -8,6 +8,7 @@ import { TramExterior } from './scene/TramExterior'
 import { FilmGrade } from './FilmGrade'
 import { OrbitControls } from '@react-three/drei'
 import { TOUCH } from 'three'
+import { useStore } from './store'
 
 // Mobile viewports get a wider FOV + farther max-dolly so the spatial layout
 // of the cabin/street reads even when the screen is narrow.
@@ -105,15 +106,20 @@ export default function App() {
 
 function SeatedOrbit({ mobile }: { mobile: boolean }) {
   const { camera } = useThree()
+  const activeRoom = useStore((s) => s.activeRoom)
   const initialized = useRef(false)
 
-  if (!initialized.current) {
+  if (!initialized.current && !activeRoom) {
     camera.position.set(0, 1.7, -9.0)
     camera.lookAt(0, 1.6, -15)
     camera.fov = mobile ? 88 : 72
     camera.updateProjectionMatrix()
     initialized.current = true
   }
+
+  // Inside a world, WorldCamera flies the camera; don't let OrbitControls
+  // fight it. WorldOrbit inside each world takes over once parked.
+  if (activeRoom) return null
 
   return (
     <OrbitControls

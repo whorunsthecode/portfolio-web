@@ -12,6 +12,7 @@ import { BambooScaffold } from './buildings/BambooScaffold'
 import { TrafficSystem } from './traffic/TrafficSystem'
 import { Pedestrians } from './traffic/Pedestrians'
 import { useStore } from './store'
+import { Worlds } from './worlds/WorldManager'
 
 function RouteTracker() {
   const advanceRoute = useStore((s) => s.advanceRoute)
@@ -39,6 +40,7 @@ export function Scene() {
       <TrafficSystem />
       <Pedestrians />
       <RouteTracker />
+      <Worlds />
     </>
   )
 }
