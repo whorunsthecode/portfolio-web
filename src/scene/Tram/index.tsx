@@ -838,10 +838,13 @@ function FrontFace() {
   )
 }
 
-/* Rear face — mostly-solid green panel with a small destination
- * blind at the top of the lower deck and a single upper-deck rear
- * window. Matches a real HK Ding Ding back: the earlier full-height
- * translucent glass read as a big black rectangle at distance. */
+/* Rear face — open boarding platform, not a solid wall. Real HK Ding
+ * Dings have an OPEN rear: two sliding-door panels either side and the
+ * platform showing through the middle. Previously a full-width solid
+ * green plane sat across the lower rear and read as a big black block
+ * at any light level, hiding the platform (RearPlatformDoor) entirely.
+ * Only frame elements remain here — pillars, skirt, top strip holding
+ * the destination blind — the middle is intentionally open. */
 function RearFace() {
   const z = Z_REAR + 0.01
   const lh = LOWER_TOP - LOWER_BOT
@@ -850,10 +853,24 @@ function RearFace() {
 
   return (
     <group>
-      {/* Solid green lower-deck rear panel — fills the whole back of
-          the lower deck so it doesn't read as a black void at dusk. */}
-      <mesh position={[0, lcy, z]}>
-        <planeGeometry args={[W, lh]} />
+      {/* Bottom skirt strip — green, under the doors */}
+      <mesh position={[0, LOWER_BOT + 0.2, z]}>
+        <planeGeometry args={[W, 0.4]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
+      </mesh>
+      {/* Top strip — green, holds the destination blind */}
+      <mesh position={[0, LOWER_TOP - 0.2, z]}>
+        <planeGeometry args={[W, 0.38]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
+      </mesh>
+      {/* Left lower-deck pillar */}
+      <mesh position={[-HW + 0.12, lcy, z]}>
+        <planeGeometry args={[0.24, lh]} />
+        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
+      </mesh>
+      {/* Right lower-deck pillar */}
+      <mesh position={[HW - 0.12, lcy, z]}>
+        <planeGeometry args={[0.24, lh]} />
         <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
       </mesh>
       {/* Cream waistline stripe — matches the flanks */}
@@ -861,9 +878,9 @@ function RearFace() {
         <planeGeometry args={[W, 0.12]} />
         <meshStandardMaterial color={CREAM} roughness={0.6} side={FrontSide} />
       </mesh>
-      {/* Small rear destination blind at the top of the lower deck —
+      {/* Small rear destination blind on the upper green strip —
           cream plate framed in dark, route "88" + 屈地街 shorthand */}
-      <group position={[0, LOWER_TOP - 0.24, z + 0.002]}>
+      <group position={[0, LOWER_TOP - 0.2, z + 0.002]}>
         <mesh>
           <planeGeometry args={[1.5, 0.22]} />
           <meshStandardMaterial color={FRAME} roughness={0.6} side={FrontSide} />
