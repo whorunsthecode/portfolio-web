@@ -14,10 +14,11 @@ function FluorescentTube({ z, flicker }: { z: number; flicker?: boolean }) {
     if (!flicker) return
     const t = clock.elapsedTime
     // Two-hertz jitter with occasional deep drops to sell a dying ballast
-    const base = 0.78
+    const base = 0.9
+    // Subtle hum — very occasional shallow dip, never horror-level drop
     const dip =
-      Math.sin(t * 14 + seed) > 0.7 && Math.sin(t * 3.1 + seed * 0.3) > 0.2
-        ? 0.2 + Math.sin(t * 80 + seed) * 0.1
+      Math.sin(t * 14 + seed) > 0.88 && Math.sin(t * 3.1 + seed * 0.3) > 0.5
+        ? 0.72 + Math.sin(t * 80 + seed) * 0.06
         : 1
     const intensity = base * dip
     if (lightRef.current) lightRef.current.intensity = 5.5 * intensity
@@ -60,7 +61,7 @@ export function ArcadeLighting() {
       {/* Base ambient — just enough so the floor isn't pure black under the
           tubes' shadow falloff. Warm tint biases toward tungsten fill from
           shop signage spilling out. */}
-      <ambientLight intensity={0.22} color={'#a88c5a'} />
+      <ambientLight intensity={0.42} color={'#a88c5a'} />
 
       {/* Three ceiling tubes at even spacing down the arcade depth */}
       <FluorescentTube z={-3.2} />

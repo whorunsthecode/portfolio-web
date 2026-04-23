@@ -31,7 +31,7 @@ function ChungkingFog() {
   const { scene } = useThree()
   useEffect(() => {
     const prev = scene.fog
-    scene.fog = new THREE.FogExp2('#0a1408', 0.12)
+    scene.fog = new THREE.FogExp2('#121a10', 0.06)
     return () => { scene.fog = prev }
   }, [scene])
   return null
