@@ -671,7 +671,9 @@ function BrokenNeon() {
     if (!ref.current) return
     const t = clock.elapsedTime
     const spark = Math.sin(t * 40) > 0.6 && Math.sin(t * 7.3) > 0.1
-    ref.current.emissiveIntensity = spark ? 2.8 + Math.sin(t * 120) * 1.2 : 0.3
+    ref.current.emissiveIntensity = spark
+      ? 2.8 + Math.abs(Math.sin(t * 120)) * 1.2  // Math.abs prevents negative emissive
+      : 0.3
   })
 
   return (
@@ -937,7 +939,9 @@ import { useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-// Elevator sits against the lobby back wall opposite the arcade (z = −8.8)
+// Elevator sits against the lobby back wall opposite the arcade (z = −8.8).
+// WORLD_X must match the parent group's x offset in index.tsx.
+const WORLD_X  = -100
 const ELEV_Z   = -8.8
 const DOOR_W   = 0.48   // each panel
 const DOOR_H   = 2.2
@@ -985,7 +989,10 @@ export function Elevator() {
   const panelTex = useMemo(() => makeButtonPanelTexture(), [])
 
   useFrame((_, delta) => {
-    const dist = camera.position.distanceTo(new THREE.Vector3(0 - 100, 1.65, ELEV_Z))
+    // XZ-plane distance only — avoids false readings when camera crouches
+    const dx = camera.position.x - WORLD_X
+    const dz = camera.position.z - ELEV_Z
+    const dist = Math.sqrt(dx * dx + dz * dz)
 
     if (dist < TRIGGER) {
       closeTimer.current = CLOSE_DELAY
@@ -1201,6 +1208,9 @@ This aligns the fly-in landing position with the FPS start (z=4.0), and adjusts 
 
 ```tsx
 // src/worlds/Chungking/index.tsx
+import { useEffect }          from 'react'
+import { useThree }           from '@react-three/fiber'
+import * as THREE             from 'three'
 import { ChungkingArcade }    from './ChungkingArcade'
 import { ShopStalls }         from './ShopStalls'
 import { HangingSigns }       from './HangingSigns'
@@ -1226,13 +1236,23 @@ const BOUNDS: Zone[] = [
   { min: [WORLD_X - 0.85, 0, -29.0], max: [WORLD_X + 0.85, 2.5, -9.0] },
 ]
 
+function ChungkingFog() {
+  const { scene } = useThree()
+  useEffect(() => {
+    const prev = scene.fog
+    scene.fog = new THREE.FogExp2('#0a1408', 0.12)
+    return () => { scene.fog = prev }
+  }, [scene])
+  return null
+}
+
 export function Chungking() {
   return (
     <>
       <group position={[WORLD_X, 0, 0]}>
-        {/* Fog inside the group so it only reads in this world context.
-            fogExp2 gives the corridor its depth-swallowing green-black falloff. */}
-        <fogExp2 attach="fog" color="#0a1408" density={0.12} />
+        <ChungkingFog />
+        {/* Fog is set imperatively via useEffect (see below) so it's
+            properly cleaned up when the world unmounts. */}
 
         <ArcadeLighting />
         <ChungkingLighting />
