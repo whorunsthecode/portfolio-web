@@ -80,6 +80,11 @@ function Stall({ def, side, index }: { def: StallDef; side: 'left' | 'right'; in
         <boxGeometry args={[STALL_WIDTH - 0.08, 0.44, 0.04]} />
         <meshStandardMaterial color={'#0a0a0a'} roughness={0.95} />
       </mesh>
+      {/* Emissive face — replaces the removed pointLight */}
+      <mesh position={[0, 2.42, 0.045]}>
+        <planeGeometry args={[STALL_WIDTH - 0.12, 0.36]} />
+        <meshStandardMaterial color={def.color} emissive={def.color} emissiveIntensity={2.5} roughness={0.9} />
+      </mesh>
       <Text
         position={[0, 2.50, 0.05]}
         fontSize={0.13}
