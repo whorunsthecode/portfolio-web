@@ -131,10 +131,26 @@ export function ChungkingArcade() {
         <meshStandardMaterial map={wallTex} roughness={0.9} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Back wall (lift bank sits in front of this) */}
-      <mesh position={[0, H / 2, -D / 2]}>
-        <planeGeometry args={[W, H]} />
+      {/* Back wall — three sections leaving a 3m centre archway */}
+      {/* Left panel */}
+      <mesh position={[-2.25, H / 2, -D / 2]}>
+        <planeGeometry args={[1.5, H]} />
         <meshStandardMaterial color={'#a89472'} roughness={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Right panel */}
+      <mesh position={[2.25, H / 2, -D / 2]}>
+        <planeGeometry args={[1.5, H]} />
+        <meshStandardMaterial color={'#a89472'} roughness={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Lintel above archway (y: 2.2 → 3.2) */}
+      <mesh position={[0, 2.7, -D / 2]}>
+        <planeGeometry args={[3.0, 1.0]} />
+        <meshStandardMaterial color={'#a89472'} roughness={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Concrete lintel depth — visible from lobby side */}
+      <mesh position={[0, 2.7, -D / 2 - 0.06]}>
+        <boxGeometry args={[3.0, 1.0, 0.12]} />
+        <meshStandardMaterial color={'#8a7a62'} roughness={0.95} />
       </mesh>
 
       {/* Front wall behind camera — keeps the camera from seeing nothing
