@@ -10,7 +10,7 @@ import * as THREE from 'three'
 
 const FLOOR_Y = 0.5
 const CABIN_HALF_WIDTH = 1.15
-const CABIN_REAR_Z = 3.25
+const CABIN_REAR_Z = -1.75
 
 const SKIN = '#d4b090'
 const SKIN_2 = '#c4a080'
@@ -188,8 +188,9 @@ export function Passengers() {
       <StandingPassenger xPosition={0} zPosition={CABIN_REAR_Z - 3.0} shirtColor={SHIRTS[3]} skinColor={SKIN_2} armUp="left" />
       <StandingPassenger xPosition={0.1} zPosition={CABIN_REAR_Z - 4.5} shirtColor={SHIRTS[5]} skinColor={SKIN} armUp="right" />
 
-      {/* Seated on rear forward-facing seat */}
-      <SeatedPassenger xPosition={-0.4} zPosition={CABIN_REAR_Z - 1.0} facing="right" shirtColor={SHIRTS[6]} skinColor={SKIN_3} />
+      {/* The passenger that used to sit on the rear forward-facing
+          seat was removed alongside those seats (see Seats.tsx). After
+          the tram was shortened they had no seat to sit on. */}
     </group>
   )
 }

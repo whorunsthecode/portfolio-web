@@ -1,5 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { walledCityBus } from './bus'
+import { CORRIDORS } from './SideCorridors'
 
 // Concrete with black mold bloom, water streaks, torn posters. The key
 // visual cue of the Walled City interior is how every surface records
@@ -95,6 +98,13 @@ export function AlleyShell() {
   const D = 10
   const H = 3.8
 
+  const slitRef = useRef<THREE.MeshStandardMaterial>(null)
+  useFrame(() => {
+    if (slitRef.current) {
+      slitRef.current.emissiveIntensity = 1.2 * (1 - 0.8 * walledCityBus.flyoverK)
+    }
+  })
+
   return (
     <group>
       {/* Floor — wet concrete with dark pool patches */}
@@ -118,10 +128,12 @@ export function AlleyShell() {
         <meshStandardMaterial map={ceilingTex} roughness={0.95} color={'#2a261e'} />
       </mesh>
 
-      {/* Sky slit — bright emissive strip between the ceiling panels */}
+      {/* Sky slit — bright emissive strip between the ceiling panels.
+          Material ref lets PlaneFlyover dim it as a plane passes over. */}
       <mesh position={[0, H + 0.01, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <planeGeometry args={[0.3, D]} />
         <meshStandardMaterial
+          ref={slitRef}
           color={'#e8d890'}
           emissive={'#f8e4a0'}
           emissiveIntensity={1.2}
@@ -130,19 +142,75 @@ export function AlleyShell() {
         />
       </mesh>
 
-      {/* Left / right walls */}
-      <mesh position={[-W / 2, H / 2, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[D, H]} />
-        <meshStandardMaterial map={wallTex} roughness={0.9} color={'#3a342a'} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[W / 2, H / 2, 0]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[D, H]} />
-        <meshStandardMaterial map={wallTex} roughness={0.9} color={'#3a342a'} side={THREE.DoubleSide} />
-      </mesh>
+      {/* Left + right walls — rendered as segments around any corridor
+          openings so the corridor behind the wall is visible through
+          the gap. Each opening leaves a top lintel from y = corridor
+          ceiling up to the alley ceiling. */}
+      {(['left', 'right'] as const).map((side) => {
+        const sign = side === 'left' ? -1 : 1
+        const rotY = sign * Math.PI / 2
+        // Collect openings for this side, sorted by z
+        const openings = CORRIDORS
+          .filter((c) => c.side === side)
+          .map((c) => ({ zMin: c.z - c.halfWidth, zMax: c.z + c.halfWidth, ceiling: c.ceiling }))
+          .sort((a, b) => a.zMin - b.zMin)
+        // Derive wall segments — between each pair of openings + before
+        // the first and after the last
+        const segs: { zMin: number; zMax: number }[] = []
+        let cursor = -D / 2
+        for (const o of openings) {
+          if (o.zMin > cursor) segs.push({ zMin: cursor, zMax: o.zMin })
+          cursor = o.zMax
+        }
+        if (cursor < D / 2) segs.push({ zMin: cursor, zMax: D / 2 })
 
-      {/* Back wall — pure dark with a hint of light leak around edges */}
-      <mesh position={[0, H / 2, -D / 2]}>
-        <planeGeometry args={[W, H]} />
+        return (
+          <group key={side}>
+            {segs.map((s, i) => {
+              const w = s.zMax - s.zMin
+              const cz = (s.zMin + s.zMax) / 2
+              return (
+                <mesh key={i} position={[sign * W / 2, H / 2, cz]} rotation={[0, rotY, 0]}>
+                  <planeGeometry args={[w, H]} />
+                  <meshStandardMaterial map={wallTex} roughness={0.9} color={'#3a342a'} side={THREE.DoubleSide} />
+                </mesh>
+              )
+            })}
+            {/* Top lintel over each opening */}
+            {openings.map((o, i) => {
+              const w = o.zMax - o.zMin
+              const cz = (o.zMin + o.zMax) / 2
+              const lintelH = H - o.ceiling
+              return (
+                <mesh
+                  key={`lintel-${i}`}
+                  position={[sign * W / 2, (o.ceiling + H) / 2, cz]}
+                  rotation={[0, rotY, 0]}
+                >
+                  <planeGeometry args={[w, lintelH]} />
+                  <meshStandardMaterial map={wallTex} roughness={0.9} color={'#3a342a'} side={THREE.DoubleSide} />
+                </mesh>
+              )
+            })}
+          </group>
+        )
+      })}
+
+      {/* Back wall (z = -D/2) — split into three segments around a 1m-wide,
+          2.1m-tall doorway leading into the stairwell behind. */}
+      {/* Left jamb */}
+      <mesh position={[(-W / 2 + -0.5) / 2, H / 2, -D / 2]}>
+        <planeGeometry args={[-0.5 - (-W / 2), H]} />
+        <meshStandardMaterial color={'#18140e'} roughness={0.95} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Right jamb */}
+      <mesh position={[(W / 2 + 0.5) / 2, H / 2, -D / 2]}>
+        <planeGeometry args={[W / 2 - 0.5, H]} />
+        <meshStandardMaterial color={'#18140e'} roughness={0.95} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Top lintel above the doorway */}
+      <mesh position={[0, (2.1 + H) / 2, -D / 2]}>
+        <planeGeometry args={[1.0, H - 2.1]} />
         <meshStandardMaterial color={'#18140e'} roughness={0.95} side={THREE.DoubleSide} />
       </mesh>
 

@@ -11,7 +11,7 @@
 const FLOOR_Y = 0.5
 const CABIN_HALF_WIDTH = 1.15       // 2.3 / 2
 const CABIN_FRONT_Z = -9.25         // z-center - length/2
-const CABIN_REAR_Z = 3.25           // z-center + length/2
+const CABIN_REAR_Z = -1.75          // z-center + length/2 (tram shortened to 9m)
 
 const SEAT_WOOD = '#8a6a3a'
 const SEAT_WOOD_DARK = '#5a4028'
@@ -48,10 +48,9 @@ export function Seats() {
         facing="left"
       />
 
-      {/* Rear individual forward-facing seats (face -Z) */}
-      {[-0.55, 0, 0.55].map((x, i) => (
-        <ForwardSeat key={`rear-${i}`} xPosition={x} zPosition={CABIN_REAR_Z - 1.0} />
-      ))}
+      {/* Rear forward-facing seats removed — after the tram was
+          shortened to 9m, these sat past the bench end in the rear
+          boarding aisle and read as floating chairs. */}
     </group>
   )
 }
@@ -149,40 +148,3 @@ function LongBench({
   )
 }
 
-function ForwardSeat({
-  xPosition,
-  zPosition,
-}: {
-  xPosition: number
-  zPosition: number
-}) {
-  return (
-    <group position={[xPosition, 0, zPosition]}>
-      {/* Seat cushion */}
-      <mesh position={[0, SEAT_Y, 0]}>
-        <boxGeometry args={[0.42, 0.06, 0.4]} />
-        <meshStandardMaterial color={SEAT_WOOD} roughness={0.8} />
-      </mesh>
-
-      {/* Backrest — on +Z side (behind passenger who faces -Z) */}
-      <mesh position={[0, BACKREST_Y, 0.18]}>
-        <boxGeometry args={[0.42, 0.55, 0.08]} />
-        <meshStandardMaterial color={SEAT_LEATHER} roughness={0.85} />
-      </mesh>
-
-      {/* Backrest frame */}
-      <mesh position={[0, BACKREST_Y, 0.22]}>
-        <boxGeometry args={[0.44, 0.57, 0.03]} />
-        <meshStandardMaterial color={SEAT_WOOD} roughness={0.8} />
-      </mesh>
-
-      {/* Metal legs */}
-      {[-0.16, 0.16].map((x, i) => (
-        <mesh key={`leg-${i}`} position={[x, FLOOR_Y + 0.22, 0]}>
-          <boxGeometry args={[0.02, 0.44, 0.02]} />
-          <meshStandardMaterial color={SEAT_FRAME} metalness={0.4} />
-        </mesh>
-      ))}
-    </group>
-  )
-}

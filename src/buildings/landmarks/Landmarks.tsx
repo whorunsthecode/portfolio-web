@@ -12,7 +12,7 @@ import { SheungWanStalls } from './SheungWanStalls'
 import { TongLau } from './TongLau'
 import { SaiYingPunShelter } from './SaiYingPunShelter'
 
-const SCROLL_SPEED = 6
+const SCROLL_SPEED = 4
 const ROUTE_LENGTH = 140 // extended from 90 to 140 for the longer route
 const RESET_THRESHOLD = 15
 
@@ -31,9 +31,12 @@ interface LandmarkDef {
 // IFC 2 (2003) and Cheung Kong Center (1999). Man Mo Temple (1847) and
 // Central Market (1938) add low-rise character alongside the office towers.
 const LANDMARKS: LandmarkDef[] = [
-  { component: HSBC,              x: 15.5,   z: -18,  rotY: 0 },
+  // HSBC closer to the road so it reads through the tram window — was
+  // x=15.5 which put it almost outside the camera's horizontal frustum.
+  { component: HSBC,              x: 10,     z: -18,  rotY: 0 },
   { component: CentralMarket,     x: -12,    z: -26,  rotY: 0 },
-  { component: BoC,               x: -14.5,  z: -34,  rotY: 0 },
+  // BoC also brought in — was x=-14.5, outside frustum.
+  { component: BoC,               x: -10,    z: -34,  rotY: 0 },
   { component: Furama,            x: 12,     z: -48,  rotY: 0 },
   { component: WesternMarket,     x: -13.5,  z: -60,  rotY: 0 },
   { component: JardineHouse,      x: 13.5,   z: -75,  rotY: 0 },

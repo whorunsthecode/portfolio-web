@@ -24,7 +24,6 @@ export const TENEMENT_STYLES: TenementStyle[] = [
 ]
 
 const SHOP_NAMES = ['茶餐廳', '藥房', '雜貨', '涼茶', '麵家', '粥店', '餅店', '洗衣', '士多', '五金']
-const CLOTH_COLORS = ['#d8473a', '#3a5aa0', '#e8ddc0', '#45854a', '#c47a2e', '#8a3a6a']
 
 /* ── Seeded random helper ──────────────────────────────── */
 function seededRandom(seed: number) {
@@ -33,54 +32,6 @@ function seededRandom(seed: number) {
     s = (s * 16807 + 0) % 2147483647
     return (s - 1) / 2147483646
   }
-}
-
-/* ── Laundry ───────────────────────────────────────────── */
-function Laundry({ width, height, floors, seed, side }: {
-  width: number; height: number; floors: number; seed: number; side: 'left' | 'right'
-}) {
-  const rand = useMemo(() => seededRandom(seed + 777), [seed])
-  const poleCount = 2 + Math.floor(rand() * 3)
-  const facadeX = side === 'left' ? -width / 2 : width / 2
-  const outDir = side === 'left' ? -1 : 1
-
-  const poles = useMemo(() => {
-    const r = seededRandom(seed + 777)
-    const count = 2 + Math.floor(r() * 3)
-    return Array.from({ length: count }, (_, i) => {
-      const floor = 1 + Math.floor(r() * (floors - 1))
-      const y = (floor / floors) * height
-      const z = (r() - 0.5) * width * 0.6
-      const clothCount = 1 + Math.floor(r() * 3)
-      const cloths = Array.from({ length: clothCount }, () => ({
-        offset: (r() - 0.5) * 0.8,
-        color: CLOTH_COLORS[Math.floor(r() * CLOTH_COLORS.length)],
-        scaleY: 0.3 + r() * 0.25,
-      }))
-      return { y, z, cloths }
-    })
-  }, [seed, floors, height, width])
-
-  return (
-    <group>
-      {poles.map((pole, i) => (
-        <group key={i} position={[facadeX, pole.y, pole.z]}>
-          {/* Bamboo pole */}
-          <mesh position={[outDir * 0.6, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.02, 0.02, 1.2, 6]} />
-            <meshStandardMaterial color="#a08a50" roughness={0.8} />
-          </mesh>
-          {/* Cloth pieces */}
-          {pole.cloths.map((cloth, j) => (
-            <mesh key={j} position={[outDir * (0.3 + Math.abs(cloth.offset) * 0.6), -0.15, cloth.offset * 0.3]}>
-              <planeGeometry args={[0.2, cloth.scaleY]} />
-              <meshBasicMaterial color={cloth.color} side={THREE.DoubleSide} />
-            </mesh>
-          ))}
-        </group>
-      ))}
-    </group>
-  )
 }
 
 /* ── AC units on roof ──────────────────────────────────── */
@@ -232,7 +183,9 @@ export function Tenement({ position, width = 9, depth = 7, side, style, seed }: 
 
       <RoofACUnits width={width} depth={depth} roofY={height} seed={seed} />
       <WallACUnits width={width} height={height} floors={style.floors} seed={seed} side={side} />
-      <Laundry width={width} height={height} floors={style.floors} seed={seed} side={side} />
+      {/* Laundry removed — the per-building bamboo poles with cloth
+          strips were reading as small red "flags" jutting off every
+          facade, competing with the neon signs. */}
       <ShopSign width={width} seed={seed} facadeZ={0} side={side} />
     </group>
   )

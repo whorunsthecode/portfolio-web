@@ -64,7 +64,7 @@ const Z_RANGE = Z_MAX - Z_MIN
 // World scroll speed — matches Landmarks.tsx SCROLL_SPEED so peds move
 // past the camera at the same rate as buildings, instead of floating
 // relative to the scene.
-const WORLD_SCROLL_SPEED = 6
+const WORLD_SCROLL_SPEED = 4
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min)

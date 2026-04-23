@@ -1,4 +1,23 @@
+import React, { useEffect, useState } from 'react'
 import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
+
+const IS_TOUCH = typeof window !== 'undefined' && (
+  'ontouchstart' in window || (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! > 0
+)
+
+// Worlds where FPS nav is active. Used to show pointer-lock / touch hints.
+const FPS_STOPS = new Set(['walled_city'])
+
+const kbdStyle: React.CSSProperties = {
+  display: 'inline-block',
+  padding: '1px 6px',
+  borderRadius: 4,
+  border: '1px solid rgba(240, 230, 208, 0.35)',
+  background: 'rgba(240, 230, 208, 0.08)',
+  fontFamily: 'monospace',
+  fontSize: 10,
+  marginRight: 4,
+}
 
 export function HUD() {
   const routePos = useStore((s) => s.routePos)
@@ -14,6 +33,35 @@ export function HUD() {
   const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
   const currentStop = STOPS[blindIndex]
 
+  const inFPSWorld = activeRoom !== null && FPS_STOPS.has(activeRoom)
+  const [hintSeen, setHintSeen] = useState(false)
+
+  // Dismiss the intro hint on the first input — we watch movement keys
+  // and any mousedown on the canvas.
+  useEffect(() => {
+    if (!inFPSWorld || hintSeen) return
+    const on = () => setHintSeen(true)
+    window.addEventListener('keydown', on, { once: true })
+    window.addEventListener('mousedown', on, { once: true })
+    return () => {
+      window.removeEventListener('keydown', on)
+      window.removeEventListener('mousedown', on)
+    }
+  }, [inFPSWorld, hintSeen])
+
+  // Reset intro hint each time you enter a world.
+  useEffect(() => { if (!inFPSWorld) setHintSeen(false) }, [inFPSWorld])
+
+  // B key is a keyboard shortcut back to the tram for muscle memory.
+  useEffect(() => {
+    if (!inFPSWorld) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.code === 'KeyB') setRoom(null)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [inFPSWorld, setRoom])
+
   const pillBg = 'rgba(20,20,20,0.75)'
   const textColor = '#f0e6d0'
   const isNight = mode === 'night'
@@ -26,6 +74,40 @@ export function HUD() {
       zIndex: 10,
       color: textColor,
     }}>
+      {/* Intro hint — shown once on entry, dismisses on first keypress
+          or click. Cursor stays visible the whole time because we use
+          drag-to-look instead of pointer lock. */}
+      {inFPSWorld && !IS_TOUCH && !hintSeen && (
+        <div style={{
+          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+          background: 'rgba(20, 16, 10, 0.72)',
+          color: '#f0e6d0', padding: '8px 18px', borderRadius: 20,
+          fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
+          backdropFilter: 'blur(6px)', fontFamily: 'Georgia, serif',
+          display: 'flex', gap: 14, alignItems: 'center',
+          transition: 'opacity 240ms ease',
+        }}>
+          <span><kbd style={kbdStyle}>WASD</kbd> move</span>
+          <span style={{ opacity: 0.3 }}>·</span>
+          <span>drag to look</span>
+          <span style={{ opacity: 0.3 }}>·</span>
+          <span><kbd style={kbdStyle}>B</kbd> back to tram</span>
+        </div>
+      )}
+      {inFPSWorld && IS_TOUCH && (
+        <div style={{
+          position: 'absolute', bottom: 80, left: '50%', transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+          background: 'rgba(20, 16, 10, 0.7)',
+          color: '#f0e6d0', padding: '8px 18px', borderRadius: 20,
+          fontSize: 11, letterSpacing: '0.1em',
+          backdropFilter: 'blur(6px)',
+        }}>
+          Left half: move · Right half: look
+        </div>
+      )}
+
       {/* Back button — only visible inside a world */}
       {activeRoom && (
         <button
@@ -210,7 +292,6 @@ export function HUD() {
         alignItems: 'flex-end',
       }}>
         <SocialChip label="@karmenbuilds" platform="Instagram" url="https://instagram.com/karmenbuilds" />
-        <SocialChip label="@karships" platform="X" url="https://x.com/karships" />
       </div>
     </div>
   )

@@ -101,52 +101,184 @@ function Pipe({ seg }: { seg: PipeSeg }) {
   )
 }
 
-// A bundle of loose cables sagging between two anchor points — rendered as
-// a catenary curve via a thin tube geometry.
-function SaggingCable({ from, to, sag = 0.12, color = '#1a1410' }: {
+// A single cable rendered as a catenary tube. Cables are thicker and
+// more varied than the old thin-black-line pass: insulation colour,
+// diameter, sag, and extra dip all vary per cable.
+interface CableSpec {
   from: [number, number, number]
   to: [number, number, number]
-  sag?: number
-  color?: string
-}) {
+  sag: number
+  radius: number
+  color: string
+  // extraLoop: if >0, the midpoint dips further and then loops back up,
+  // making a U-shape of extra slack.
+  extraLoop: number
+}
+
+function Cable({ spec }: { spec: CableSpec }) {
   const geom = useMemo(() => {
-    const a = new THREE.Vector3(...from)
-    const b = new THREE.Vector3(...to)
-    const steps = 10
+    const a = new THREE.Vector3(...spec.from)
+    const b = new THREE.Vector3(...spec.to)
+    const steps = 14
     const pts: THREE.Vector3[] = []
     for (let i = 0; i <= steps; i++) {
       const t = i / steps
       const p = a.clone().lerp(b, t)
-      p.y -= sag * Math.sin(Math.PI * t)
+      // Primary catenary
+      p.y -= spec.sag * Math.sin(Math.PI * t)
+      // Extra looped slack — a big dip centred at t=0.5
+      if (spec.extraLoop > 0) {
+        const loop = Math.exp(-Math.pow((t - 0.5) * 6, 2))
+        p.y -= spec.extraLoop * loop
+      }
       pts.push(p)
     }
     const curve = new THREE.CatmullRomCurve3(pts)
-    return new THREE.TubeGeometry(curve, 16, 0.012, 6, false)
-  }, [from, to, sag])
+    return new THREE.TubeGeometry(curve, 22, spec.radius, 6, false)
+  }, [spec])
 
   return (
     <mesh geometry={geom}>
-      <meshStandardMaterial color={color} roughness={0.9} />
+      <meshStandardMaterial color={spec.color} roughness={0.85} />
     </mesh>
   )
+}
+
+// A small metal junction box that many cables meet at. Rendered as a
+// dark box with a couple of exposed wires poking out.
+function JunctionBox({ pos }: { pos: [number, number, number] }) {
+  return (
+    <group position={pos}>
+      <mesh>
+        <boxGeometry args={[0.16, 0.22, 0.08]} />
+        <meshStandardMaterial color={'#1a1410'} metalness={0.4} roughness={0.7} />
+      </mesh>
+      {/* Rust lid */}
+      <mesh position={[0, 0, 0.041]}>
+        <boxGeometry args={[0.14, 0.2, 0.002]} />
+        <meshStandardMaterial color={'#2a1a10'} roughness={0.9} />
+      </mesh>
+      {/* Knockout nipples around the edges */}
+      {[[-0.08, 0, 0], [0.08, 0, 0], [0, -0.11, 0]].map((p, i) => (
+        <mesh key={i} position={p as [number, number, number]} rotation={[0, Math.PI / 2, 0]}>
+          <cylinderGeometry args={[0.012, 0.012, 0.03, 6]} />
+          <meshStandardMaterial color={'#4a4036'} metalness={0.5} roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// Insulation colour palette — real HK alley wiring is a rainbow of
+// aging insulation. Weighted so black/grey dominate.
+const INSULATION: Array<{ c: string; w: number }> = [
+  { c: '#151110', w: 7 },   // black rubber
+  { c: '#2a2520', w: 5 },   // aged black
+  { c: '#0a0806', w: 2 },   // deep black (replaces green)
+  { c: '#e8dcc0', w: 3 },   // yellowed white
+  { c: '#c8a048', w: 2 },   // yellow
+  { c: '#b03028', w: 2 },   // red
+  { c: '#2a5ea8', w: 2 },   // blue
+  { c: '#5a4a38', w: 3 },   // brown/tan
+]
+function pickColor(rng: () => number): string {
+  const total = INSULATION.reduce((s, x) => s + x.w, 0)
+  let r = rng() * total
+  for (const o of INSULATION) {
+    r -= o.w
+    if (r <= 0) return o.c
+  }
+  return INSULATION[0].c
+}
+
+// Tiny deterministic PRNG so the cable mess is stable between renders.
+function mulberry32(seed: number): () => number {
+  let s = seed >>> 0
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0
+    let t = s
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
 }
 
 export function PipeWeb() {
   const pipes = useMemo(() => pipesDef(), [])
 
-  // Sagging cables between fixed anchor points — scattered across the span
-  const cables = useMemo(() => {
-    const arr: { from: [number, number, number]; to: [number, number, number]; sag: number }[] = []
-    for (let i = 0; i < 14; i++) {
-      const z1 = -4.5 + Math.random() * 9
-      const z2 = z1 + 0.8 + Math.random() * 1.5
-      const y1 = 3.2 + Math.random() * 0.3
-      const y2 = 3.2 + Math.random() * 0.3
-      const x1 = (Math.random() - 0.5) * 1.4
-      const x2 = (Math.random() - 0.5) * 1.4
-      arr.push({ from: [x1, y1, z1], to: [x2, y2, z2], sag: 0.1 + Math.random() * 0.18 })
+  // Junction boxes + sagging cables. Boxes are anchor points that many
+  // cables radiate from — real HK wiring photos always show these as the
+  // centres of the tangle.
+  const { junctions, cables } = useMemo(() => {
+    const rng = mulberry32(1982)
+    const junctions: [number, number, number][] = [
+      [-0.84, 2.6, -3.2],
+      [ 0.84, 2.5, -1.5],
+      [-0.84, 2.7,  0.8],
+      [ 0.84, 2.55, 2.4],
+      [-0.84, 2.45, 3.6],
+    ]
+    const cables: CableSpec[] = []
+
+    // From each junction, fan 5–8 cables to random points on the opposite
+    // wall or along the ceiling, often bundled with adjacent ones.
+    junctions.forEach((j) => {
+      const n = 5 + Math.floor(rng() * 4)
+      for (let i = 0; i < n; i++) {
+        const toWall = rng() < 0.6
+        const toX = toWall ? (j[0] > 0 ? -0.84 : 0.84) : (rng() - 0.5) * 1.5
+        const toY = 2.3 + rng() * 1.1
+        const toZ = j[2] + (rng() - 0.5) * 4
+        cables.push({
+          from: j,
+          to: [toX, toY, toZ],
+          sag: 0.08 + rng() * 0.25,
+          radius: 0.004 + rng() * 0.003,
+          color: pickColor(rng),
+          extraLoop: rng() < 0.25 ? 0.25 + rng() * 0.4 : 0,
+        })
+      }
+    })
+
+    // Junction-to-junction backbones: a thick, dark bundle runs between
+    // adjacent junctions, visible as 2–4 parallel lines.
+    for (let k = 0; k < junctions.length - 1; k++) {
+      const a = junctions[k]
+      const b = junctions[k + 1]
+      const bundleCount = 3 + Math.floor(rng() * 2)
+      for (let b2 = 0; b2 < bundleCount; b2++) {
+        const offY = (b2 - bundleCount / 2) * 0.025
+        const offX = (rng() - 0.5) * 0.05
+        cables.push({
+          from: [a[0] + offX, a[1] + offY, a[2]],
+          to:   [b[0] + offX, b[1] + offY, b[2]],
+          sag: 0.3 + rng() * 0.2,
+          radius: 0.005 + rng() * 0.003,
+          color: pickColor(rng),
+          extraLoop: rng() < 0.35 ? 0.2 + rng() * 0.3 : 0,
+        })
+      }
     }
-    return arr
+
+    // Extra free-floating cables strung across the alley at various heights
+    for (let i = 0; i < 22; i++) {
+      const z1 = -4.5 + rng() * 9
+      const z2 = z1 + (rng() - 0.3) * 2.5
+      const y1 = 2.4 + rng() * 1.1
+      const y2 = 2.4 + rng() * 1.1
+      const x1 = (rng() - 0.5) * 1.5
+      const x2 = (rng() - 0.5) * 1.5
+      cables.push({
+        from: [x1, y1, z1],
+        to:   [x2, y2, z2],
+        sag: 0.1 + rng() * 0.3,
+        radius: 0.003 + rng() * 0.004,
+        color: pickColor(rng),
+        extraLoop: rng() < 0.18 ? 0.2 + rng() * 0.3 : 0,
+      })
+    }
+
+    return { junctions, cables }
   }, [])
 
   return (
@@ -154,8 +286,11 @@ export function PipeWeb() {
       {pipes.map((seg, i) => (
         <Pipe key={`p-${i}`} seg={seg} />
       ))}
+      {junctions.map((j, i) => (
+        <JunctionBox key={`j-${i}`} pos={j} />
+      ))}
       {cables.map((c, i) => (
-        <SaggingCable key={`c-${i}`} from={c.from} to={c.to} sag={c.sag} />
+        <Cable key={`c-${i}`} spec={c} />
       ))}
     </group>
   )
