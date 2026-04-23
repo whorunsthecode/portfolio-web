@@ -1,22 +1,10 @@
-import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
-import type * as THREE from 'three'
 
 // Two tiny cage lifts at the back of the arcade — the signature Chungking
 // Mansions elevator bank. Frames are painted steel; gates are the visible
 // diamond-pattern cage. One has its indicator at floor 5, one at G.
 
 function LiftCage({ xOffset, floor }: { xOffset: number; floor: number }) {
-  const bulbRef = useRef<THREE.PointLight>(null)
-
-  // Floor indicator bulb — subtle warm flicker
-  useFrame(({ clock }) => {
-    if (bulbRef.current) {
-      bulbRef.current.intensity = 0.35 + Math.sin(clock.elapsedTime * 12 + xOffset) * 0.04
-    }
-  })
-
   // Local group frame: lift door centre at origin, faces +Z (toward the
   // arcade). Parent sets x offset and z position near the back wall.
   return (
@@ -72,19 +60,11 @@ function LiftCage({ xOffset, floor }: { xOffset: number; floor: number }) {
         <meshStandardMaterial
           color={'#2a1f12'}
           emissive={'#d4a850'}
-          emissiveIntensity={0.2}
+          emissiveIntensity={0.55}
           metalness={0.6}
           roughness={0.5}
         />
       </mesh>
-      <pointLight
-        ref={bulbRef}
-        position={[0, 2.82, 0.18]}
-        color={'#ffbe6a'}
-        intensity={0.35}
-        distance={1.2}
-        decay={2}
-      />
       <Text
         position={[0, 2.82, 0.065]}
         fontSize={0.16}
