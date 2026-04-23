@@ -8,8 +8,8 @@ const LEATHER = '#4a2818'
 const LOWER_DECK_FLOOR_Y = -1.5
 const LOWER_DECK_CEILING_Y = 0.42
 const CABIN_WIDTH = 2.3
-const CABIN_LENGTH = 13.5
-const CABIN_Z_CENTER = -3
+const CABIN_LENGTH = 8.5
+const CABIN_Z_CENTER = -5.5
 
 /* ── Lower floor ───────────────────────────────────────── */
 function LowerFloor() {
@@ -35,7 +35,7 @@ function LowerDeckCeiling() {
 function LowerDeckBeams() {
   return (
     <>
-      {[1, -1, -3, -5, -7].map((z) => (
+      {[-2, -4, -6, -8].map((z) => (
         <mesh key={z} position={[0, LOWER_DECK_CEILING_Y - 0.05, z]}>
           <boxGeometry args={[CABIN_WIDTH, 0.08, 0.12]} />
           <meshStandardMaterial color={WOOD_DARK} roughness={0.85} />
@@ -48,7 +48,7 @@ function LowerDeckBeams() {
 /* ── Lower deck side walls ─────────────────────────────── */
 function LowerWindowPanel({ side }: { side: 1 | -1 }) {
   const x = 1.125 * side
-  const postZs = [3, 0.5, -2, -4.5, -7]
+  const postZs = [-2, -4.5, -7]
 
   return (
     <group>
@@ -128,7 +128,7 @@ function DriverCockpit() {
 
 /* ── Open rear platform — iconic HK tram feature ─────── */
 function RearBoardingArea() {
-  const rearZ = 3.5
+  const rearZ = -2.0
   return (
     <group position={[0, LOWER_DECK_FLOOR_Y, 0]}>
       {/* Half-height side barriers (waist-high, not full walls) */}
@@ -230,36 +230,6 @@ function LowerDeckLight() {
   )
 }
 
-/* ── Advertising wrap on lower deck exterior ──────────── */
-function AdvertisingWrap() {
-  const wrapY = LOWER_DECK_FLOOR_Y + 0.35
-  const wrapH = 0.6
-  const wrapLen = CABIN_LENGTH - 2.0
-
-  return (
-    <group>
-      {[-1, 1].map((side) => {
-        const x = (CABIN_WIDTH / 2 + 0.05) * side
-        const rot: [number, number, number] = [0, side === -1 ? Math.PI / 2 : -Math.PI / 2, 0]
-        return (
-          <group key={`wrap-${side}`} position={[x, wrapY, CABIN_Z_CENTER]} rotation={rot}>
-            {/* Dark background */}
-            <mesh>
-              <planeGeometry args={[wrapLen, wrapH]} />
-              <meshStandardMaterial color="#1a1410" roughness={0.6} side={2} />
-            </mesh>
-            {/* Red stripe */}
-            <mesh position={[0, 0.1, 0.002]}>
-              <planeGeometry args={[wrapLen, 0.18]} />
-              <meshStandardMaterial color="#e8394a" roughness={0.5} side={2} />
-            </mesh>
-          </group>
-        )
-      })}
-    </group>
-  )
-}
-
 /* ── Assemble ──────────────────────────────────────────── */
 export function LowerDeckShell() {
   return (
@@ -274,7 +244,6 @@ export function LowerDeckShell() {
       <LowerDeckStraps />
       <LowerDeckSideSeats />
       <LowerDeckLight />
-      <AdvertisingWrap />
     </group>
   )
 }

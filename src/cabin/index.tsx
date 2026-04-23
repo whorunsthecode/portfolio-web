@@ -10,7 +10,7 @@ import { FrontExitPath } from './FrontExitPath'
 
 export function Cabin() {
   return (
-    <group>
+    <group position={[0, 1.8, 0]}>
       <LowerDeckShell />
       <CabinShell />
       <Seats />

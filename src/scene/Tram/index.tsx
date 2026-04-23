@@ -21,10 +21,13 @@ const FRAME = '#1a1a18'
 
 const W = 2.5
 const HW = W / 2
-const Z_CENTER = -3
-const Z_LEN = 14.0
+// Cut to ~9m (real HK tram length). Preserving Z_FRONT at -10 so the
+// driver's cab + seated camera stay put; the rear door shifts forward
+// from z=4 to z=-1.
+const Z_CENTER = -5.5
+const Z_LEN = 9.0
 const Z_FRONT = Z_CENTER - Z_LEN / 2   // -10
-const Z_REAR = Z_CENTER + Z_LEN / 2    // 4
+const Z_REAR = Z_CENTER + Z_LEN / 2    // -1
 
 const LOWER_BOT = -1.7
 const LOWER_TOP = 0.5
@@ -271,11 +274,10 @@ function RearPlatformDoor() {
         </Text>
       </group>
 
-      {/* ─── Interior dark shadow inside the boarding bay ─── */}
-      <mesh position={[0, doorCY, doorZ + 0.55]}>
-        <boxGeometry args={[W - 0.5, LOWER_TOP - LOWER_BOT - 0.15, 0.02]} />
-        <meshStandardMaterial color="#1a1410" roughness={0.95} />
-      </mesh>
+      {/* Interior dark shadow panel removed — after the tram was
+          shortened to 9m, this 2m-wide dark rectangle ended up past
+          the new rear face and dominated the cabin view as a big
+          floating black plane. */}
     </group>
   )
 }
@@ -643,9 +645,9 @@ function LowerDeckExterior() {
               <meshStandardMaterial color={CREAM} roughness={0.75} />
             </mesh>
 
-            {/* Vertical posts between windows */}
-            {Array.from({ length: 8 }, (_, i) => {
-              const z = Z_FRONT + 1.0 + i * 1.65
+            {/* Vertical posts between windows — 6 posts evenly spaced within new tram length */}
+            {Array.from({ length: 6 }, (_, i) => {
+              const z = Z_FRONT + 1.0 + i * 1.5
               return (
                 <mesh key={`lp-${i}`} position={[x + side * 0.001, windowCY, z]} rotation={rot}>
                   <planeGeometry args={[0.06, windowH]} />
@@ -655,11 +657,11 @@ function LowerDeckExterior() {
             })}
 
             {/* Tinted glass filling window spaces */}
-            {Array.from({ length: 7 }, (_, i) => {
-              const z = Z_FRONT + 1.0 + i * 1.65 + 0.825
+            {Array.from({ length: 5 }, (_, i) => {
+              const z = Z_FRONT + 1.0 + i * 1.5 + 0.75
               return (
                 <mesh key={`lg-${i}`} position={[x, windowCY, z]} rotation={rot}>
-                  <planeGeometry args={[1.5, windowH - 0.05]} />
+                  <planeGeometry args={[1.4, windowH - 0.05]} />
                   <meshPhysicalMaterial color="#a0c0c8" transparent opacity={0.25} transmission={0.5} roughness={0.1} side={DoubleSide} />
                 </mesh>
               )

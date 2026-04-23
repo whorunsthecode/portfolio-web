@@ -10,11 +10,7 @@ export const STOPS: { id: StopId; label: string; subtitle: string }[] = [
 // Route zones — maps tram route position to district. Used by ambient HUD
 // readout; the tram loops through these continuously.
 export const ROUTE_DISTRICTS = [
-  { from: 0,   to: 45,  label: '中環 CENTRAL' },
-  { from: 45,  to: 70,  label: '上環 SHEUNG WAN' },
-  { from: 70,  to: 100, label: '西營盤 SAI YING PUN' },
-  { from: 100, to: 120, label: '石塘咀 SHEK TONG TSUI' },
-  { from: 120, to: 140, label: '堅尼地城 KENNEDY TOWN' },
+  { from: 0, to: 140, label: '中環 CENTRAL' },
 ]
 
 interface State {
