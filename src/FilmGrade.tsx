@@ -12,6 +12,15 @@ import {
 import { Vector2 } from 'three'
 import { useStore } from './store'
 
+// Post-processing is the single biggest mobile FPS sink in the tram view
+// after shadows — six stacked full-screen passes (Bloom alone does
+// threshold + blur + composite internally). Read once at module load;
+// the viewport rarely changes class mid-session and the alternative is
+// a window listener that forces every passing frame to re-check.
+const IS_MOBILE_VIEWPORT =
+  typeof window !== 'undefined' &&
+  window.matchMedia('(max-width: 768px)').matches
+
 /** Subtle camera gate-weave — 16mm projector feel */
 function GateWeave() {
   const { camera } = useThree()
@@ -35,6 +44,13 @@ function GateWeave() {
 
 export function FilmGrade() {
   const mode = useStore((s) => s.mode)
+
+  // Mobile: skip the composer entirely. The tram view still gets the
+  // subtle gate-weave camera jitter (cheap), but the six fullscreen
+  // passes are gone. Low-end phones were losing 5–10 fps here.
+  if (IS_MOBILE_VIEWPORT) {
+    return <GateWeave />
+  }
 
   return (
     <>

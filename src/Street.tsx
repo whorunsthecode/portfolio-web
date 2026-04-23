@@ -1,7 +1,6 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useStore } from './store'
 
 /* ── Road ─────────────────────────────────────────────── */
 export function Road() {
