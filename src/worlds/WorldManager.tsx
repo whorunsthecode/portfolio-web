@@ -4,14 +4,13 @@ import { Vector3 } from 'three'
 import { useStore, type StopId } from '../store'
 import { Chungking } from './Chungking'
 import { WalledCity } from './WalledCity'
+import { navState } from './common/nav'
 
-// World group offsets — keeps each world far from the tram so the frustum
-// never overlaps the street. Camera flies here when GO is pressed.
-const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number] }> = {
-  // Chungking: mid-arcade, looking down the corridor toward the cage lift.
-  chungking:   { pos: [-100, 1.65, 3.5], look: [-100, 1.55, -4.5] },
-  // Walled City: alley mouth, looking toward the sliver of sky above.
-  walled_city: { pos: [100, 1.65, 3.5],  look: [100, 2.8, -4.5] },
+// Fly-in endpoints. For FPS worlds (Walled City) the endpoint must match
+// the FirstPersonControls' `start` so the handoff doesn't snap.
+const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number]; fps: boolean }> = {
+  chungking:   { pos: [-100, 1.65, 4.0], look: [-100, 1.55, -1.0], fps: true  },
+  walled_city: { pos: [100, 1.65, 4.5],  look: [100, 1.65, -5],    fps: true  },
 }
 
 const SEATED_POS = new Vector3(0, 1.7, -9.0)
@@ -30,6 +29,7 @@ export function WorldCamera() {
   const toPos = useRef(new Vector3())
   const toLook = useRef(new Vector3())
   const prevRoom = useRef<StopId | null>(null)
+  const isFPSDestination = useRef(false)
 
   useFrame(() => {
     if (activeRoom !== prevRoom.current) {
@@ -45,10 +45,16 @@ export function WorldCamera() {
         const wc = WORLD_CAMERAS[activeRoom]
         toPos.current.set(...wc.pos)
         toLook.current.set(...wc.look)
+        isFPSDestination.current = wc.fps
       } else {
         toPos.current.copy(SEATED_POS)
         toLook.current.copy(SEATED_LOOK)
+        isFPSDestination.current = false
       }
+
+      // Leaving a world disables FPS immediately so the flight animation
+      // has full camera control.
+      navState.ready = false
 
       prevRoom.current = activeRoom
     }
@@ -64,7 +70,13 @@ export function WorldCamera() {
     const currentLook = new Vector3().lerpVectors(fromLook.current, toLook.current, s)
     camera.lookAt(currentLook)
 
-    if (t >= 1) transitioning.current = false
+    if (t >= 1) {
+      transitioning.current = false
+      // Hand off control to FirstPersonControls if this world supports it.
+      if (isFPSDestination.current && activeRoom) {
+        navState.ready = true
+      }
+    }
   })
 
   return null
