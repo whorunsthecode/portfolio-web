@@ -80,7 +80,6 @@ function Stall({ def, side, index }: { def: StallDef; side: 'left' | 'right'; in
         <boxGeometry args={[STALL_WIDTH - 0.08, 0.44, 0.04]} />
         <meshStandardMaterial color={'#0a0a0a'} roughness={0.95} />
       </mesh>
-
       <Text
         position={[0, 2.50, 0.05]}
         fontSize={0.13}

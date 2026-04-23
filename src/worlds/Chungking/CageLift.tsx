@@ -5,6 +5,7 @@ import { Text } from '@react-three/drei'
 // diamond-pattern cage. One has its indicator at floor 5, one at G.
 
 function LiftCage({ xOffset, floor }: { xOffset: number; floor: number }) {
+
   // Local group frame: lift door centre at origin, faces +Z (toward the
   // arcade). Parent sets x offset and z position near the back wall.
   return (
