@@ -884,6 +884,61 @@ function SurroundingBuildings() {
   )
 }
 
+/* Green plastic water tanks — KWC rooftops were dotted with mid-sized
+   PE storage drums servicing each apartment's gravity-fed plumbing.
+   Spec: 3-4 tanks, Ø1m × 1.5m, faded green (M13). */
+function WaterTanks() {
+  const tanks: { x: number; z: number; tilt: number }[] = [
+    { x: -4.6, z: -13.6, tilt: 0.0 },
+    { x:  4.4, z: -16.2, tilt: 0.04 },
+    { x: -0.6, z: -23.4, tilt: -0.03 },
+  ]
+  return (
+    <group>
+      {tanks.map((t, i) => (
+        <group key={i} position={[t.x, ROOF_Y, t.z]} rotation={[0, t.tilt, 0]}>
+          {/* Concrete plinth — tanks sit on a small block, never directly on roof */}
+          <mesh position={[0, 0.06, 0]}>
+            <boxGeometry args={[1.1, 0.12, 1.1]} />
+            <meshStandardMaterial color={'#5a5450'} roughness={0.9} />
+          </mesh>
+          {/* Tank body — Ø1m × 1.5m, faded green plastic */}
+          <mesh position={[0, 0.87, 0]}>
+            <cylinderGeometry args={[0.5, 0.5, 1.5, 18]} />
+            <meshStandardMaterial color={'#28644a'} roughness={0.6} />
+          </mesh>
+          {/* Top cap — slightly darker rim */}
+          <mesh position={[0, 1.62, 0]}>
+            <cylinderGeometry args={[0.52, 0.5, 0.04, 18]} />
+            <meshStandardMaterial color={'#1f4e38'} roughness={0.7} />
+          </mesh>
+          {/* Inlet hat — small dome on top */}
+          <mesh position={[0, 1.66, 0]}>
+            <cylinderGeometry args={[0.15, 0.18, 0.08, 12]} />
+            <meshStandardMaterial color={'#1f4e38'} roughness={0.75} />
+          </mesh>
+          {/* Sun-bleach streaks: 4 vertical stripes lighter than body */}
+          {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((a, k) => (
+            <mesh key={k} position={[Math.cos(a) * 0.501, 0.87, Math.sin(a) * 0.501]} rotation={[0, -a + Math.PI / 2, 0]}>
+              <planeGeometry args={[0.16, 1.4]} />
+              <meshStandardMaterial color={'#3a7858'} roughness={0.7} transparent opacity={0.5} />
+            </mesh>
+          ))}
+          {/* Outlet pipe + tap near the base */}
+          <mesh position={[0.55, 0.18, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.018, 0.018, 0.18, 8]} />
+            <meshStandardMaterial color={'#5a4030'} metalness={0.4} roughness={0.75} />
+          </mesh>
+          <mesh position={[0.65, 0.12, 0]}>
+            <boxGeometry args={[0.04, 0.06, 0.04]} />
+            <meshStandardMaterial color={'#c8a048'} metalness={0.7} roughness={0.4} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
 export function Rooftop() {
   const floorTex = useRoofTex()
   return (
@@ -897,6 +952,7 @@ export function Rooftop() {
         <meshStandardMaterial map={floorTex} color={'#2a2420'} roughness={0.95} />
       </mesh>
       <AntennaForest />
+      <WaterTanks />
       <DryingRacks />
       <RooftopKids />
       <SurroundingBuildings />

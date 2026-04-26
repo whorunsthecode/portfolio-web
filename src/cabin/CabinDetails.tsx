@@ -40,7 +40,9 @@ export function CabinDetails() {
 function VerticalPoles() {
   // Poles run from floor to ceiling in the aisle, evenly spaced. Matches
   // the 5-post window spacing after the tram was shortened to 9m.
-  const poleZs = [-2.5, -4, -5.5, -7, -8.5]
+  // Forward-most pole (z=-8.5) removed — it pierced through the driver
+  // console and dominated the driver POV.
+  const poleZs = [-2.5, -4, -5.5, -7]
 
   return (
     <>

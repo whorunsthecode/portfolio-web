@@ -81,51 +81,6 @@ function LowerWindowPanel({ side }: { side: 1 | -1 }) {
   )
 }
 
-/* ── Driver's cockpit ──────────────────────────────────── */
-function DriverCockpit() {
-  return (
-    <group position={[0, LOWER_DECK_FLOOR_Y, -9.5]}>
-      {/* Front panel */}
-      <mesh position={[0, 0.6, 0]}>
-        <boxGeometry args={[1.8, 1.0, 0.15]} />
-        <meshStandardMaterial color={LEATHER} roughness={0.8} />
-      </mesh>
-
-      {/* Controller wheel — brass */}
-      <mesh position={[-0.3, 0.8, 0.1]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.12, 0.015, 8, 16]} />
-        <meshStandardMaterial color={BRASS} metalness={0.7} roughness={0.3} />
-      </mesh>
-
-      {/* Brake lever */}
-      <mesh position={[0.3, 0.9, 0.1]} rotation={[0, 0, Math.PI / 8]}>
-        <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
-        <meshStandardMaterial color="#2a1a10" roughness={0.7} />
-      </mesh>
-      <mesh position={[0.35, 1.1, 0.1]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color={BRASS} metalness={0.6} roughness={0.3} />
-      </mesh>
-
-      {/* Bell pull rope */}
-      <mesh position={[-0.8, 1.3, 0]}>
-        <cylinderGeometry args={[0.005, 0.005, 0.5, 6]} />
-        <meshStandardMaterial color="#8a6a4a" roughness={0.8} />
-      </mesh>
-
-      {/* Driver's stool */}
-      <mesh position={[0, 0.35, -0.3]}>
-        <cylinderGeometry args={[0.15, 0.15, 0.1, 12]} />
-        <meshStandardMaterial color={LEATHER} roughness={0.8} />
-      </mesh>
-      <mesh position={[0, 0.15, -0.3]}>
-        <cylinderGeometry args={[0.04, 0.04, 0.3, 8]} />
-        <meshStandardMaterial color="#3a3a3a" roughness={0.7} />
-      </mesh>
-    </group>
-  )
-}
-
 /* ── Open rear platform — iconic HK tram feature ─────── */
 function RearBoardingArea() {
   const rearZ = -2.0
@@ -239,7 +194,6 @@ export function LowerDeckShell() {
       <LowerDeckBeams />
       <LowerWindowPanel side={1} />
       <LowerWindowPanel side={-1} />
-      <DriverCockpit />
       <RearBoardingArea />
       <LowerDeckStraps />
       <LowerDeckSideSeats />
