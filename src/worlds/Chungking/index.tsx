@@ -20,12 +20,13 @@ const BOUNDS: Zone[] = [
   { min: [WORLD_X - 2.0, 0, -9.0], max: [WORLD_X + 2.0, 2.7, -5.0] },
 ]
 
-// Sets WKW green-black fog on mount, restores previous fog on unmount.
+// Light haze — real arcade had cooking-smoke + cigarette smoke under
+// fluorescents, but it read as a bright lit interior, not horror fog.
 function ChungkingFog() {
   const { scene } = useThree()
   useEffect(() => {
     const prev = scene.fog
-    scene.fog = new THREE.FogExp2('#121a10', 0.06)
+    scene.fog = new THREE.FogExp2('#8a8270', 0.018)
     return () => { scene.fog = prev }
   }, [scene])
   return null

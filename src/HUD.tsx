@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useStore, STOPS, ROUTE_DISTRICTS } from './store'
+import { useStore, STOPS } from './store'
 
 const IS_TOUCH = typeof window !== 'undefined' && (
   'ontouchstart' in window || (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! > 0
@@ -20,7 +20,6 @@ const kbdStyle: React.CSSProperties = {
 }
 
 export function HUD() {
-  const routePos = useStore((s) => s.routePos)
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
   const showDetails = useStore((s) => s.showDetails)
@@ -30,7 +29,6 @@ export function HUD() {
   const blindIndex = useStore((s) => s.blindIndex)
   const cycleBind = useStore((s) => s.cycleBind)
 
-  const district = ROUTE_DISTRICTS.find((d) => routePos >= d.from && routePos < d.to)?.label ?? ROUTE_DISTRICTS[0].label
   const currentStop = STOPS[blindIndex]
 
   const inFPSWorld = activeRoom !== null && FPS_STOPS.has(activeRoom)
@@ -257,29 +255,7 @@ export function HUD() {
         </div>
       )}
 
-      {/* District readout — ambient tram-only. Moved up-left inside worlds
-          would be confusing, so just hide it there. */}
-      {!activeRoom && (
-        <div style={{
-          position: 'absolute',
-          top: 20,
-          left: 16,
-          pointerEvents: 'none',
-          background: pillBg,
-          padding: '8px 18px',
-          borderRadius: 24,
-          backdropFilter: 'blur(8px)',
-          textAlign: 'center',
-          fontFamily: '"Noto Serif TC", Georgia, serif',
-          fontSize: 12,
-          letterSpacing: '0.18em',
-          opacity: 0.85,
-        }}>
-          {district}
-        </div>
-      )}
-
-      {/* Social handles — persistent across tram + worlds. Brass/ink chip
+{/* Social handles — persistent across tram + worlds. Brass/ink chip
           style matches the HK-1982 world. */}
       <div style={{
         position: 'absolute',

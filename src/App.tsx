@@ -124,11 +124,11 @@ function SeatedOrbit({ mobile }: { mobile: boolean }) {
   return (
     <OrbitControls
       target={[0, 1.65, -10.5]}
-      minDistance={1.5}
-      maxDistance={mobile ? 22 : 15}
+      minDistance={0.5}
+      maxDistance={mobile ? 32 : 28}
       enablePan={false}
       enableZoom={true}
-      zoomSpeed={0.6}
+      zoomSpeed={1.0}
       enableRotate={true}
       maxPolarAngle={Math.PI * 0.75}
       minPolarAngle={Math.PI * 0.2}

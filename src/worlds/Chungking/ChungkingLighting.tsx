@@ -3,13 +3,13 @@
 export function ChungkingLighting() {
   return (
     <>
-      {/* Shared arcade neon fills — replace the 8 per-stall pointLights */}
-      <pointLight position={[-1.5, 2.2, 0]}   color="#ff2850" intensity={1.1} distance={9} decay={2} />
-      <pointLight position={[ 1.5, 2.2, 0]}   color="#48d3ff" intensity={1.1} distance={9} decay={2} />
-      <pointLight position={[ 0,   2.5, -1.5]} color="#ffd84a" intensity={0.9}  distance={7} decay={2} />
+      {/* Shared arcade neon fills — vivid sign spill, not horror tint */}
+      <pointLight position={[-1.5, 2.2, 0]}   color="#ff3a60" intensity={1.4} distance={10} decay={2} />
+      <pointLight position={[ 1.5, 2.2, 0]}   color="#5ae0ff" intensity={1.4} distance={10} decay={2} />
+      <pointLight position={[ 0,   2.5, -1.5]} color="#ffe066" intensity={1.2} distance={8}  decay={2} />
       {/* Corridor warm pools */}
-      <pointLight position={[0, 2.1, -14]} color="#ffb038" intensity={0.55} distance={7} decay={2} />
-      <pointLight position={[0, 2.1, -24]} color="#ffb038" intensity={0.55} distance={7} decay={2} />
+      <pointLight position={[0, 2.1, -14]} color="#ffc060" intensity={0.85} distance={8} decay={2} />
+      <pointLight position={[0, 2.1, -24]} color="#ffc060" intensity={0.85} distance={8} decay={2} />
     </>
   )
 }
