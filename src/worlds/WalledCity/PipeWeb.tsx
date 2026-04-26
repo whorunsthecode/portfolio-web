@@ -39,6 +39,27 @@ function pipesDef(): PipeSeg[] {
     })
   })
 
+  // Cross-alley water pipes — galvanised-steel mains spanning wall-to-wall,
+  // a few at slightly different heights and z positions so they read as
+  // an actual plumbing run rather than a row.
+  const crossPipes = [
+    { z: -3.4, y: 3.25, radius: 0.07, color: '#8a8a86' },
+    { z: -1.2, y: 3.15, radius: 0.06, color: '#7a7a76' },
+    { z:  0.6, y: 3.30, radius: 0.075, color: '#909088' },
+    { z:  2.4, y: 3.20, radius: 0.06, color: '#7e7e78' },
+    { z:  3.8, y: 3.28, radius: 0.05, color: '#8c8c84' },
+  ]
+  crossPipes.forEach((p) => {
+    defs.push({
+      start: [-0.88, p.y, p.z],
+      end:   [ 0.88, p.y, p.z],
+      radius: p.radius,
+      color: p.color,
+      metalness: 0.55,
+      roughness: 0.55,
+    })
+  })
+
   // Cross-drops every ~1.5m — vertical elbow to apartment doors
   for (let z = -4; z <= 4; z += 1.6) {
     const side = z % 3 < 1.5 ? -1 : 1
