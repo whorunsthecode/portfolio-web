@@ -1,9 +1,8 @@
 import { create } from 'zustand'
 
-export type StopId = 'chungking' | 'walled_city'
+export type StopId = 'walled_city'
 
 export const STOPS: { id: StopId; label: string; subtitle: string }[] = [
-  { id: 'chungking',   label: 'CHUNGKING MANSIONS', subtitle: '尖沙咀 TSIM SHA TSUI' },
   { id: 'walled_city', label: 'THE WALLED CITY',    subtitle: '九龍城 KOWLOON CITY' },
 ]
 

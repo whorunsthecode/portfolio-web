@@ -2,14 +2,12 @@ import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Vector3 } from 'three'
 import { useStore, type StopId } from '../store'
-import { Chungking } from './Chungking'
 import { WalledCity } from './WalledCity'
 import { navState } from './common/nav'
 
 // Fly-in endpoints. For FPS worlds (Walled City) the endpoint must match
 // the FirstPersonControls' `start` so the handoff doesn't snap.
 const WORLD_CAMERAS: Record<StopId, { pos: [number, number, number]; look: [number, number, number]; fps: boolean }> = {
-  chungking:   { pos: [-100, 1.65, 4.0], look: [-100, 1.55, -1.0], fps: true  },
   walled_city: { pos: [100, 1.65, 4.5],  look: [100, 1.65, -5],    fps: true  },
 }
 
@@ -87,7 +85,6 @@ export function Worlds() {
   return (
     <>
       <WorldCamera />
-      {activeRoom === 'chungking' && <Chungking />}
       {activeRoom === 'walled_city' && <WalledCity />}
     </>
   )
