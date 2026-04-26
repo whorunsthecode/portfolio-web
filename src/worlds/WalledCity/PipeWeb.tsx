@@ -39,24 +39,57 @@ function pipesDef(): PipeSeg[] {
     })
   })
 
-  // Cross-alley water pipes — galvanised-steel mains spanning wall-to-wall,
-  // a few at slightly different heights and z positions so they read as
-  // an actual plumbing run rather than a row.
-  const crossPipes = [
-    { z: -3.4, y: 3.25, radius: 0.07, color: '#8a8a86' },
-    { z: -1.2, y: 3.15, radius: 0.06, color: '#7a7a76' },
-    { z:  0.6, y: 3.30, radius: 0.075, color: '#909088' },
-    { z:  2.4, y: 3.20, radius: 0.06, color: '#7e7e78' },
-    { z:  3.8, y: 3.28, radius: 0.05, color: '#8c8c84' },
+  // Cross-alley plumbing — wildly mixed: cast-iron soil stacks, galvanised
+  // water mains rusted to brown, flaking-paint risers, copper feeds gone to
+  // verdigris, a couple of newer PVC retrofits piggybacking on the iron.
+  // Heights, diameters, and z-spacing are all irregular on purpose; some
+  // are short fragments, some slant downward where they brace into a
+  // makeshift support, never two adjacent pipes the same gauge.
+  // Colours from Greg Girard's "City of Darkness" reference photos.
+  const cross: Array<{
+    z1: number; z2: number;            // wall x positions implicit (-0.88, +0.88) unless overridden
+    y1: number; y2?: number;           // y2 lets pipes slant
+    x1?: number; x2?: number;          // optional override for short fragments
+    radius: number; color: string;
+    metalness: number; roughness: number;
+  }> = [
+    // Chunky cast-iron soil stack — near-black, biggest diameter, sags slightly off-true
+    { z1: -3.6, z2: -3.55, y1: 3.18, y2: 3.14, radius: 0.11, color: '#1f1c18', metalness: 0.25, roughness: 0.95 },
+    // Rust-brown galvanised water main — full span, mid-height, rusted hard
+    { z1: -2.9, z2: -2.92, y1: 3.32, radius: 0.075, color: '#7a4528', metalness: 0.35, roughness: 0.85 },
+    // Thinner brown line right next to it — bundled twin mains
+    { z1: -2.82, z2: -2.85, y1: 3.24, radius: 0.045, color: '#6a3a22', metalness: 0.3, roughness: 0.85 },
+    // Flaking white-painted riser, slanting down toward right wall
+    { z1: -1.6, z2: -1.45, y1: 3.42, y2: 3.05, radius: 0.06, color: '#bfb7a4', metalness: 0.2, roughness: 0.85 },
+    // Short fragment — only spans the centre, like a cross-strap chunk
+    { z1: -1.55, z2: -1.55, y1: 2.92, x1: -0.4, x2: 0.55, radius: 0.04, color: '#3a3530', metalness: 0.3, roughness: 0.9 },
+    // Galvanised mid pipe — warm grey-brown patina (never silver)
+    { z1: -0.4, z2: -0.45, y1: 3.36, radius: 0.07, color: '#6e655c', metalness: 0.55, roughness: 0.6 },
+    // Copper feed gone to verdigris — small diameter, slightly higher
+    { z1: -0.25, z2: -0.22, y1: 3.48, radius: 0.025, color: '#4a7560', metalness: 0.55, roughness: 0.6 },
+    // PVC retrofit — newer, sun-bleached cream, piggybacks alongside
+    { z1: 0.4, z2: 0.45, y1: 3.10, radius: 0.05, color: '#d4cfbc', metalness: 0.0, roughness: 0.95 },
+    // Cast iron sewage, dropping diagonal toward left wall (tied to a brace)
+    { z1: 0.95, z2: 1.05, y1: 3.45, y2: 2.95, radius: 0.095, color: '#26221d', metalness: 0.25, roughness: 0.95 },
+    // Bundle: three rusty thin lines clustered together
+    { z1: 1.85, z2: 1.86, y1: 3.30, radius: 0.035, color: '#7a4a30', metalness: 0.35, roughness: 0.85 },
+    { z1: 1.95, z2: 1.95, y1: 3.26, radius: 0.04,  color: '#664028', metalness: 0.3,  roughness: 0.9  },
+    { z1: 2.05, z2: 2.04, y1: 3.34, radius: 0.03,  color: '#553825', metalness: 0.35, roughness: 0.85 },
+    // Wide gap, then chunky galvanised water main
+    { z1: 3.1, z2: 3.05, y1: 3.22, radius: 0.085, color: '#6a605a', metalness: 0.55, roughness: 0.55 },
+    // Short stub jutting out of left wall only — capped, going nowhere
+    { z1: 3.65, z2: 3.65, y1: 3.05, x1: -0.88, x2: -0.45, radius: 0.05, color: '#5a3a26', metalness: 0.3, roughness: 0.9 },
+    // Final low-hanging pipe near the alley end — gone mossy at the joint
+    { z1: 4.2, z2: 4.18, y1: 2.78, radius: 0.06, color: '#3a4a32', metalness: 0.2, roughness: 0.95 },
   ]
-  crossPipes.forEach((p) => {
+  cross.forEach((p) => {
     defs.push({
-      start: [-0.88, p.y, p.z],
-      end:   [ 0.88, p.y, p.z],
+      start: [p.x1 ?? -0.88, p.y1, p.z1],
+      end:   [p.x2 ??  0.88, p.y2 ?? p.y1, p.z2],
       radius: p.radius,
       color: p.color,
-      metalness: 0.55,
-      roughness: 0.55,
+      metalness: p.metalness,
+      roughness: p.roughness,
     })
   })
 

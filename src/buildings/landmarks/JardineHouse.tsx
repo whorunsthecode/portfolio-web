@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useStore } from '../../store'
-import { InfoTag } from '../../scene/components/InfoTag'
 
 /**
  * Jardine House (1973) — Central's first skyscraper, locally known as the
@@ -119,11 +118,6 @@ export function JardineHouse() {
         <meshStandardMaterial color="#8a8a82" roughness={0.7} />
       </mesh>
 
-      <InfoTag
-        label="Jardine House · 1,748 portholes"
-        offset={[width / 2 + 3, height * 0.6, 0]}
-        side="right"
-      />
     </group>
   )
 }
