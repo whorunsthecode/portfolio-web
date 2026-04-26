@@ -13,12 +13,16 @@ export interface CorridorDef {
   halfWidth: number   // half of the opening width (z axis)
   depth: number       // how far the corridor extends perpendicular from the alley
   ceiling: number     // y height of corridor ceiling
-  kind: 'window' | 'laundry'
+  kind: 'window' | 'laundry' | 'salon'
 }
 
 export const CORRIDORS: CorridorDef[] = [
   { side: 'left',  z: -2.5, halfWidth: 0.5, depth: 2.2, ceiling: 2.3, kind: 'laundry' },
   { side: 'right', z:  1.5, halfWidth: 0.5, depth: 2.2, ceiling: 2.3, kind: 'window' },
+  // Salon doorway — Salon.tsx provides its own interior; this entry exists
+  // only so AlleyShell cuts a gap in the alley right wall and the player
+  // can walk through. SideCorridors skips rendering for kind:'salon'.
+  { side: 'right', z: -0.4, halfWidth: 0.4, depth: 0.3, ceiling: 2.1, kind: 'salon' },
 ]
 
 function makeGrimyConcrete(size = 512): THREE.CanvasTexture {
@@ -249,7 +253,11 @@ function LaundryKnotDecor({ midX, farWallX, centreZ, outward, ceiling }: {
 export function SideCorridors() {
   return (
     <>
-      {CORRIDORS.map((c, i) => <Corridor key={i} def={c} />)}
+      {/* Skip 'salon' kind — Salon.tsx provides its own interior. The
+          CORRIDORS entry only exists so AlleyShell cuts a wall gap. */}
+      {CORRIDORS.filter((c) => c.kind !== 'salon').map((c, i) => (
+        <Corridor key={i} def={c} />
+      ))}
     </>
   )
 }

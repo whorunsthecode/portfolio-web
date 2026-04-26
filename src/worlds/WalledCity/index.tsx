@@ -11,6 +11,7 @@ import { PlaneFlyover } from './PlaneFlyover'
 import { Stairwell, stairFloor } from './Stairwell'
 import { Rooftop } from './Rooftop'
 import { SideCorridors, CORRIDORS } from './SideCorridors'
+import { Salon } from './Salon'
 import { FirstPersonControls, type Zone } from '../common/FirstPersonControls'
 
 // The world group is translated to world x=100, so the FPS bounds below
@@ -23,20 +24,24 @@ const WORLD_X = 100
 // stay in sync with whatever openings SideCorridors renders. Each
 // corridor is a narrow rectangular walkable zone with a 0.2m buffer
 // from the far wall and 0.05m from the side walls.
-const CORRIDOR_BOUNDS: Zone[] = CORRIDORS.map((c) => {
-  const zMin = c.z - c.halfWidth + 0.05
-  const zMax = c.z + c.halfWidth - 0.05
-  if (c.side === 'left') {
-    return {
-      min: [WORLD_X - 0.9 - c.depth + 0.2, 0, zMin],
-      max: [WORLD_X - 0.8, c.ceiling, zMax],
+const CORRIDOR_BOUNDS: Zone[] = CORRIDORS
+  // Salon kind has its own dedicated bounds below — its 'depth' is just a
+  // wall-thickness shim, not a walkable corridor.
+  .filter((c) => c.kind !== 'salon')
+  .map((c) => {
+    const zMin = c.z - c.halfWidth + 0.05
+    const zMax = c.z + c.halfWidth - 0.05
+    if (c.side === 'left') {
+      return {
+        min: [WORLD_X - 0.9 - c.depth + 0.2, 0, zMin] as [number, number, number],
+        max: [WORLD_X - 0.8, c.ceiling, zMax] as [number, number, number],
+      }
     }
-  }
-  return {
-    min: [WORLD_X + 0.8, 0, zMin],
-    max: [WORLD_X + 0.9 + c.depth - 0.2, c.ceiling, zMax],
-  }
-})
+    return {
+      min: [WORLD_X + 0.8, 0, zMin] as [number, number, number],
+      max: [WORLD_X + 0.9 + c.depth - 0.2, c.ceiling, zMax] as [number, number, number],
+    }
+  })
 
 const BOUNDS: Zone[] = [
   // Alley — 0.1m buffer from the left/right/front walls. Back edge
@@ -54,6 +59,11 @@ const BOUNDS: Zone[] = [
   // Rooftop — open-sky deck. Far edge also has no buffer with the
   // stairwell's far end (z=-11) for the same continuity reason.
   { min: [WORLD_X - 5.8, 5, -24.8], max: [WORLD_X + 5.8, 20, -11] },
+  // Salon — small KWC barber unit off the right alley wall. Doorway is
+  // 0.8m wide at z=-0.4 (z=-0.8 to 0). Tiny single-room shop, 2 chairs.
+  { min: [WORLD_X + 0.7, 0, -0.8], max: [WORLD_X + 2.85, 2.2, 0.0] },
+  // Salon interior — 2m deep × 2.5m wide × 2.2m ceiling.
+  { min: [WORLD_X + 0.95, 0, -2.45], max: [WORLD_X + 2.85, 2.2, -0.05] },
 ]
 
 export function WalledCity() {
@@ -72,6 +82,7 @@ export function WalledCity() {
         <SideCorridors />
         <Stairwell />
         <Rooftop />
+        <Salon />
         <PlaneFlyover />
       </group>
       <FirstPersonControls
