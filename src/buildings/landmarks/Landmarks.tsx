@@ -31,12 +31,16 @@ interface LandmarkDef {
 // IFC 2 (2003) and Cheung Kong Center (1999). Man Mo Temple (1847) and
 // Central Market (1938) add low-rise character alongside the office towers.
 const LANDMARKS: LandmarkDef[] = [
-  // HSBC closer to the road so it reads through the tram window — was
-  // x=15.5 which put it almost outside the camera's horizontal frustum.
-  { component: HSBC,              x: 10,     z: -18,  rotY: 0 },
+  // HSBC half-width is 6.5 (T1_W=13). Position must keep the road-side
+  // face clear of the tram path: face at x≥9 (tenement building line) →
+  // position ≥ 9 + 6.5 = 15.5. Earlier x=10 put the face at x=3.5,
+  // overlapping the road and clipping through the tram body.
+  { component: HSBC,              x: 15.5,   z: -18,  rotY: 0 },
   { component: CentralMarket,     x: -12,    z: -26,  rotY: 0 },
-  // BoC also brought in — was x=-14.5, outside frustum.
-  { component: BoC,               x: -10,    z: -34,  rotY: 0 },
+  // BoC base half-width is 10 (HW=10). Position x=-10 put the east face
+  // at x=0, slicing straight through the tram. Push to x=-19 so the
+  // road-side face sits at x=-9, flush with the tenement line.
+  { component: BoC,               x: -19,    z: -34,  rotY: 0 },
   { component: Furama,            x: 12,     z: -48,  rotY: 0 },
   { component: WesternMarket,     x: -13.5,  z: -60,  rotY: 0 },
   { component: JardineHouse,      x: 13.5,   z: -75,  rotY: 0 },

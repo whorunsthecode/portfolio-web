@@ -83,7 +83,7 @@ export default function App() {
           style={{
             position: 'fixed',
             top: 20,
-            right: 20,
+            left: 16,
             zIndex: 200,
             background: 'rgba(0,0,0,0.4)',
             border: 'none',

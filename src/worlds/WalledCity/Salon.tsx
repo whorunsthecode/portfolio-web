@@ -1207,6 +1207,146 @@ function StripCurtain() {
   )
 }
 
+// ── Barber-pole spiral texture: red / white / blue diagonal stripes
+//    sliced as a wrap-around cylinder map. Static (no animation) — the
+//    light + colour alone signal "barber" from across the alley. ──
+function makeBarberPoleTex(): THREE.CanvasTexture {
+  const W = 64
+  const H = 256
+  const canvas = document.createElement('canvas')
+  canvas.width = W; canvas.height = H
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#f4ede0'
+  ctx.fillRect(0, 0, W, H)
+  const stripeH = 32
+  const skew = 18
+  ctx.fillStyle = '#c61b1b'
+  for (let y = -H; y < H * 2; y += stripeH * 2) {
+    ctx.beginPath()
+    ctx.moveTo(0, y); ctx.lineTo(W, y - skew)
+    ctx.lineTo(W, y - skew + stripeH); ctx.lineTo(0, y + stripeH)
+    ctx.closePath(); ctx.fill()
+  }
+  ctx.fillStyle = '#1d4690'
+  for (let y = -H + stripeH; y < H * 2; y += stripeH * 2) {
+    ctx.beginPath()
+    ctx.moveTo(0, y + stripeH * 0.42); ctx.lineTo(W, y - skew + stripeH * 0.42)
+    ctx.lineTo(W, y - skew + stripeH * 0.62); ctx.lineTo(0, y + stripeH * 0.62)
+    ctx.closePath(); ctx.fill()
+  }
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.wrapS = THREE.RepeatWrapping
+  tex.wrapT = THREE.RepeatWrapping
+  return tex
+}
+
+// ── Backlit shop sign: bilingual "理髮 / BARBER" on a warm cream
+//    fluorescent face. Aged with light staining so it reads period-correct
+//    rather than freshly printed. ──
+function makeSalonSignTex(): THREE.CanvasTexture {
+  const W = 512
+  const H = 144
+  const canvas = document.createElement('canvas')
+  canvas.width = W; canvas.height = H
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#fff2c8'
+  ctx.fillRect(0, 0, W, H)
+  ctx.strokeStyle = '#a04018'
+  ctx.lineWidth = 6
+  ctx.strokeRect(5, 5, W - 10, H - 10)
+  ctx.fillStyle = '#c61b1b'
+  ctx.font = 'bold 92px "Noto Serif TC", "Microsoft JhengHei", serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('理髮', W * 0.30, H * 0.52)
+  ctx.fillStyle = '#a04018'
+  ctx.font = 'bold 44px "Playfair Display", Georgia, serif'
+  ctx.fillText('BARBER', W * 0.70, H * 0.52)
+  // Aging stains
+  for (let i = 0; i < 9; i++) {
+    ctx.fillStyle = `rgba(120, 60, 24, ${0.05 + Math.random() * 0.08})`
+    ctx.beginPath()
+    ctx.arc(Math.random() * W, Math.random() * H, 8 + Math.random() * 22, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  return new THREE.CanvasTexture(canvas)
+}
+
+// ── Exterior signage: barber pole + backlit shop sign mounted on the
+//    alley side of the salon door. Player approaches from +z, so the pole
+//    sits on the +z side of the doorway to register before they reach it. ──
+function SalonSignage() {
+  const poleTex = useMemo(() => {
+    const t = makeBarberPoleTex()
+    t.repeat.set(1, 2)
+    return t
+  }, [])
+  const signTex = useMemo(() => makeSalonSignTex(), [])
+
+  return (
+    <group>
+      {/* Barber pole — short cylinder protruding from the wall on a bracket */}
+      <group position={[X_NEAR - 0.12, 1.55, 0.18]}>
+        {/* Wall bracket */}
+        <mesh position={[0.09, 0, 0]}>
+          <boxGeometry args={[0.06, 0.06, 0.06]} />
+          <meshStandardMaterial color={CHROME_DARK} metalness={0.7} roughness={0.5} />
+        </mesh>
+        {/* End caps */}
+        <mesh position={[0, 0.30, 0]}>
+          <cylinderGeometry args={[0.078, 0.078, 0.05, 14]} />
+          <meshStandardMaterial color={CHROME} metalness={0.8} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, -0.30, 0]}>
+          <cylinderGeometry args={[0.078, 0.078, 0.05, 14]} />
+          <meshStandardMaterial color={CHROME} metalness={0.8} roughness={0.3} />
+        </mesh>
+        {/* Glass cylinder — emissive so it glows in the dim alley */}
+        <mesh>
+          <cylinderGeometry args={[0.06, 0.06, 0.55, 18]} />
+          <meshStandardMaterial
+            map={poleTex}
+            emissive={'#ffe0b0'}
+            emissiveMap={poleTex}
+            emissiveIntensity={0.6}
+            roughness={0.35}
+            metalness={0.1}
+          />
+        </mesh>
+      </group>
+
+      {/* Backlit sign mounted on the wall above the doorway */}
+      <group position={[X_NEAR - 0.04, 1.97, DOOR_Z_CENTRE]}>
+        <mesh>
+          <boxGeometry args={[0.05, 0.20, 0.74]} />
+          <meshStandardMaterial color={'#3a2818'} roughness={0.85} />
+        </mesh>
+        <mesh position={[-0.026, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+          <planeGeometry args={[0.7, 0.16]} />
+          <meshStandardMaterial
+            map={signTex}
+            emissive={'#ffaa44'}
+            emissiveMap={signTex}
+            emissiveIntensity={1.6}
+            color={'#fff2c8'}
+            roughness={0.5}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      </group>
+
+      {/* Warm spill light from the doorway into the alley */}
+      <pointLight
+        position={[X_NEAR - 0.15, 1.5, DOOR_Z_CENTRE]}
+        color={'#ffaa55'}
+        intensity={0.9}
+        distance={2.4}
+        decay={2}
+      />
+    </group>
+  )
+}
+
 export function Salon() {
   const floorTex = useMemo(() => makeSalonFloorTex(), [])
   const wallTex = useMemo(() => makeSalonWallTex(), [])
@@ -1278,6 +1418,7 @@ export function Salon() {
       <Sink />
       <CeilingFan />
       <StripCurtain />
+      <SalonSignage />
     </group>
   )
 }

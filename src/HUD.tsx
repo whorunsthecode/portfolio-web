@@ -34,16 +34,18 @@ export function HUD() {
   const inFPSWorld = activeRoom !== null && FPS_STOPS.has(activeRoom)
   const [hintSeen, setHintSeen] = useState(false)
 
-  // Dismiss the intro hint on the first input — we watch movement keys
-  // and any mousedown on the canvas.
+  // Dismiss the intro hint on the first input — keyboard, mouse, or touch.
+  // Touch matters on mobile where the hint doubles as a zone diagram.
   useEffect(() => {
     if (!inFPSWorld || hintSeen) return
     const on = () => setHintSeen(true)
     window.addEventListener('keydown', on, { once: true })
     window.addEventListener('mousedown', on, { once: true })
+    window.addEventListener('touchstart', on, { once: true })
     return () => {
       window.removeEventListener('keydown', on)
       window.removeEventListener('mousedown', on)
+      window.removeEventListener('touchstart', on)
     }
   }, [inFPSWorld, hintSeen])
 
@@ -93,17 +95,44 @@ export function HUD() {
           <span><kbd style={kbdStyle}>B</kbd> back to tram</span>
         </div>
       )}
-      {inFPSWorld && IS_TOUCH && (
-        <div style={{
-          position: 'absolute', bottom: 80, left: '50%', transform: 'translateX(-50%)',
-          pointerEvents: 'none',
-          background: 'rgba(20, 16, 10, 0.7)',
-          color: '#f0e6d0', padding: '8px 18px', borderRadius: 20,
-          fontSize: 11, letterSpacing: '0.1em',
-          backdropFilter: 'blur(6px)',
-        }}>
-          Left half: move · Right half: look
-        </div>
+      {inFPSWorld && IS_TOUCH && !hintSeen && (
+        <>
+          {/* Centre vertical divider showing the two thumb zones */}
+          <div style={{
+            position: 'absolute', top: '20%', bottom: '20%',
+            left: '50%', width: 1,
+            background: 'rgba(240,230,208,0.20)',
+            pointerEvents: 'none',
+          }} />
+          {/* Left zone label — drag to move */}
+          <div style={{
+            position: 'absolute', bottom: '38%', left: 0, width: '50%',
+            pointerEvents: 'none',
+            color: '#f0e6d0',
+            fontSize: 12, letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            fontFamily: 'Georgia, serif',
+            opacity: 0.72,
+            textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+          }}>
+            drag here<br/><span style={{ opacity: 0.7, fontSize: 10 }}>to move</span>
+          </div>
+          {/* Right zone label — drag to look */}
+          <div style={{
+            position: 'absolute', bottom: '38%', right: 0, width: '50%',
+            pointerEvents: 'none',
+            color: '#f0e6d0',
+            fontSize: 12, letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            fontFamily: 'Georgia, serif',
+            opacity: 0.72,
+            textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+          }}>
+            drag here<br/><span style={{ opacity: 0.7, fontSize: 10 }}>to look</span>
+          </div>
+        </>
       )}
 
       {/* Back button — only visible inside a world */}
@@ -255,20 +284,25 @@ export function HUD() {
         </div>
       )}
 
-{/* Social handles — persistent across tram + worlds. Brass/ink chip
-          style matches the HK-1982 world. */}
-      <div style={{
-        position: 'absolute',
-        bottom: 24,
-        right: 16,
-        pointerEvents: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        alignItems: 'flex-end',
-      }}>
-        <SocialChip label="@karmenbuilds" platform="Instagram" url="https://instagram.com/karmenbuilds" />
-      </div>
+{/* Social handles — only on the tram. In FPS worlds the chip sits in the
+          right-half drag-to-look zone and steals touches that should rotate the
+          camera, so we hide it while exploring and bring it back on the tram.
+          On touch viewports the destination pill spans nearly full width, so
+          stack the chip above it. */}
+      {!inFPSWorld && (
+        <div style={{
+          position: 'absolute',
+          bottom: IS_TOUCH && !activeRoom ? 84 : 24,
+          right: 16,
+          pointerEvents: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          alignItems: 'flex-end',
+        }}>
+          <SocialChip label="@karmenbuilds" platform="Instagram" url="https://instagram.com/karmenbuilds" />
+        </div>
+      )}
     </div>
   )
 }
