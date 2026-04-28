@@ -15,9 +15,15 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-// Palette — 80s HK Central commuter demographics
-const SKINS = ['#e8c8a0', '#f0d4b0', '#dfc090', '#d8b088']
-const SHIRTS = [
+// Palette — 80s HK Central commuter demographics. Skin tones span the
+// neighbourhood: predominantly East Asian, with the South Asian and
+// Western expat presence Central was known for.
+const SKINS = [
+  '#e8c8a0', '#f0d4b0', '#dfc090', '#d8b088',  // East Asian range
+  '#c89060', '#a87848',                         // South Asian range
+  '#f5e0c8',                                    // Western fair
+]
+const SHIRTS_M = [
   '#b84840', // red
   '#2a4a72', // navy
   '#6a5a88', // muted purple
@@ -29,13 +35,32 @@ const SHIRTS = [
   '#d8c4a0', // cream
   '#1a1a18', // black
 ]
+const SHIRTS_F = [
+  '#e8a8b8', // pink
+  '#a890c8', // lavender
+  '#d4a868', // mustard
+  '#88a8d4', // sky blue
+  '#c84860', // rose
+  '#e8d4a8', // butter cream
+  '#a8b8a0', // sage
+  '#d8c4a0', // cream
+  '#b84840', // red (shared)
+  '#2a4a72', // navy (shared)
+  '#8a2432', // burgundy (shared)
+]
+const SKIRTS = [
+  '#3a3030', '#1a2030', '#5a3a3a', '#3a4a3a',
+  '#4a3a28', '#a82832', '#3a2018', '#2a2a28',
+]
 const TROUSERS = ['#2a2420', '#3a3228', '#1a2030', '#2a2a28', '#4a3a30']
 
 type PedVariant = 'walker' | 'businessman' | 'shopper'
+type PedGender = 'm' | 'f'
 
 interface Ped {
   id: number
   variant: PedVariant
+  gender: PedGender
   side: 1 | -1          // -1 = left sidewalk, +1 = right
   direction: 1 | -1     // +1 = walking toward camera (+Z), -1 = away (-Z)
   z: number
@@ -44,9 +69,12 @@ interface Ped {
   shirtIdx: number
   skinIdx: number
   trouserIdx: number
+  skirtIdx: number
   phase: number         // starting phase for walk animation
   hasHat: boolean
   hasBag: boolean
+  hairLong: boolean     // shoulder-length back drape
+  wearsSkirt: boolean   // women only — knee-length skirt over visible shins
 }
 
 // Sidewalk goes x=±5.5 to ±9. Landmarks (SheungWanStalls, SaiYingPunShelter)
@@ -79,20 +107,29 @@ function pickVariant(): PedVariant {
 
 function seedPed(id: number, side: 1 | -1, initialZ?: number): Ped {
   const direction: 1 | -1 = Math.random() < 0.5 ? 1 : -1
+  const gender: PedGender = Math.random() < 0.48 ? 'f' : 'm'
+  const variant = pickVariant()
+  const shirtPool = gender === 'f' ? SHIRTS_F : SHIRTS_M
   return {
     id,
-    variant: pickVariant(),
+    variant,
+    gender,
     side,
     direction,
     z: initialZ ?? rand(Z_MIN, Z_MAX),
     speed: rand(0.9, 1.6),
     xJitter: rand(-SIDEWALK_HALF_WIDTH, SIDEWALK_HALF_WIDTH),
-    shirtIdx: Math.floor(Math.random() * SHIRTS.length),
+    shirtIdx: Math.floor(Math.random() * shirtPool.length),
     skinIdx: Math.floor(Math.random() * SKINS.length),
     trouserIdx: Math.floor(Math.random() * TROUSERS.length),
+    skirtIdx: Math.floor(Math.random() * SKIRTS.length),
     phase: Math.random() * Math.PI * 2,
-    hasHat: Math.random() < 0.25,
-    hasBag: Math.random() < 0.4,
+    // Men get hats more often than women (period detail: trilbies / fedoras)
+    hasHat: gender === 'm' ? Math.random() < 0.22 : Math.random() < 0.08,
+    // Shoppers carry bags more, businessmen carry briefcases (both rendered as a bag)
+    hasBag: variant === 'shopper' ? Math.random() < 0.7 : Math.random() < 0.35,
+    hairLong: gender === 'f' ? Math.random() < 0.82 : Math.random() < 0.06,
+    wearsSkirt: gender === 'f' && variant !== 'businessman' ? Math.random() < 0.6 : false,
   }
 }
 
@@ -193,26 +230,35 @@ function PedestrianFigure({
   legRefCallback: (idx: number, el: THREE.Group | null) => void
   armRefCallback: (idx: number, el: THREE.Group | null) => void
 }) {
-  const shirt = SHIRTS[p.shirtIdx]
+  const shirtPool = p.gender === 'f' ? SHIRTS_F : SHIRTS_M
+  const shirt = shirtPool[p.shirtIdx % shirtPool.length]
   const skin = SKINS[p.skinIdx]
   const trouser = TROUSERS[p.trouserIdx]
+  const skirt = SKIRTS[p.skirtIdx]
 
-  // Businessmen tend to wear dark suits — override shirt/trouser for them
+  // Businessmen tend to wear dark suits. Businesswomen get a smart-suit
+  // dark skirt rather than the flashier civilian palette.
   const isBiz = p.variant === 'businessman'
   const bodyColor = isBiz ? '#1a1a20' : shirt
   const legColor = isBiz ? '#1a1a18' : trouser
+  const skirtColor = isBiz && p.gender === 'f' ? '#1a1a20' : skirt
   const hatColor = isBiz ? '#1a1410' : '#4a3a2a'
+
+  // Slimmer silhouette for women — narrower torso/shoulders.
+  const torsoW = p.gender === 'f' ? 0.24 : 0.28
+  const shoulderW = p.gender === 'f' ? 0.28 : 0.32
+  const armX = p.gender === 'f' ? 0.14 : 0.16
 
   return (
     <group>
       {/* Torso */}
       <mesh position={[0, 0.9, 0]}>
-        <boxGeometry args={[0.28, 0.5, 0.2]} />
+        <boxGeometry args={[torsoW, 0.5, 0.2]} />
         <meshStandardMaterial color={bodyColor} roughness={0.85} />
       </mesh>
       {/* Shoulders taper */}
       <mesh position={[0, 1.15, 0]}>
-        <boxGeometry args={[0.32, 0.08, 0.18]} />
+        <boxGeometry args={[shoulderW, 0.08, 0.18]} />
         <meshStandardMaterial color={bodyColor} roughness={0.85} />
       </mesh>
       {/* Neck */}
@@ -230,6 +276,15 @@ function PedestrianFigure({
         <sphereGeometry args={[0.093, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
         <meshStandardMaterial color="#1a0f08" roughness={0.9} />
       </mesh>
+      {/* Long hair drape — flat panel hanging behind the head down to
+          shoulder/upper-back. Visible from side and back, almost invisible
+          from straight-on, which matches the silhouette goal. */}
+      {p.hairLong && (
+        <mesh position={[0, 1.18, -0.055]}>
+          <boxGeometry args={[0.18, 0.34, 0.04]} />
+          <meshStandardMaterial color="#1a0f08" roughness={0.92} />
+        </mesh>
+      )}
       {/* Hat (some peds) */}
       {p.hasHat && (
         <group position={[0, 1.44, 0]}>
@@ -247,7 +302,7 @@ function PedestrianFigure({
       {/* Arms — animated via ref */}
       <group
         ref={(el) => armRefCallback(0, el)}
-        position={[-0.16, 1.1, 0]}
+        position={[-armX, 1.1, 0]}
       >
         <mesh position={[0, -0.2, 0]}>
           <cylinderGeometry args={[0.04, 0.04, 0.44, 8]} />
@@ -256,7 +311,7 @@ function PedestrianFigure({
       </group>
       <group
         ref={(el) => armRefCallback(1, el)}
-        position={[0.16, 1.1, 0]}
+        position={[armX, 1.1, 0]}
       >
         <mesh position={[0, -0.2, 0]}>
           <cylinderGeometry args={[0.04, 0.04, 0.44, 8]} />
@@ -274,33 +329,73 @@ function PedestrianFigure({
         )}
       </group>
 
-      {/* Legs — animated via ref */}
+      {/* Skirt (women, when wearsSkirt) — knee-length, sits at the hip
+          OUTSIDE the leg refs so it doesn't swing with each step. The
+          calves render inside the leg refs and animate normally. */}
+      {p.wearsSkirt && (
+        <mesh position={[0, 0.5, 0]}>
+          <cylinderGeometry args={[0.13, 0.19, 0.34, 12]} />
+          <meshStandardMaterial color={skirtColor} roughness={0.88} />
+        </mesh>
+      )}
+
+      {/* Legs — animated via ref. For skirt-wearers we render only the
+          visible calf (skin-toned) + shoe; the thighs are inside the skirt. */}
       <group
         ref={(el) => legRefCallback(0, el)}
         position={[-0.07, 0.65, 0]}
       >
-        <mesh position={[0, -0.28, 0]}>
-          <cylinderGeometry args={[0.05, 0.045, 0.58, 8]} />
-          <meshStandardMaterial color={legColor} roughness={0.88} />
-        </mesh>
-        {/* Shoe */}
-        <mesh position={[0, -0.6, 0.04]}>
-          <boxGeometry args={[0.08, 0.05, 0.16]} />
-          <meshStandardMaterial color="#1a1410" roughness={0.9} />
-        </mesh>
+        {p.wearsSkirt ? (
+          <>
+            <mesh position={[0, -0.45, 0]}>
+              <cylinderGeometry args={[0.04, 0.038, 0.30, 8]} />
+              <meshStandardMaterial color={skin} roughness={0.85} />
+            </mesh>
+            <mesh position={[0, -0.61, 0.03]}>
+              <boxGeometry args={[0.08, 0.045, 0.14]} />
+              <meshStandardMaterial color="#3a1a14" roughness={0.85} />
+            </mesh>
+          </>
+        ) : (
+          <>
+            <mesh position={[0, -0.28, 0]}>
+              <cylinderGeometry args={[0.05, 0.045, 0.58, 8]} />
+              <meshStandardMaterial color={legColor} roughness={0.88} />
+            </mesh>
+            <mesh position={[0, -0.6, 0.04]}>
+              <boxGeometry args={[0.08, 0.05, 0.16]} />
+              <meshStandardMaterial color="#1a1410" roughness={0.9} />
+            </mesh>
+          </>
+        )}
       </group>
       <group
         ref={(el) => legRefCallback(1, el)}
         position={[0.07, 0.65, 0]}
       >
-        <mesh position={[0, -0.28, 0]}>
-          <cylinderGeometry args={[0.05, 0.045, 0.58, 8]} />
-          <meshStandardMaterial color={legColor} roughness={0.88} />
-        </mesh>
-        <mesh position={[0, -0.6, 0.04]}>
-          <boxGeometry args={[0.08, 0.05, 0.16]} />
-          <meshStandardMaterial color="#1a1410" roughness={0.9} />
-        </mesh>
+        {p.wearsSkirt ? (
+          <>
+            <mesh position={[0, -0.45, 0]}>
+              <cylinderGeometry args={[0.04, 0.038, 0.30, 8]} />
+              <meshStandardMaterial color={skin} roughness={0.85} />
+            </mesh>
+            <mesh position={[0, -0.61, 0.03]}>
+              <boxGeometry args={[0.08, 0.045, 0.14]} />
+              <meshStandardMaterial color="#3a1a14" roughness={0.85} />
+            </mesh>
+          </>
+        ) : (
+          <>
+            <mesh position={[0, -0.28, 0]}>
+              <cylinderGeometry args={[0.05, 0.045, 0.58, 8]} />
+              <meshStandardMaterial color={legColor} roughness={0.88} />
+            </mesh>
+            <mesh position={[0, -0.6, 0.04]}>
+              <boxGeometry args={[0.08, 0.05, 0.16]} />
+              <meshStandardMaterial color="#1a1410" roughness={0.9} />
+            </mesh>
+          </>
+        )}
       </group>
     </group>
   )
