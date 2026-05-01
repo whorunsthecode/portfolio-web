@@ -4,6 +4,7 @@ import { Sundry } from './Sundry'
 import { BingSutt } from './BingSutt'
 import { FruitStall } from './FruitStall'
 import { ShopFigures } from './ShopFigures'
+import { InteractableHUD } from './InteractableHUD'
 import { PipeWeb } from './PipeWeb'
 import { MailSlots } from './MailSlots'
 import { ApartmentFacades } from './ApartmentFacades'
@@ -120,7 +121,7 @@ export function WalledCity() {
         <FruitStall />
         <ShopFigures />
       </group>
-      {/* InteractableHUD mounts in Task 17/18 */}
+      <InteractableHUD />
       <FirstPersonControls
         bounds={BOUNDS}
         start={[WORLD_X, 0, 4.5]}
