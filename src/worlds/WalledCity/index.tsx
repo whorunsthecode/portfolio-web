@@ -1,4 +1,5 @@
 import { AlleyShell } from './AlleyShell'
+import { AlleyDogleg } from './AlleyDogleg'
 import { PipeWeb } from './PipeWeb'
 import { MailSlots } from './MailSlots'
 import { ApartmentFacades } from './ApartmentFacades'
@@ -20,50 +21,75 @@ import { FirstPersonControls, type Zone } from '../common/FirstPersonControls'
 // via bounds is simpler than nesting inside the group.
 const WORLD_X = 100
 
-// Corridor bounds derived straight from the CORRIDORS defs so they
-// stay in sync with whatever openings SideCorridors renders. Each
-// corridor is a narrow rectangular walkable zone with a 0.2m buffer
-// from the far wall and 0.05m from the side walls.
+// Corridor bounds derived straight from the CORRIDORS defs so they stay
+// in sync with whatever openings SideCorridors renders.
+//
+// Two skips:
+//   - 'salon' has its own dedicated bounds below
+//   - 'stairwell' has the rotated Stairwell bound below (with floorFn)
+//
+// Segment-aware: corridors at z<-16 sit on the deep alley segment
+// (axis x=-2), so their alley wall plane is offset accordingly.
 const CORRIDOR_BOUNDS: Zone[] = CORRIDORS
-  // Salon kind has its own dedicated bounds below — its 'depth' is just a
-  // wall-thickness shim, not a walkable corridor.
-  .filter((c) => c.kind !== 'salon')
+  .filter((c) => c.kind !== 'salon' && c.kind !== 'stairwell')
   .map((c) => {
     const zMin = c.z - c.halfWidth + 0.05
     const zMax = c.z + c.halfWidth - 0.05
+    const segCenterX = c.z < -16 ? -2 : 0
     if (c.side === 'left') {
       return {
-        min: [WORLD_X - 0.9 - c.depth + 0.2, 0, zMin] as [number, number, number],
-        max: [WORLD_X - 0.8, c.ceiling, zMax] as [number, number, number],
+        min: [WORLD_X + segCenterX - 0.9 - c.depth + 0.2, 0, zMin] as [number, number, number],
+        max: [WORLD_X + segCenterX - 0.8, c.ceiling, zMax] as [number, number, number],
       }
     }
     return {
-      min: [WORLD_X + 0.8, 0, zMin] as [number, number, number],
-      max: [WORLD_X + 0.9 + c.depth - 0.2, c.ceiling, zMax] as [number, number, number],
+      min: [WORLD_X + segCenterX + 0.8, 0, zMin] as [number, number, number],
+      max: [WORLD_X + segCenterX + 0.9 + c.depth - 0.2, c.ceiling, zMax] as [number, number, number],
     }
   })
 
 const BOUNDS: Zone[] = [
-  // Alley — 0.1m buffer from the left/right/front walls. Back edge
-  // (z=-5) has NO buffer so the player can walk up to the doorway and
-  // seam into the stairwell zone.
-  { min: [WORLD_X - 0.8, 0, -5], max: [WORLD_X + 0.8, 3.8, 4.8] },
+  // Entrance alley segment — axis x=0, z from front wall (+4.8) down to
+  // dogleg boundary (-14). 0.1m buffer from left/right walls.
+  { min: [WORLD_X - 0.8, 0, -14], max: [WORLD_X + 0.8, 3.8, 4.8] },
+
+  // Dogleg transition zone — covers the bend between segments. Slightly
+  // generous rectangle (the wall meshes contain the player visually).
+  { min: [WORLD_X - 2.8, 0, -16], max: [WORLD_X + 0.8, 3.8, -14] },
+
+  // Deep alley segment — axis x=-2, z from dogleg boundary (-16) down to
+  // FruitStall blockade (-28). 1.6m walkable width centered on x=-2.
+  { min: [WORLD_X - 2.8, 0, -28], max: [WORLD_X - 1.2, 3.8, -16] },
+
+  // BingSutt doorway-overlap strip — narrow zone that lets the player
+  // cross the alley→shop threshold at z ∈ [-22, -18]. Without this the
+  // 0.2m gap between alley bound (x≤-1.2) and shop bound (x≥-1.0)
+  // blocks entry.
+  { min: [WORLD_X - 1.2, 0, -22], max: [WORLD_X - 1.0, 3.8, -18] },
+
   ...CORRIDOR_BOUNDS,
-  // Stairwell — floor ramps from y=0 at z=-5 up to y=5 at z=-11. The
-  // alley back edge and the stairwell front edge BOTH live at z=-5 so
-  // the floor height stays continuous (both report y=0 there).
+
+  // Stairwell — perpendicular branch off entrance segment left wall at
+  // z=[-9, -8]. Floor ramps from y=0 at x=-0.9 up to y=5 at x=-6.
   {
-    min: [WORLD_X - 0.8, 0, -11], max: [WORLD_X + 0.8, 7, -5],
-    floorFn: (_x, z) => stairFloor(_x, z),
+    min: [WORLD_X - 6, 0, -9], max: [WORLD_X - 0.8, 7, -8],
+    floorFn: (x, _z) => stairFloor(x - WORLD_X, _z),
   },
-  // Rooftop — open-sky deck. Far edge also has no buffer with the
-  // stairwell's far end (z=-11) for the same continuity reason.
-  { min: [WORLD_X - 5.8, 5, -24.8], max: [WORLD_X + 5.8, 20, -11] },
-  // Salon — small KWC barber unit off the right alley wall. Doorway is
-  // 0.8m wide at z=-0.4 (z=-0.8 to 0). Tiny single-room shop, 2 chairs.
+
+  // Rooftop — open-sky deck. Extended SOUTH to z=-7 (was -11) so the
+  // stairwell landing at x=-6, z=-8.5 falls inside the bound; player
+  // can step off the stairs onto the rooftop seamlessly.
+  { min: [WORLD_X - 5.8, 5, -24.8], max: [WORLD_X + 5.8, 20, -7] },
+
+  // Salon — small KWC barber unit off the right alley wall (entrance
+  // segment). Doorway and interior unchanged from the existing build.
   { min: [WORLD_X + 0.7, 0, -0.8], max: [WORLD_X + 2.85, 2.2, 0.0] },
-  // Salon interior — 2m deep × 2.5m wide × 2.2m ceiling.
   { min: [WORLD_X + 0.95, 0, -2.45], max: [WORLD_X + 2.85, 2.2, -0.05] },
+
+  // 強記冰室 walk-in interior — right side of deep segment. 2m wide
+  // (x ∈ [-1.0, +0.8] = 1.8m walkable + 0.2m wall margins) × 4m deep
+  // (z ∈ [-22, -18]) × 2.8m ceiling.
+  { min: [WORLD_X - 1.0, 0, -22], max: [WORLD_X + 0.8, 2.8, -18] },
 ]
 
 export function WalledCity() {
@@ -73,6 +99,7 @@ export function WalledCity() {
         <WalledCityLighting />
         <FluorescentTubes />
         <AlleyShell />
+        <AlleyDogleg />
         <PipeWeb />
         <MailSlots />
         <ApartmentFacades />
@@ -84,7 +111,9 @@ export function WalledCity() {
         <Rooftop />
         <Salon />
         <PlaneFlyover />
+        {/* Sundry, BingSutt, FruitStall, ShopFigures mount in subsequent tasks */}
       </group>
+      {/* InteractableHUD mounts in Task 17/18 */}
       <FirstPersonControls
         bounds={BOUNDS}
         start={[WORLD_X, 0, 4.5]}
