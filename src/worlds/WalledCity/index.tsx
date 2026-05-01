@@ -1,6 +1,7 @@
 import { AlleyShell } from './AlleyShell'
 import { AlleyDogleg } from './AlleyDogleg'
 import { Sundry } from './Sundry'
+import { BingSutt } from './BingSutt'
 import { PipeWeb } from './PipeWeb'
 import { MailSlots } from './MailSlots'
 import { ApartmentFacades } from './ApartmentFacades'
@@ -113,7 +114,8 @@ export function WalledCity() {
         <Salon />
         <PlaneFlyover />
         <Sundry />
-        {/* BingSutt, FruitStall, ShopFigures mount in subsequent tasks */}
+        <BingSutt />
+        {/* FruitStall, ShopFigures mount in subsequent tasks */}
       </group>
       {/* InteractableHUD mounts in Task 17/18 */}
       <FirstPersonControls
