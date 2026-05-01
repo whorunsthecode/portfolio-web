@@ -116,12 +116,12 @@ export function WalledCity() {
         <Rooftop />
         <Salon />
         <PlaneFlyover />
-        {/* DEBUG: temporarily disable new shop components to isolate
-            'all black' bug. If WC renders with these off, the issue is
-            in one of these. Re-enable after diagnosis. */}
-        {/* <Sundry /> */}
+        {/* DEBUG bisect step 2: re-enable Sundry + FruitStall (visually
+            simple, single-file). If world still renders, BingSutt or
+            HUD is the culprit. */}
+        <Sundry />
         {/* <BingSutt /> */}
-        {/* <FruitStall /> */}
+        <FruitStall />
         {/* <ShopFigures /> */}
       </group>
       {/* <InteractableHUD /> */}
