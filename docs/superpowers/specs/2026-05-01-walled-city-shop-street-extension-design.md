@@ -152,11 +152,11 @@ No new shop-frontage components. The walls between/around the 3 shops are contin
 **New small components:**
 - `AlleyDogleg` (~80 lines) — the 2m transition shell at z=−14 to −16
 - 2 new entries in `SideCorridors.CORRIDORS` (z=−12 right false-path, z=−25 left vertical-sign alcove)
-- `ShopFigures.tsx` (~300 lines) — wraps reused TramPassengers character meshes in seated/standing poses for the 3 shop figures
+- `ShopFigures.tsx` (~120 lines) — thin wrapper that imports TramPassengers character meshes and places 3 static poses (1 shopkeeper in 士多, 2 customers in 冰室). No new mesh code, just placement.
 
 ## 5. HUD affordance system
 
-**File:** `src/worlds/WalledCity/InteractableHUD.tsx` (~250 lines), mounted alongside the WalledCity world.
+**File:** `src/worlds/WalledCity/InteractableHUD.tsx` (~170 lines), mounted alongside the WalledCity world.
 
 ### 5.1 Interactables
 
@@ -173,14 +173,13 @@ Four hard-coded entries:
 
 - Each interactable has a soft warm point light (`#ffb060`) at the doorway/frontage center, disabled by default.
 - Each frame, distance from camera is checked. Within **3.5m**, the light fades up over ~250ms; beyond, fades down.
-- **Maximum 2 active lights at a time** (the closest two) — prevents the deep alley from lighting up everything.
 - Peak intensity 1.2, distance 3m. Subtle augment to existing shop lighting.
 
 ### 5.3 Spatial tooltip
 
 - DOM overlay positioned over the canvas (matches existing HUD pattern in `src/HUD.tsx`).
 - Pinned in screen-space at the bottom-center.
-- **Visible when:** closest interactable is within 3.5m AND camera-forward · interactable-facing-normal > 0.6 (~50° cone) AND has been facing it for >0.4s (debounce).
+- **Visible when:** closest interactable is within 3.5m. No facing-cone test, no debounce — keep it simple. The glow already gives enough proximity feedback that a tooltip-on-distance feels natural.
 - **Style:** thin frosted-dark pill. Larger type for 中文 name; smaller below for English name; kind hint ("Enter ▸" for walk-in, "View ▸" for look-only).
 - Fades in/out over 200ms.
 - Period-light styling — deliberately NOT "PRESS E"-style.
@@ -236,7 +235,7 @@ Four hard-coded entries:
 
 ## 8. Estimated total
 
-~2,500 new lines of code total across all new + modified files.
+~1,800–2,200 new lines of code total across all new + modified files. Range reflects HUD simplification (Section 5) and tighter ShopFigures wrapper (Section 6.3) applied after spec review.
 
 ## 9. Out of scope for this spec
 
