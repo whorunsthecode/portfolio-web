@@ -13,7 +13,7 @@ export interface CorridorDef {
   halfWidth: number   // half of the opening width (z axis)
   depth: number       // how far the corridor extends perpendicular from the alley
   ceiling: number     // y height of corridor ceiling
-  kind: 'window' | 'laundry' | 'salon' | 'false-path' | 'sign-alcove'
+  kind: 'window' | 'laundry' | 'salon' | 'false-path' | 'sign-alcove' | 'stairwell'
 }
 
 export const CORRIDORS: CorridorDef[] = [
@@ -23,6 +23,11 @@ export const CORRIDORS: CorridorDef[] = [
   // only so AlleyShell cuts a gap in the alley right wall and the player
   // can walk through. SideCorridors skips rendering for kind:'salon'.
   { side: 'right', z: -0.4, halfWidth: 0.4, depth: 0.3, ceiling: 2.1, kind: 'salon' },
+  // Stairwell entry — perpendicular branch off the entrance segment's
+  // LEFT wall at z=-8.5. The actual stair geometry lives in Stairwell.tsx;
+  // this entry only tells AlleyShell to cut a wall opening here. Like
+  // 'salon', SideCorridors skips rendering for 'stairwell' kind.
+  { side: 'left',  z: -8.5, halfWidth: 0.5, depth: 0.3, ceiling: 2.3, kind: 'stairwell' },
   // False-path bending out of sight at z=-12 (entrance segment, axis x=0).
   // Player sees darkness curving; if they walk in they hit a back wall.
   { side: 'right', z: -12, halfWidth: 0.5, depth: 2.0, ceiling: 2.3, kind: 'false-path' },
@@ -363,9 +368,10 @@ function SignAlcoveDecor({ farWallX, centreZ, outward, ceiling }: {
 export function SideCorridors() {
   return (
     <>
-      {/* Skip 'salon' kind — Salon.tsx provides its own interior. The
-          CORRIDORS entry only exists so AlleyShell cuts a wall gap. */}
-      {CORRIDORS.filter((c) => c.kind !== 'salon').map((c, i) => (
+      {/* Skip 'salon' and 'stairwell' kinds — both provide their own
+          interiors elsewhere; the CORRIDORS entries only exist so
+          AlleyShell cuts wall gaps. */}
+      {CORRIDORS.filter((c) => c.kind !== 'salon' && c.kind !== 'stairwell').map((c, i) => (
         <Corridor key={i} def={c} />
       ))}
     </>

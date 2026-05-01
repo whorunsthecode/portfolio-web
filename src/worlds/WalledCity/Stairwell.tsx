@@ -1,25 +1,28 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 
-// A steep, narrow concrete stairwell behind the alley. Enters through the
-// doorway cut into the alley's back wall at z=-5 and climbs to z=-11, 5m
-// up, where it emerges onto the rooftop through a second doorway.
+// Steep, narrow concrete stairwell branching perpendicular off the alley's
+// LEFT wall at z=-8.5. Climbs westward along the X axis from x=-0.9
+// (alley wall, y=0) up to x=-6 (rooftop level, y=5). Opens directly onto
+// the rooftop deck without a doorway — the rooftop bound extends south to
+// cover the landing.
 //
-// Coordinates (local to the WalledCity world group at x=100, y=0, z=0):
-//   x ∈ [-0.85, 0.85]  — interior width
-//   z ∈ [-11, -5]      — run (6m)
-//   y floor: -5(z+5)/6 — 0 at z=-5 (alley level), 5 at z=-11 (rooftop level)
-//   y ceiling: 7       — flat, low and claustrophobic
+// Coordinates (local to the WalledCity world group):
+//   x ∈ [-6, -0.9]   — run (5.1m horizontal)
+//   z ∈ [-9, -8]     — interior width (1m)
+//   y floor ramps from 0 at x=-0.9 to 5 at x=-6
+//   y ceiling: ramped 2m above the floor (low and claustrophobic)
 
-const STAIR_MIN_Z = -11
-const STAIR_MAX_Z = -5
-const STAIR_RISE = 5      // metres
-const STAIR_WIDTH = 1.7
-const STAIR_HEIGHT = 7    // ceiling height, absolute
+const STAIR_X_NEAR = -0.9    // alley side
+const STAIR_X_FAR = -6       // rooftop side
+const STAIR_Z_MIN = -9
+const STAIR_Z_MAX = -8
+const STAIR_RISE = 5
+const STAIR_WIDTH_Z = STAIR_Z_MAX - STAIR_Z_MIN  // 1m
 
-// Floor height function used by the FPS bounds (see bounds array below).
-export function stairFloor(_x: number, z: number): number {
-  const t = (STAIR_MAX_Z - z) / (STAIR_MAX_Z - STAIR_MIN_Z)
+// Floor height function used by the FPS bounds. Stairs ramp along X.
+export function stairFloor(x: number, _z: number): number {
+  const t = (STAIR_X_NEAR - x) / (STAIR_X_NEAR - STAIR_X_FAR)
   const clamped = Math.max(0, Math.min(1, t))
   return STAIR_RISE * clamped
 }
@@ -38,7 +41,6 @@ function makeConcreteTexture(size = 512): THREE.CanvasTexture {
     ctx.fillStyle = `rgb(${shade}, ${shade - 3}, ${shade - 8})`
     ctx.fillRect(x, y, 1 + Math.random() * 3, 1 + Math.random() * 3)
   }
-  // Mould edges
   for (let i = 0; i < 30; i++) {
     const x = Math.random() * size
     const y = Math.random() * size
@@ -59,85 +61,84 @@ function makeConcreteTexture(size = 512): THREE.CanvasTexture {
 export function Stairwell() {
   const wallTex = useMemo(() => makeConcreteTexture(512), [])
 
-  // Stair treads — visible steps climbing from z=-5, y=0 up to z=-11, y=5
-  const steps = useMemo(() => {
-    const arr: { z: number; y: number }[] = []
-    const count = 25
-    for (let i = 0; i < count; i++) {
-      const t0 = i / count
-      arr.push({
-        z: STAIR_MAX_Z - t0 * (STAIR_MAX_Z - STAIR_MIN_Z),
-        y: t0 * STAIR_RISE,
-      })
-    }
-    return arr
-  }, [])
-
-  const stepRun = (STAIR_MAX_Z - STAIR_MIN_Z) / 25 // 0.24 m
-  const stepRise = STAIR_RISE / 25                 // 0.20 m
+  // Build N steps along X. Each tread is a small box; risers are vertical planes.
+  const stepCount = 22
+  const stepRun = (STAIR_X_NEAR - STAIR_X_FAR) / stepCount  // 0.232m
+  const stepRise = STAIR_RISE / stepCount                    // 0.227m
+  const midX = (STAIR_X_NEAR + STAIR_X_FAR) / 2
+  const midZ = (STAIR_Z_MIN + STAIR_Z_MAX) / 2
 
   return (
     <group>
-      {/* Left wall */}
-      <mesh position={[-STAIR_WIDTH / 2, STAIR_HEIGHT / 2, (STAIR_MIN_Z + STAIR_MAX_Z) / 2]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[STAIR_MAX_Z - STAIR_MIN_Z, STAIR_HEIGHT]} />
+      {/* Side wall at z=STAIR_Z_MIN (north side) — vertical plane spanning
+          the run, tall enough to clear the top of the climb. */}
+      <mesh
+        position={[midX, 3.5, STAIR_Z_MIN]}
+      >
+        <planeGeometry args={[Math.abs(STAIR_X_NEAR - STAIR_X_FAR), 7]} />
         <meshStandardMaterial map={wallTex} color={'#2e2820'} roughness={0.95} side={THREE.DoubleSide} />
       </mesh>
-      {/* Right wall */}
-      <mesh position={[STAIR_WIDTH / 2, STAIR_HEIGHT / 2, (STAIR_MIN_Z + STAIR_MAX_Z) / 2]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[STAIR_MAX_Z - STAIR_MIN_Z, STAIR_HEIGHT]} />
+      {/* Side wall at z=STAIR_Z_MAX (south side) */}
+      <mesh
+        position={[midX, 3.5, STAIR_Z_MAX]}
+      >
+        <planeGeometry args={[Math.abs(STAIR_X_NEAR - STAIR_X_FAR), 7]} />
         <meshStandardMaterial map={wallTex} color={'#2e2820'} roughness={0.95} side={THREE.DoubleSide} />
       </mesh>
-      {/* Ceiling at y=7 — a flat slab across the stairwell */}
-      <mesh position={[0, STAIR_HEIGHT, (STAIR_MIN_Z + STAIR_MAX_Z) / 2]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[STAIR_WIDTH, STAIR_MAX_Z - STAIR_MIN_Z]} />
-        <meshStandardMaterial map={wallTex} color={'#1e1a14'} roughness={0.95} />
-      </mesh>
-      {/* Far end wall (z = STAIR_MIN_Z = -11) with doorway to rooftop
-          cut out at x ∈ [-0.5, 0.5], y ∈ [STAIR_RISE, STAIR_RISE+2]. Split
-          the wall into a left jamb, right jamb, and top lintel. */}
-      {[
-        // Left jamb: full height, to left of doorway
-        { x: (-STAIR_WIDTH / 2 + -0.5) / 2, w: (-0.5 - (-STAIR_WIDTH / 2)), y: STAIR_HEIGHT / 2, h: STAIR_HEIGHT },
-        // Right jamb: full height, to right of doorway
-        { x: (STAIR_WIDTH / 2 + 0.5) / 2,  w: (STAIR_WIDTH / 2 - 0.5),     y: STAIR_HEIGHT / 2, h: STAIR_HEIGHT },
-        // Bottom lintel: below doorway (y = 0 to STAIR_RISE) behind the door
-        { x: 0, w: 1.0, y: STAIR_RISE / 2, h: STAIR_RISE },
-        // Top lintel: above the doorway (y = STAIR_RISE+2 to STAIR_HEIGHT)
-        { x: 0, w: 1.0, y: (STAIR_RISE + 2 + STAIR_HEIGHT) / 2, h: STAIR_HEIGHT - (STAIR_RISE + 2) },
-      ].map((seg, i) => (
-        <mesh key={i} position={[seg.x, seg.y, STAIR_MIN_Z]}>
-          <planeGeometry args={[seg.w, seg.h]} />
-          <meshStandardMaterial map={wallTex} color={'#2e2820'} roughness={0.95} side={THREE.DoubleSide} />
-        </mesh>
-      ))}
 
-      {/* Stair treads + risers */}
-      {steps.map((s, i) => (
-        <group key={i}>
-          {/* Tread (horizontal step surface) */}
-          <mesh position={[0, s.y + stepRise / 2, s.z - stepRun / 2]}>
-            <boxGeometry args={[STAIR_WIDTH - 0.04, 0.04, stepRun]} />
-            <meshStandardMaterial color={'#3a342a'} roughness={0.9} />
-          </mesh>
-          {/* Riser (vertical step face facing the climber) */}
-          <mesh position={[0, s.y + stepRise / 2, s.z + 0.001]}>
-            <planeGeometry args={[STAIR_WIDTH - 0.04, stepRise]} />
-            <meshStandardMaterial color={'#2a241a'} roughness={0.95} side={THREE.DoubleSide} />
-          </mesh>
-        </group>
-      ))}
+      {/* Sloped ceiling 2m above the ramping floor. Two end-points:
+          - At x=STAIR_X_NEAR (y=0):    ceiling y=2.0
+          - At x=STAIR_X_FAR  (y=5):    ceiling y=7.0
+          Plane spans the diagonal between those two heights. */}
+      <mesh
+        position={[midX, (2 + 7) / 2, midZ]}
+        rotation={[0, 0, Math.atan2(5, Math.abs(STAIR_X_NEAR - STAIR_X_FAR))]}
+      >
+        <planeGeometry
+          args={[
+            Math.sqrt(Math.pow(STAIR_X_NEAR - STAIR_X_FAR, 2) + 25),
+            STAIR_WIDTH_Z,
+          ]}
+        />
+        <meshStandardMaterial map={wallTex} color={'#1e1a14'} roughness={0.95} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Steps — treads + risers. Run along -X. Each tread sits at the
+          floor height for its x position; the riser is the vertical face
+          on the alley-facing side of the next-higher tread. */}
+      {Array.from({ length: stepCount }).map((_, i) => {
+        // i=0 is closest to alley (x=STAIR_X_NEAR side), highest x.
+        const xCenter = STAIR_X_NEAR - (i + 0.5) * stepRun
+        const yTop = (i + 1) * stepRise
+        return (
+          <group key={i}>
+            {/* Tread (horizontal step surface) */}
+            <mesh position={[xCenter, yTop - 0.02, midZ]}>
+              <boxGeometry args={[stepRun, 0.04, STAIR_WIDTH_Z - 0.04]} />
+              <meshStandardMaterial color={'#3a342a'} roughness={0.9} />
+            </mesh>
+            {/* Riser — vertical face on the alley side of this tread */}
+            <mesh
+              position={[xCenter + stepRun / 2 - 0.001, yTop - stepRise / 2, midZ]}
+              rotation={[0, Math.PI / 2, 0]}
+            >
+              <planeGeometry args={[STAIR_WIDTH_Z - 0.04, stepRise]} />
+              <meshStandardMaterial color={'#2a241a'} roughness={0.95} side={THREE.DoubleSide} />
+            </mesh>
+          </group>
+        )
+      })}
 
       {/* Single bare bulb halfway up the stairwell */}
-      <group position={[0, STAIR_HEIGHT - 0.25, (STAIR_MIN_Z + STAIR_MAX_Z) / 2]}>
+      <group position={[midX, 3.5, midZ]}>
         <mesh>
           <sphereGeometry args={[0.04, 10, 8]} />
           <meshStandardMaterial color={'#f8e4a0'} emissive={'#f8cc70'} emissiveIntensity={2.5} />
         </mesh>
         <pointLight color={'#f8cc70'} intensity={0.55} distance={5} decay={2} />
       </group>
-      {/* Second bulb near the top, so you can see where you're heading */}
-      <group position={[0, STAIR_HEIGHT - 0.25, STAIR_MIN_Z + 0.6]}>
+      {/* Second bulb near the top so you can see where you're heading */}
+      <group position={[STAIR_X_FAR + 0.4, 5.5, midZ]}>
         <mesh>
           <sphereGeometry args={[0.04, 10, 8]} />
           <meshStandardMaterial color={'#f8e4a0'} emissive={'#f8cc70'} emissiveIntensity={2.5} />
@@ -145,7 +146,7 @@ export function Stairwell() {
         <pointLight color={'#f8cc70'} intensity={0.45} distance={4} decay={2} />
       </group>
 
-      {/* Low ambient so the stairwell isn't pitch black away from the bulbs */}
+      {/* Low ambient so the stairwell isn't pitch-black away from the bulbs */}
       <ambientLight intensity={0.04} color={'#201a14'} />
     </group>
   )
