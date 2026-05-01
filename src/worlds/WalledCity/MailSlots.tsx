@@ -9,25 +9,50 @@ interface Door {
   number: string
   familyChinese: string
   open?: boolean
+  // Alley-axis offset for doors on the deep segment (axis x=-2). Default 0
+  // means the door sits on the entrance-segment wall (axis x=0).
+  segmentCenterX?: number
 }
 
 const LEFT_DOORS: Door[] = [
+  // Entrance segment (axis x=0)
   { z: -3.4, number: '14B', familyChinese: '陳' },
   { z: -1.6, number: '15A', familyChinese: '黃', open: true },
   { z: 0.2,  number: '15C', familyChinese: '李' },
   { z: 2.0,  number: '16B', familyChinese: '王' },
   { z: 3.7,  number: '16D', familyChinese: '何' },
+  // Extended entrance segment — between Sundry (z=-5..-8) and stairwell (z=-9..-8) is no gap;
+  // place new doors past the stairwell, before the dogleg at z=-14.
+  { z: -10.5, number: '17A', familyChinese: '周' },
+  { z: -13,   number: '17C', familyChinese: '徐' },
+  // Deep segment (axis x=-2). Skip sign-alcove at z=-25.
+  { z: -17.5, number: '20A', familyChinese: '梁', segmentCenterX: -2 },
+  { z: -21.5, number: '20C', familyChinese: '郭', segmentCenterX: -2 },
+  { z: -23.5, number: '21A', familyChinese: '羅', segmentCenterX: -2, open: true },
+  { z: -27,   number: '21C', familyChinese: '彭', segmentCenterX: -2 },
 ]
 
 const RIGHT_DOORS: Door[] = [
+  // Entrance segment (axis x=0)
   { z: -2.6, number: '14A', familyChinese: '張' },
   { z: -0.8, number: '14C', familyChinese: '趙' },
   { z: 1.0,  number: '15B', familyChinese: '林' },
   { z: 2.8,  number: '16A', familyChinese: '吳' },
+  // Extended entrance segment — skip false-path at z=-12.
+  { z: -4.5,  number: '17B', familyChinese: '蔡' },
+  { z: -7.5,  number: '17D', familyChinese: '謝' },
+  { z: -10,   number: '18B', familyChinese: '許' },
+  { z: -13.5, number: '18D', familyChinese: '葉' },
+  // Deep segment (axis x=-2). Skip BingSutt at z=-18..-22.
+  { z: -17,   number: '22A', familyChinese: '鄧', segmentCenterX: -2 },
+  { z: -23,   number: '22C', familyChinese: '蘇', segmentCenterX: -2 },
+  { z: -25.5, number: '23A', familyChinese: '韓', segmentCenterX: -2 },
+  { z: -27.5, number: '23C', familyChinese: '余', segmentCenterX: -2 },
 ]
 
 function DoorAssembly({ door, side }: { door: Door; side: 'left' | 'right' }) {
-  const wallX = side === 'left' ? -0.88 : 0.88
+  const segCenter = door.segmentCenterX ?? 0
+  const wallX = segCenter + (side === 'left' ? -0.88 : 0.88)
   const faceY = side === 'left' ? Math.PI / 2 : -Math.PI / 2
   const signal = side === 'left' ? -1 : 1
 

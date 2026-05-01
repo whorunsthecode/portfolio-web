@@ -20,11 +20,25 @@ interface Unit {
   acBoxSide: -1 | 1 // which z-side of the door the AC box sits on
   garmentColor: string
   garmentWidth: number
+  segmentCenterX?: number // 0 for entrance segment, -2 for deep segment
 }
 
 // Keep in sync with MailSlots LEFT_DOORS / RIGHT_DOORS door z-positions.
-const DOOR_Z_LEFT  = [-3.4, -1.6, 0.2, 2.0, 3.7]
-const DOOR_Z_RIGHT = [-2.6, -0.8, 1.0, 2.8]
+// Tuples are [z, segmentCenterX]. Default segmentCenterX is 0 (entrance).
+const DOOR_LEFT: { z: number; seg?: number }[] = [
+  { z: -3.4 }, { z: -1.6 }, { z: 0.2 }, { z: 2.0 }, { z: 3.7 },
+  // Entrance extension
+  { z: -10.5 }, { z: -13 },
+  // Deep segment
+  { z: -17.5, seg: -2 }, { z: -21.5, seg: -2 }, { z: -23.5, seg: -2 }, { z: -27, seg: -2 },
+]
+const DOOR_RIGHT: { z: number; seg?: number }[] = [
+  { z: -2.6 }, { z: -0.8 }, { z: 1.0 }, { z: 2.8 },
+  // Entrance extension
+  { z: -4.5 }, { z: -7.5 }, { z: -10 }, { z: -13.5 },
+  // Deep segment
+  { z: -17, seg: -2 }, { z: -23, seg: -2 }, { z: -25.5, seg: -2 }, { z: -27.5, seg: -2 },
+]
 
 const PAINT_CYCLE = [
   { c: '#7a8a74', a: 0.16 }, // faded sea-green
@@ -39,11 +53,12 @@ const GARMENTS = ['#d8d0c0', '#5a6a88', '#b84030', '#d0a070', '#3a5450', '#e8d49
 
 function buildUnits(): Unit[] {
   const out: Unit[] = []
-  DOOR_Z_LEFT.forEach((z, i) => {
+  DOOR_LEFT.forEach((d, i) => {
     const p = PAINT_CYCLE[i % PAINT_CYCLE.length]
     out.push({
       side: 'left',
-      z,
+      z: d.z,
+      segmentCenterX: d.seg,
       paint: p.c,
       paintAlpha: p.a,
       windowLit: i % 2 === 0,
@@ -52,11 +67,12 @@ function buildUnits(): Unit[] {
       garmentWidth: 0.28 + (i % 3) * 0.04,
     })
   })
-  DOOR_Z_RIGHT.forEach((z, i) => {
+  DOOR_RIGHT.forEach((d, i) => {
     const p = PAINT_CYCLE[(i + 2) % PAINT_CYCLE.length]
     out.push({
       side: 'right',
-      z,
+      z: d.z,
+      segmentCenterX: d.seg,
       paint: p.c,
       paintAlpha: p.a,
       windowLit: i % 2 === 1,
@@ -179,10 +195,11 @@ function LaundryPole({ garmentColor, garmentWidth }: {
 }
 
 function UnitOverlay({ unit }: { unit: Unit }) {
-  // Wall interior face is at x = ±0.87 in local coords with normal pointing
-  // toward the centre of the alley. Position the unit's components slightly
-  // offset from the wall so they don't z-fight.
-  const wallX = unit.side === 'left' ? -0.87 : 0.87
+  // Wall interior face is at x = segmentCenterX ± 0.87 in local coords with
+  // normal pointing toward the centre of the alley. Position the unit's
+  // components slightly offset from the wall so they don't z-fight.
+  const segCenter = unit.segmentCenterX ?? 0
+  const wallX = segCenter + (unit.side === 'left' ? -0.87 : 0.87)
   const faceY = unit.side === 'left' ? Math.PI / 2 : -Math.PI / 2
   const UNIT_WIDTH = 1.3   // along z — paint wash width
 

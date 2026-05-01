@@ -17,6 +17,7 @@ interface Poster {
   rot: number       // z-axis rotation (tilt on the wall)
   kind: PosterKind
   torn: number      // 0..1 how ripped
+  segmentCenterX?: number  // 0 entrance segment, -2 deep segment
 }
 
 const POSTERS: Poster[] = [
@@ -40,6 +41,20 @@ const POSTERS: Poster[] = [
   { side: 'right', z:  2.4, y: 1.3,  w: 0.36, h: 0.5,  rot:  0.12, kind: 'film',     torn: 0.35 },
   { side: 'right', z:  2.2, y: 1.85, w: 0.3,  h: 0.42, rot: -0.08, kind: 'medicine', torn: 0.45 },
   { side: 'right', z:  4.3, y: 1.35, w: 0.38, h: 0.52, rot:  0.09, kind: 'notice',   torn: 0.4 },
+
+  // Entrance extension — dense cluster near false-path corridor at z=-12
+  { side: 'right', z: -11.5, y: 1.4, w: 0.42, h: 0.56, rot: -0.09, kind: 'film',     torn: 0.4 },
+  { side: 'right', z: -11.7, y: 1.95, w: 0.34, h: 0.46, rot:  0.13, kind: 'lotto',    torn: 0.55 },
+  { side: 'right', z: -13.5, y: 1.25, w: 0.38, h: 0.5,  rot:  0.06, kind: 'notice',   torn: 0.35 },
+  { side: 'left',  z: -10,   y: 1.3,  w: 0.4,  h: 0.54, rot: -0.08, kind: 'rental',   torn: 0.4 },
+  { side: 'left',  z: -13,   y: 1.7,  w: 0.32, h: 0.44, rot:  0.12, kind: 'medicine', torn: 0.5 },
+
+  // Deep segment (axis x=-2) — dense cluster near sign-alcove at z=-25
+  { side: 'left',  z: -24,   y: 1.4,  w: 0.4,  h: 0.54, rot:  0.07, kind: 'notice',   torn: 0.45, segmentCenterX: -2 },
+  { side: 'left',  z: -23.5, y: 1.95, w: 0.34, h: 0.46, rot: -0.1,  kind: 'film',     torn: 0.5,  segmentCenterX: -2 },
+  { side: 'right', z: -17,   y: 1.3,  w: 0.36, h: 0.5,  rot:  0.08, kind: 'rental',   torn: 0.4,  segmentCenterX: -2 },
+  { side: 'right', z: -25,   y: 1.45, w: 0.42, h: 0.56, rot: -0.06, kind: 'medicine', torn: 0.4,  segmentCenterX: -2 },
+  { side: 'right', z: -27,   y: 1.2,  w: 0.32, h: 0.44, rot:  0.14, kind: 'lotto',    torn: 0.6,  segmentCenterX: -2 },
 ]
 
 // Simple palette per poster kind — faded, sun-bleached.
@@ -149,7 +164,8 @@ function makePosterTexture(poster: Poster, pxPerM = 512): THREE.CanvasTexture {
 
 function PosterMesh({ poster }: { poster: Poster }) {
   const tex = useMemo(() => makePosterTexture(poster), [poster])
-  const wallX = poster.side === 'left' ? -0.87 : 0.87
+  const segCenter = poster.segmentCenterX ?? 0
+  const wallX = segCenter + (poster.side === 'left' ? -0.87 : 0.87)
   const faceY = poster.side === 'left' ? Math.PI / 2 : -Math.PI / 2
   // Tiny z-offset per poster to avoid fighting with the wall + adjacent
   // posters. Deterministic from position so ordering is stable.

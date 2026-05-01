@@ -21,13 +21,20 @@ interface Sign {
   english: string
   phone?: string
   cross?: boolean
+  segmentCenterX?: number  // 0 entrance segment, -2 deep segment
 }
 
 const SIGNS: Sign[] = [
+  // Entrance segment — original signs
   { side: 'left',  z: -4.3, y: 2.3, w: 0.55, h: 0.78, shape: 'flat',    bg: '#b02020', ink: '#f4ecd0', chinese: '牙科', english: 'DENTIST',   phone: '2690 3752', cross: true },
   { side: 'right', z: -3.4, y: 1.95, w: 0.48, h: 0.64, shape: 'hanging', bg: '#a02020', ink: '#f8f0d8', chinese: '無痛脫牙', english: 'PAINLESS' },
   { side: 'right', z:  0.05, y: 2.2, w: 0.5,  h: 0.7,  shape: 'flat',    bg: '#d8b030', ink: '#601818', chinese: '專科牙醫', english: 'SPECIALIST', phone: '9230 1459' },
   { side: 'left',  z:  3.1, y: 2.0, w: 0.4,  h: 0.55, shape: 'hanging', bg: '#981818', ink: '#f0e4c4', chinese: '拔牙', english: 'EXTRACT', cross: true },
+  // Entrance extension — between Sundry and the dogleg
+  { side: 'right', z: -10.5, y: 2.1, w: 0.5, h: 0.68, shape: 'hanging', bg: '#b81818', ink: '#f4e8c0', chinese: '陳牙科', english: 'CHAN DENTIST', phone: '2374 9120', cross: true },
+  // Deep segment (axis x=-2)
+  { side: 'left',  z: -19, y: 2.2, w: 0.55, h: 0.75, shape: 'flat',    bg: '#c83020', ink: '#f8f0e0', chinese: '吳齒科', english: 'NG DENTAL',  phone: '2841 6630', segmentCenterX: -2 },
+  { side: 'right', z: -26, y: 2.0, w: 0.46, h: 0.62, shape: 'hanging', bg: '#609080', ink: '#f4ecc8', chinese: '黃牙醫', english: 'WONG TEETH', cross: true, segmentCenterX: -2 },
 ]
 
 function makeSignTexture(sign: Sign, pxPerM = 512): THREE.CanvasTexture {
@@ -118,7 +125,8 @@ function makeSignTexture(sign: Sign, pxPerM = 512): THREE.CanvasTexture {
 
 function FlatSign({ sign }: { sign: Sign }) {
   const tex = useMemo(() => makeSignTexture(sign), [sign])
-  const wallX = sign.side === 'left' ? -0.87 : 0.87
+  const segCenter = sign.segmentCenterX ?? 0
+  const wallX = segCenter + (sign.side === 'left' ? -0.87 : 0.87)
   const faceY = sign.side === 'left' ? Math.PI / 2 : -Math.PI / 2
   return (
     <group position={[wallX, sign.y, sign.z]} rotation={[0, faceY, 0]}>
@@ -155,7 +163,8 @@ function FlatSign({ sign }: { sign: Sign }) {
 
 function HangingSign({ sign }: { sign: Sign }) {
   const tex = useMemo(() => makeSignTexture(sign), [sign])
-  const wallX = sign.side === 'left' ? -0.87 : 0.87
+  const segCenter = sign.segmentCenterX ?? 0
+  const wallX = segCenter + (sign.side === 'left' ? -0.87 : 0.87)
   const outward = sign.side === 'left' ? 1 : -1
   // The sign protrudes ~0.25m from the wall on a bracket, and its broad
   // face points DOWN the alley (±Z) so walkers approaching read it
