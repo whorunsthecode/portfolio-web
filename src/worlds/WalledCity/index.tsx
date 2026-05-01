@@ -116,11 +116,10 @@ export function WalledCity() {
         <Rooftop />
         <Salon />
         <PlaneFlyover />
-        {/* DEBUG bisect step 2: re-enable Sundry + FruitStall (visually
-            simple, single-file). If world still renders, BingSutt or
-            HUD is the culprit. */}
+        {/* DEBUG bisect step 3: re-enable BingSutt to test if it's the
+            culprit. ShopFigures + HUD still off. */}
         <Sundry />
-        {/* <BingSutt /> */}
+        <BingSutt />
         <FruitStall />
         {/* <ShopFigures /> */}
       </group>
