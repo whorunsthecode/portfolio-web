@@ -122,6 +122,8 @@ export function WalledCity() {
         <ShopFigures />
       </group>
       <InteractableHUD />
+      {/* DEBUG bisect step 5: re-enable HUD — last suspect. If this
+          re-introduces the all-black bug, fix needed in HUD. */}
       <FirstPersonControls
         bounds={BOUNDS}
         start={[WORLD_X, 0, 4.5]}
