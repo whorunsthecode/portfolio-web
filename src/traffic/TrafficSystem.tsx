@@ -10,17 +10,14 @@ import { DeliveryVan } from './DeliveryVan'
  * 1980s Hong Kong traffic scene.
  *
  * Seated camera sits at z=-7.6 looking forward toward z=-11 (i.e. -Z is
- * "ahead"). Two flavours of traffic:
+ * "ahead"). Vehicles therefore spawn far ahead at strongly negative z and
+ * travel toward the camera (positive z velocity in world frame), being
+ * recycled once they've passed the camera to positive z.
  *
- *   Same-direction — moves in the SAME direction as the tram (-Z real
- *   frame). Because they're faster than the tram, in our stationary-
- *   tram frame they drift AWAY from the camera (-Z velocity). Spawned
- *   close behind/beside the camera and recycled when they get far
- *   ahead into the distance.
- *
- *   Oncoming — moves opposite the tram (+Z real frame). In the
- *   stationary-tram frame they rush TOWARD the camera (+Z velocity).
- *   Spawned far ahead, recycled after they pass.
+ *   Same-direction traffic: slower than the tram → slowly drifts toward
+ *   camera (0.7× tramSpeed relative).
+ *   Oncoming traffic: moving opposite the tram → fast apparent motion
+ *   (1.5× tramSpeed relative), including the parallel-track HK tram.
  */
 
 type VehicleType = 'taxi' | 'bus' | 'tram' | 'car' | 'van'
@@ -34,10 +31,9 @@ interface Vehicle {
   carVariant?: PrivateCarVariant
   lane: number
   z: number
-  /** z units per second; positive = toward camera, negative = away. */
+  /** z units per second; positive = toward camera. */
   speed: number
-  /** 1 = same direction as tram (faces -Z, moves -Z away);
-   *  -1 = oncoming (faces +Z, moves +Z toward camera). */
+  /** 1 = same direction as tram (faces -Z); -1 = oncoming (faces +Z). */
   direction: 1 | -1
   /** Uniform scale applied to the group wrapper. */
   scale: number
@@ -63,13 +59,10 @@ const LANES = {
   sameDirCar: 4.5,   // was 2.0 — that overlapped tram + catenary pole
 } as const
 
-// Tram is the slowest thing on the road. TRAM_SPEED is the perceived
-// scroll speed of the scenery; other vehicles all move faster so they
-// overtake the tram in the same lane, or barrel past it oncoming.
 const TRAM_SPEED = 4
-const SAME_DIR_SPEED = TRAM_SPEED * 1.3       // 5.2 — faster than tram
-const ONCOMING_SPEED = TRAM_SPEED * 1.8       // 7.2
-const ONCOMING_TRAM_SPEED = TRAM_SPEED * 1.5  // 6.0
+const SAME_DIR_SPEED = TRAM_SPEED * 0.7
+const ONCOMING_SPEED = TRAM_SPEED * 1.5
+const ONCOMING_TRAM_SPEED = TRAM_SPEED * 1.2
 
 // Vehicles are seeded ahead of the camera (seated at z=-7.6, look=-11)
 // and recycled after passing.
@@ -151,7 +144,7 @@ export function TrafficSystem() {
           const oncoming = variant % 2 === 0
           lane = oncoming ? LANES.oncomingCar : LANES.sameDirCar
           direction = oncoming ? -1 : 1
-          speed = oncoming ? ONCOMING_SPEED : -SAME_DIR_SPEED
+          speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
           // Scale 0.6 (not 0.7) so bus width 1.5 clears catenary poles at x=2.85
           scale = 0.6
           // Wheels (r=0.5) at local y=0.5 → bottom at 0*0.6=0, need +0.05 for road
@@ -163,7 +156,7 @@ export function TrafficSystem() {
           const oncoming = Math.random() < 0.55
           lane = oncoming ? LANES.oncomingCar : LANES.sameDirCar
           direction = oncoming ? -1 : 1
-          speed = oncoming ? ONCOMING_SPEED : -SAME_DIR_SPEED
+          speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
           scale = 0.55
           // Wheels (r=0.3) at local y=0.15 → bottom at -0.0825, need +0.13
           yOffset = 0.13
@@ -174,7 +167,7 @@ export function TrafficSystem() {
           const oncoming = Math.random() < 0.55
           lane = oncoming ? LANES.oncomingCar : LANES.sameDirCar
           direction = oncoming ? -1 : 1
-          speed = oncoming ? ONCOMING_SPEED : -SAME_DIR_SPEED
+          speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
           scale = 0.55
           // W123 worst case: wheels (r=0.32) at y=0.18 → bottom -0.077, need +0.13
           yOffset = 0.13
@@ -186,7 +179,7 @@ export function TrafficSystem() {
           const oncoming = Math.random() < 0.5
           lane = oncoming ? LANES.oncomingCar : LANES.sameDirCar
           direction = oncoming ? -1 : 1
-          speed = oncoming ? ONCOMING_SPEED : -SAME_DIR_SPEED
+          speed = oncoming ? ONCOMING_SPEED : SAME_DIR_SPEED
           scale = 0.6
           // Wheels (r=0.32) at local y=0.28 → bottom -0.024, need +0.07
           yOffset = 0.07
@@ -195,13 +188,7 @@ export function TrafficSystem() {
         }
       }
 
-      // Same-dir vehicles (negative speed) spawn near the camera (+z)
-      // and drive away into the distance. Oncoming (positive speed)
-      // spawn far ahead (-z) and approach.
-      const defaultZ = speed > 0
-        ? SPAWN_Z - Math.random() * 10         // -55..-65 (far ahead)
-        : RECYCLE_MAX - 2 - Math.random() * 6  // +4..+10 (close behind/beside)
-      const z = forceZ ?? defaultZ
+      const z = forceZ ?? SPAWN_Z - Math.random() * 10
       const tooClose = vehiclesRef.current.some(
         (v) => v.lane === lane && Math.abs(v.z - z) < Math.max(minGap, v.minGap),
       )
@@ -290,13 +277,10 @@ export function TrafficSystem() {
         <group
           key={v.id}
           position={[v.lane, v.yOffset, v.z]}
-          // Rotate so the vehicle's local +X (front) aligns with its
-          // direction of motion.
-          //   direction  1 (same-dir, moves -Z): rotation +π/2 →
-          //     local +X → world -Z (front points down the street).
-          //   direction -1 (oncoming, moves +Z): rotation -π/2 →
-          //     local +X → world +Z (front points at the camera).
-          rotation={[0, v.direction === 1 ? Math.PI / 2 : -Math.PI / 2, 0]}
+          // Rotate so local +X aligns with world direction of travel.
+          // direction  1 (same-dir, faces -Z): rotation -π/2
+          // direction -1 (oncoming,  faces +Z): rotation +π/2
+          rotation={[0, v.direction === -1 ? Math.PI / 2 : -Math.PI / 2, 0]}
           scale={[v.scale, v.scale, v.scale]}
         >
           {renderVehicle(v)}

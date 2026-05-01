@@ -12,13 +12,11 @@
 const FLOOR_Y = 0.5
 const CEILING_Y = 2.5
 const CABIN_WIDTH = 2.3
-const Z_CENTER = -5.5
-const Z_LENGTH = 7.5
-const Z_START = Z_CENTER - Z_LENGTH / 2   // -9.25
-const Z_END = Z_CENTER + Z_LENGTH / 2     // -1.75
+const Z_CENTER = -3
+const Z_LENGTH = 12.5
+const Z_END = Z_CENTER + Z_LENGTH / 2     // 3.25
 
 const POLE_SILVER = '#c0c0c0'    // chrome/silver grab poles
-const BRASS = '#c8a048'
 const DARK_WOOD = '#3a2818'
 const AD_CREAM = '#f0e6c8'
 const AD_BORDER = '#5a3a1a'
@@ -38,11 +36,8 @@ export function CabinDetails() {
 
 /* ── Yellow vertical grab poles — the most iconic HK tram element ── */
 function VerticalPoles() {
-  // Poles run from floor to ceiling in the aisle, evenly spaced. Matches
-  // the 5-post window spacing after the tram was shortened to 9m.
-  // Forward-most pole (z=-8.5) removed — it pierced through the driver
-  // console and dominated the driver POV.
-  const poleZs = [-2.5, -4, -5.5, -7]
+  // Poles run from floor to ceiling in the aisle, evenly spaced
+  const poleZs = [-7, -5, -3, -1, 1]
 
   return (
     <>
@@ -91,7 +86,7 @@ function CeilingGrabRail() {
       </mesh>
 
       {/* Short support rods from ceiling to rail */}
-      {[-2.5, -4, -5.5, -7, -8.5].map((z) => (
+      {[-7, -5, -3, -1, 1].map((z) => (
         <mesh key={`csup-${z}`} position={[0, railY + 0.12, z]}>
           <cylinderGeometry args={[0.012, 0.012, 0.25, 6]} />
           <meshStandardMaterial color="#c0c0c0" metalness={0.6} roughness={0.2} />
@@ -108,7 +103,7 @@ function CeilingGrabRail() {
 
       {/* Hanging leather straps from side rails (additional to bench straps) */}
       {[-0.7, 0.7].map((x) =>
-        [-3.5, -5, -6.5].map((z) => (
+        [-6, -4, -2, 0].map((z) => (
           <group key={`strap-${x}-${z}`} position={[x, railY - 0.05, z]}>
             <mesh>
               <boxGeometry args={[0.018, 0.12, 0.004]} />
@@ -127,7 +122,7 @@ function CeilingGrabRail() {
 
 /* ── Ceiling lights — warm bulbs in simple fixtures ── */
 function CeilingLights() {
-  const lightZs = [-3, -5.5, -8]
+  const lightZs = [-7, -4, -1, 2]
 
   return (
     <>
@@ -159,11 +154,9 @@ function CeilingLights() {
 
 /* ── Ad panels above windows — cream rectangles with dark borders ── */
 function AdPanels() {
-  // Small ad panels sit between the top of windows (y≈2.1) and ceiling.
-  // Re-spaced to fit inside the shortened 9m cabin (was [-6.5, -3.5, -0.5]
-  // where z=-0.5 was past the new rear wall at -1.75).
+  // Small ad panels sit between the top of windows (y≈2.1) and ceiling
   const panelY = 2.25
-  const panelZs = [-7.5, -5.5, -3.5]
+  const panelZs = [-6.5, -3.5, -0.5]
 
   return (
     <>

@@ -21,12 +21,16 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { BUILDINGS, BUILDING_OFFSETS, TENEMENT_DEPTH, type BuildingDef } from './TenementRow'
+import { BUILDINGS, TENEMENT_DEPTH, type BuildingDef } from './TenementRow'
 import { InfoTag } from '../scene/components/InfoTag'
 
 const BAMBOO = '#a08a50'
 const BAMBOO_DARK = '#7a6a3c'
 const NETTING_GREEN = '#4a7040'
+
+const SCROLL_SPEED = 6
+const ROUTE_LENGTH = 140
+const RESET_THRESHOLD = 15
 
 /** Single scaffolded building wrap — laid out around an external facade.
  *  `x` is the world-space plane the scaffold lives on (just outside the
@@ -149,21 +153,18 @@ function hash(seed: number) {
   return s - Math.floor(s)
 }
 
-/** Pick tenements for scaffolding. Uses each building's own seed so the
- *  choice is deterministic across renders. Landmark buildings are
+/** Pick ~1-in-1.8 tenements for scaffolding. Uses each building's own seed so
+ *  the choice is deterministic across renders. Landmark buildings are
  *  automatically excluded because BUILDINGS in TenementRow doesn't list
- *  them. The scaffold's height matches the actual building height derived
- *  from its style.floors, and its width matches the standard 9m tenement
- *  footprint — the old impl generated independent dimensions, which left
- *  scaffolds poking into empty space above short buildings. */
+ *  them. Returns one ScaffoldDef per selected building. */
 function selectScaffolds(buildings: BuildingDef[]): ScaffoldDef[] {
   const out: ScaffoldDef[] = []
   for (let i = 0; i < buildings.length; i++) {
     const b = buildings[i]
-    // Probability gate — ~80% of non-landmark tenements get scaffolded.
+    // Probability gate — ~55% of non-landmark tenements get scaffolded.
     // Real 1980s HK corridors were dense with bamboo: most low-rise
     // blocks were either under repair or had just been wrapped.
-    if (hash(b.seed + 13) > 0.8) continue
+    if (hash(b.seed + 13) > 0.55) continue
 
     const sideNum: 1 | -1 = b.side === 'right' ? 1 : -1
     // Facade plane (road-facing edge of the building) sits at
@@ -173,13 +174,8 @@ function selectScaffolds(buildings: BuildingDef[]): ScaffoldDef[] {
     const facadeX = sideNum * (b.xOffset - TENEMENT_DEPTH / 2)
     const scaffoldX = facadeX - sideNum * 0.25
 
-    // Actual building height — matches the Tenement render formula:
-    //   height = style.floors * 3 + 3
-    // so the scaffold wraps to the exact top of the facade. Width is
-    // the default Tenement width (9m) minus a small margin so the
-    // uprights sit just inside the facade edge.
-    const h = b.style.floors * 3 + 3
-    const w = 8.6
+    const h = 15 + Math.floor(hash(b.seed + 27) * 10)
+    const w = 7.5 + hash(b.seed + 41) * 1.4
 
     out.push({
       buildingIdx: i,
@@ -197,15 +193,17 @@ function selectScaffolds(buildings: BuildingDef[]): ScaffoldDef[] {
 export function BambooScaffold() {
   const groupRef = useRef<THREE.Group>(null)
   const scaffolds = useMemo(() => selectScaffolds(BUILDINGS), [])
+  const offsets = useRef(scaffolds.map((s) => s.z))
 
-  // Read current building positions from the shared BUILDING_OFFSETS
-  // array written by TenementRow. No independent scroll loop = no
-  // drift, so each scaffold stays stuck to its building forever.
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current) return
     const children = groupRef.current.children
     for (let i = 0; i < children.length; i++) {
-      children[i].position.z = BUILDING_OFFSETS[scaffolds[i].buildingIdx]
+      offsets.current[i] += SCROLL_SPEED * delta
+      if (offsets.current[i] > RESET_THRESHOLD) {
+        offsets.current[i] -= ROUTE_LENGTH
+      }
+      children[i].position.z = offsets.current[i]
     }
   })
 

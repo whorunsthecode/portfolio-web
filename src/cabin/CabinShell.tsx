@@ -1,17 +1,12 @@
 const WOOD = '#5c3a1e'
 const WOOD_LIGHT = '#8b6b3d'
-const CREAM = '#f4e4c8'
 const GREEN = '#007549'
-
-// Shared cabin geometry constants. Keep in sync with CabinDetails.tsx.
-const Z_CENTER = -5.5
-const Z_LENGTH = 7.5
 
 /* ── Floor ─────────────────────────────────────────────── */
 function Floor() {
   return (
-    <mesh position={[0, 0.5, Z_CENTER]} receiveShadow>
-      <boxGeometry args={[2.3, 0.08, Z_LENGTH]} />
+    <mesh position={[0, 0.5, -3]} receiveShadow>
+      <boxGeometry args={[2.3, 0.08, 12.5]} />
       <meshStandardMaterial color={WOOD} roughness={0.85} />
     </mesh>
   )
@@ -20,8 +15,8 @@ function Floor() {
 /* ── Ceiling — dark wood like reference photos ─────────── */
 function Ceiling() {
   return (
-    <mesh position={[0, 2.5, Z_CENTER]}>
-      <boxGeometry args={[2.3, 0.08, Z_LENGTH]} />
+    <mesh position={[0, 2.5, -3]}>
+      <boxGeometry args={[2.3, 0.08, 12.5]} />
       <meshStandardMaterial color="#3a2a1a" roughness={0.85} />
     </mesh>
   )
@@ -29,9 +24,7 @@ function Ceiling() {
 
 /* ── Ceiling beams — thicker so they're visible ────────── */
 function CeilingBeams() {
-  // Five beams evenly spaced through the new 7.5m interior, centred on
-  // Z_CENTER=-5.5. Spacing 1.5m.
-  const zPositions = [-2.5, -4, -5.5, -7, -8.5]
+  const zPositions = [1, -1, -3, -5, -7]
   return (
     <>
       {zPositions.map((z) => (
@@ -47,16 +40,14 @@ function CeilingBeams() {
 /* ── Window panel side ─────────────────────────────────── */
 function WindowPanel({ side }: { side: 1 | -1 }) {
   const x = 1.125 * side
-  // Five window posts evenly spaced through the 7.5m cabin interior.
-  // Matches CeilingBeams spacing (1.5m between posts) so verticals line
-  // up with the ceiling beams overhead.
-  const postZs = [-2.5, -4, -5.5, -7, -8.5]
+  // Spec z positions: 3, 0.5, -2, -4.5, -7, -9
+  const postZs = [3, 0.5, -2, -4.5, -7]
 
   return (
     <group>
       {/* Lower wall panel — HK tram green, runs full length */}
-      <mesh position={[x, 0.79, Z_CENTER]}>
-        <boxGeometry args={[0.06, 0.5, Z_LENGTH]} />
+      <mesh position={[x, 0.79, -3]}>
+        <boxGeometry args={[0.06, 0.5, 12.5]} />
         <meshStandardMaterial color={GREEN} roughness={0.6} />
       </mesh>
 
@@ -69,14 +60,14 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
       ))}
 
       {/* Top rail — green, connecting all posts */}
-      <mesh position={[x, 2.1, Z_CENTER]}>
-        <boxGeometry args={[0.06, 0.08, Z_LENGTH]} />
+      <mesh position={[x, 2.1, -3]}>
+        <boxGeometry args={[0.06, 0.08, 12.5]} />
         <meshStandardMaterial color={GREEN} roughness={0.5} />
       </mesh>
 
       {/* Bottom window sill rail — green */}
-      <mesh position={[x, 1.04, Z_CENTER]}>
-        <boxGeometry args={[0.06, 0.06, Z_LENGTH]} />
+      <mesh position={[x, 1.04, -3]}>
+        <boxGeometry args={[0.06, 0.06, 12.5]} />
         <meshStandardMaterial color={GREEN} roughness={0.5} />
       </mesh>
 
@@ -89,7 +80,7 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
           <group key={`glass-${i}`}>
             <mesh position={[x, 1.57, midZ]} rotation={[0, Math.PI / 2, 0]}>
               <planeGeometry args={[spanZ, 1.0]} />
-              <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
+              <meshStandardMaterial color="#d8e8ec" transparent opacity={0.18} roughness={0.15} metalness={0.1} depthWrite={false} side={2} />
             </mesh>
             {/* Horizontal center mullion — the sliding window divider */}
             <mesh position={[x + side * 0.01, 1.57, midZ]}>
@@ -100,22 +91,21 @@ function WindowPanel({ side }: { side: 1 | -1 }) {
         )
       })}
 
-      {/* Glass pane between last post (z=-8.5) and windshield (z=-10) */}
-      <mesh position={[x, 1.57, -9.25]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[1.42, 1.0]} />
-        <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
+      {/* Glass pane between last post (z=-7) and windshield (z=-10) */}
+      <mesh position={[x, 1.57, -8.5]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[2.8, 1.0]} />
+        <meshStandardMaterial color="#d8e8ec" transparent opacity={0.18} roughness={0.15} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
-      {/* Short rear pane — between first post (z=-2.5) and rear
-          entrance (Z_END=-1.75). 0.75m gap. */}
-      <mesh position={[x, 1.57, -2.125]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[0.67, 1.0]} />
-        <meshPhysicalMaterial color="#d8e8ec" transparent opacity={0.2} roughness={0.1} metalness={0.1} transmission={0.7} thickness={0.03} side={2} />
+      {/* Glass pane from first post (z=3) to rear entrance (z=3.25) — short rear pane */}
+      <mesh position={[x, 1.57, 3.12]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[0.2, 1.0]} />
+        <meshStandardMaterial color="#d8e8ec" transparent opacity={0.18} roughness={0.15} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
       {/* Solid upper wall — green (matching all-green exterior) */}
-      <mesh position={[x, 2.3, Z_CENTER]}>
-        <boxGeometry args={[0.06, 0.35, Z_LENGTH]} />
+      <mesh position={[x, 2.3, -3]}>
+        <boxGeometry args={[0.06, 0.35, 12.5]} />
         <meshStandardMaterial color={GREEN} roughness={0.6} />
       </mesh>
     </group>
@@ -147,7 +137,7 @@ function Dashboard() {
       {/* Upper windshield header — nearly clear glass */}
       <mesh position={[0, 2.35, 0.01]}>
         <planeGeometry args={[2.2, 0.35]} />
-        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
+        <meshStandardMaterial color="#eef4f6" transparent opacity={0.1} roughness={0.1} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
       {/* Left windshield post */}
@@ -171,22 +161,22 @@ function Dashboard() {
       {/* Full windshield glass — nearly clear so you see the road */}
       <mesh position={[0, 1.57, 0.01]}>
         <planeGeometry args={[2.2, 1.0]} />
-        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
+        <meshStandardMaterial color="#eef4f6" transparent opacity={0.1} roughness={0.1} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
 
       {/* Upper glass — also clear */}
       <mesh position={[0, 2.25, 0.01]}>
         <planeGeometry args={[2.2, 0.22]} />
-        <meshPhysicalMaterial color="#eef4f6" transparent opacity={0.12} roughness={0.03} metalness={0.1} transmission={0.9} thickness={0.02} side={2} />
+        <meshStandardMaterial color="#eef4f6" transparent opacity={0.1} roughness={0.1} metalness={0.1} depthWrite={false} side={2} />
       </mesh>
     </group>
   )
 }
 
-/* ── Staircase hole in floor ────── */
+/* ── Staircase hole in floor (dark circle at z=3.5) ────── */
 function StaircaseHole() {
   return (
-    <mesh position={[0, 0.55, -2.5]} rotation={[-Math.PI / 2, 0, 0]}>
+    <mesh position={[0, 0.55, 3.5]} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[0.7, 16]} />
       <meshBasicMaterial color="#0a0604" side={2} />
     </mesh>
@@ -220,8 +210,8 @@ function FrontFaceDetails() {
       {/* Two round headlights at bottom */}
       {[-0.45, 0.45].map((hx, i) => (
         <group key={`hl-${i}`} position={[hx, 0.65, fz]}>
-          <mesh>
-            <cylinderGeometry args={[0.08, 0.08, 0.03, 12]} rotation={[Math.PI / 2, 0, 0]} />
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.08, 0.08, 0.03, 12]} />
             <meshStandardMaterial color="#1a1a18" />
           </mesh>
           <mesh position={[0, 0, -0.02]}>

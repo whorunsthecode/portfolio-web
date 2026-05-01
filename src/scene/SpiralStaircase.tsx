@@ -7,9 +7,9 @@ const STEEL = '#9c9488'
 
 // Connects lower deck floor (y=-1.5) to upper deck floor top (y=0.54)
 const BOTTOM_Y = -1.5
-const TOP_Y = 0.75
+const TOP_Y = 0.54
 const TOTAL_RISE = TOP_Y - BOTTOM_Y // ~2.04m
-const CENTER_Z = -2.5
+const CENTER_Z = 3.5
 
 export function SpiralStaircase() {
   const steps = 10

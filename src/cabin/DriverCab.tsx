@@ -18,7 +18,11 @@
  * always fit; gray painted-steel panels are period-correct.
  */
 
+import { useRef, useState } from 'react'
 import { Text } from '@react-three/drei'
+import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import * as THREE from 'three'
+import { useStore } from '../store'
 
 const FLOOR_Y = 0.5
 const CABIN_FRONT_Z = -10
@@ -142,6 +146,20 @@ export function DriverCab() {
           </group>
         )
       })}
+
+      {/* ── CONTACT BADGE — positioned BELOW the "88 WHITTY" LED route
+            display per user request. x=+0.33 matches the LED display's
+            x offset; y offset of -0.16 in local dashboard space drops
+            the badge below the display; z=+0.08 lifts it proud of the
+            dashboard face along the surface normal. */}
+      <group position={[driverX, dashY, dashZ]} rotation={[dashTilt, 0, 0]}>
+        <group position={[0.33, -0.16, 0]}>
+          <DriverBadge
+            position={[0, 0, 0.08]}
+            rotation={[0, 0, 0]}
+          />
+        </group>
+      </group>
 
       {/* ── STEERING WHEEL — moved to RIGHT side per reference ── */}
       <SteeringWheel
@@ -551,3 +569,87 @@ function GearLever({ position }: { position: [number, number, number] }) {
   )
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Clickable brass contact badge — now on sloped dashboard
+   ═══════════════════════════════════════════════════════════════════ */
+function DriverBadge({
+  position,
+  rotation,
+}: {
+  position: [number, number, number]
+  rotation: [number, number, number]
+}) {
+  const setShowDriverCard = useStore((s) => s.setShowDriverCard)
+  const [hovered, setHovered] = useState(false)
+  const materialRef = useRef<THREE.MeshStandardMaterial>(null)
+
+  // Always-on breathing pulse so touch users (no hover) still notice the
+  // badge. Hover boosts above the pulse peak on desktop.
+  useFrame((state) => {
+    if (!materialRef.current) return
+    const t = state.clock.elapsedTime
+    const pulse = 0.32 + 0.22 * Math.sin(t * 2.2)
+    materialRef.current.emissiveIntensity = hovered ? 0.85 : pulse
+  })
+
+  const handleEnter = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+    setHovered(true)
+    document.body.style.cursor = 'pointer'
+  }
+  const handleLeave = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+    setHovered(false)
+    document.body.style.cursor = ''
+  }
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation()
+    setShowDriverCard(true)
+  }
+
+  return (
+    <group position={position} rotation={rotation}>
+      {/* Small elegant brass plaque — restored to original clean look.
+          Positioning is handled by the outer nested-transform groups in
+          DriverCab (the sign-error trap from earlier attempts is gone). */}
+      <mesh
+        onPointerOver={handleEnter}
+        onPointerOut={handleLeave}
+        onClick={handleClick}
+      >
+        <planeGeometry args={[0.12, 0.08]} />
+        <meshStandardMaterial
+          ref={materialRef}
+          color={BRASS}
+          metalness={0.75}
+          roughness={hovered ? 0.22 : 0.3}
+          emissive={BRASS}
+          emissiveIntensity={0.3}
+        />
+      </mesh>
+      {/* Engraved envelope glyph */}
+      <Text
+        position={[0, 0.008, 0.001]}
+        fontSize={0.05}
+        color="#1a1410"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+      >
+        ✉
+      </Text>
+      {/* Tiny caption */}
+      <Text
+        position={[0, -0.025, 0.001]}
+        fontSize={0.012}
+        color="#1a1410"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight="bold"
+        letterSpacing={0.22}
+      >
+        司機 DRIVER
+      </Text>
+    </group>
+  )
+}

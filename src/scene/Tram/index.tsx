@@ -21,13 +21,10 @@ const FRAME = '#1a1a18'
 
 const W = 2.5
 const HW = W / 2
-// Cut to ~9m (real HK tram length). Preserving Z_FRONT at -10 so the
-// driver's cab + seated camera stay put; the rear door shifts forward
-// from z=4 to z=-1.
-const Z_CENTER = -5.5
-const Z_LEN = 9.0
+const Z_CENTER = -3
+const Z_LEN = 14.0
 const Z_FRONT = Z_CENTER - Z_LEN / 2   // -10
-const Z_REAR = Z_CENTER + Z_LEN / 2    // -1
+const Z_REAR = Z_CENTER + Z_LEN / 2    // 4
 
 const LOWER_BOT = -1.7
 const LOWER_TOP = 0.5
@@ -57,10 +54,7 @@ export function TramExteriorShell() {
       <RoofVentBox />
       <FrontFace />
       <RearFace />
-      {/* RearPlatformDoor removed — open boarding bay with farebox, validator
-          posts, chair-rails, and side doors all read as cluttered "elements
-          extended" off the tram's clean rear silhouette. Per user request the
-          rear is stripped to just the 88 destination plate. */}
+      <RearPlatformDoor />
       <SideDestinationBoards />
       {/* SideBrandingPanels removed — "HK Tram Green / PANTONE" was a
           real-world promo sticker that only reads at a specific angle;
@@ -277,10 +271,11 @@ function RearPlatformDoor() {
         </Text>
       </group>
 
-      {/* Interior dark shadow panel removed — after the tram was
-          shortened to 9m, this 2m-wide dark rectangle ended up past
-          the new rear face and dominated the cabin view as a big
-          floating black plane. */}
+      {/* ─── Interior dark shadow inside the boarding bay ─── */}
+      <mesh position={[0, doorCY, doorZ + 0.55]}>
+        <boxGeometry args={[W - 0.5, LOWER_TOP - LOWER_BOT - 0.15, 0.02]} />
+        <meshStandardMaterial color="#1a1410" roughness={0.95} />
+      </mesh>
     </group>
   )
 }
@@ -647,9 +642,9 @@ function LowerDeckExterior() {
               <meshStandardMaterial color={CREAM} roughness={0.75} />
             </mesh>
 
-            {/* Vertical posts between windows — 6 posts evenly spaced within new tram length */}
-            {Array.from({ length: 6 }, (_, i) => {
-              const z = Z_FRONT + 1.0 + i * 1.5
+            {/* Vertical posts between windows */}
+            {Array.from({ length: 8 }, (_, i) => {
+              const z = Z_FRONT + 1.0 + i * 1.65
               return (
                 <mesh key={`lp-${i}`} position={[x + side * 0.001, windowCY, z]} rotation={rot}>
                   <planeGeometry args={[0.06, windowH]} />
@@ -659,11 +654,11 @@ function LowerDeckExterior() {
             })}
 
             {/* Tinted glass filling window spaces */}
-            {Array.from({ length: 5 }, (_, i) => {
-              const z = Z_FRONT + 1.0 + i * 1.5 + 0.75
+            {Array.from({ length: 7 }, (_, i) => {
+              const z = Z_FRONT + 1.0 + i * 1.65 + 0.825
               return (
                 <mesh key={`lg-${i}`} position={[x, windowCY, z]} rotation={rot}>
-                  <planeGeometry args={[1.4, windowH - 0.05]} />
+                  <planeGeometry args={[1.5, windowH - 0.05]} />
                   <meshPhysicalMaterial color="#a0c0c8" transparent opacity={0.25} transmission={0.5} roughness={0.1} side={DoubleSide} />
                 </mesh>
               )
@@ -902,15 +897,30 @@ function RearFace() {
         <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
       </mesh>
 
-      {/* Upper rear filled with solid green so the rear is one clean panel —
-          earlier we had a translucent cyan window + tail lights + "088"
-          number. User wants just the 88 destination plate, nothing else. */}
+      {/* Upper rear window — single panel, slightly brighter cyan
+          glass so it reads as a window not a void even in shadow */}
       <mesh position={[0, (UPPER_TOP + LOWER_TOP) / 2, z - 0.001]}>
         <planeGeometry args={[W - 0.4, uh - 0.24]} />
-        <meshStandardMaterial color={GREEN} roughness={0.55} side={FrontSide} />
+        <meshPhysicalMaterial color="#bcd8dc" transparent opacity={0.55} transmission={0.4} roughness={0.2} side={DoubleSide} />
       </mesh>
 
-      {/* Bumper kept for structural silhouette only */}
+      {/* Tail lights */}
+      {[-0.55, 0.55].map((x, i) => (
+        <mesh key={`tl-${i}`} position={[x, LOWER_BOT + 0.25, z + 0.005]}>
+          <circleGeometry args={[0.055, 10]} />
+          <meshBasicMaterial color="#c82020" />
+        </mesh>
+      ))}
+
+      {/* Rear fleet number "088" — single centred panel on the upper
+          frame, not duplicated on every corner (the old two "088 088"
+          pairs read as floating labels rather than painted numerals). */}
+      <Text position={[0, UPPER_TOP - 0.14, z + 0.005]}
+        fontSize={0.11} color={CREAM} anchorX="center" anchorY="middle" fontWeight="bold" letterSpacing={0.05}>
+        088
+      </Text>
+
+      {/* Bumper */}
       <mesh position={[0, LOWER_BOT + 0.03, Z_REAR]}>
         <boxGeometry args={[W, 0.1, 0.05]} />
         <meshStandardMaterial color={FRAME} roughness={0.6} metalness={0.3} side={FrontSide} />

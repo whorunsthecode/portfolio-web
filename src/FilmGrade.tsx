@@ -44,13 +44,10 @@ function GateWeave() {
 
 export function FilmGrade() {
   const mode = useStore((s) => s.mode)
+  const activeRoom = useStore((s) => s.activeRoom)
 
-  // Mobile: skip the composer entirely. The tram view still gets the
-  // subtle gate-weave camera jitter (cheap), but the six fullscreen
-  // passes are gone. Low-end phones were losing 5–10 fps here.
-  if (IS_MOBILE_VIEWPORT) {
-    return <GateWeave />
-  }
+  // Don't apply film grade inside worlds — only in the tram view
+  if (activeRoom) return null
 
   // Mobile: skip the composer entirely. The tram view still gets the
   // subtle gate-weave camera jitter (cheap), but the six fullscreen

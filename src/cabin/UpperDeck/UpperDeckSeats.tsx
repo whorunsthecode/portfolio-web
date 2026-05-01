@@ -11,17 +11,15 @@ const SEAT_WOOD_DARK = '#5a4028'
 const SEAT_FRAME = '#2a2828'
 const BRASS = '#c8a048'
 
-const FLOOR_Y = 0.75          // 2.55 - 1.8 cabin group offset; world y = 2.55
-const SEAT_Y = FLOOR_Y + 0.45      // world 3.0
-const BACKREST_Y = FLOOR_Y + 0.85  // world 3.4
+const FLOOR_Y = 2.55
+const SEAT_Y = FLOOR_Y + 0.45      // 3.0
+const BACKREST_Y = FLOOR_Y + 0.85  // 3.4
 const SEAT_DEPTH = 0.45            // along Z (front-to-back of seat)
 const SEAT_WIDTH = 0.45            // along X (each seat)
 
-// Forward-facing seat rows along the tram length. Trimmed to 4 rows
-// after the tram was shortened to 9m (Z_END=-1.75); the old back rows
-// at z=1.5, z=0, z=-1.5 were past the new rear wall and read as
-// floating seats in mid-air.
-const ROW_ZS = [-3.0, -4.5, -6.0, -7.5]
+// Eight bench pairs total (4 per side), forward-facing (seat faces -Z / front of tram)
+// Aisle in middle, two seats per side per row
+const ROW_ZS = [1.5, 0, -1.5, -3.0, -4.5, -6.0, -7.5]  // 7 rows along tram length
 
 const SIDE_X_OUTER = 0.85   // outer seat x from center
 const SIDE_X_INNER = 0.38   // inner seat x (against aisle)
@@ -38,10 +36,9 @@ export function UpperDeckSeats() {
         </group>
       ))}
 
-      {/* Aisle ceiling grab rail — brass, running length-wise. Trimmed
-          to 5.5m after the tram was shortened. */}
-      <mesh position={[0, FLOOR_Y + 1.5, -5.25]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, 5.5, 10]} />
+      {/* Aisle ceiling grab rail — brass, running length-wise */}
+      <mesh position={[0, FLOOR_Y + 1.5, -3]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.02, 0.02, 11, 10]} />
         <meshStandardMaterial color={BRASS} metalness={0.75} roughness={0.3} />
       </mesh>
 

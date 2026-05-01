@@ -119,11 +119,7 @@ export function TongLau() {
   const buildings = useMemo(() => {
     const rr = seededRandom(800)
     return Array.from({ length: 8 }, (_, i) => ({
-      // Buildings are 6m wide (half=3); offset 11–13 keeps the road-side
-      // face at x≥8, well clear of the tram (half-width 1.25) and matching
-      // the tenement-row spacing. Earlier 7–9 put the face at x=4–6 which
-      // visibly clipped the tram's path.
-      x: (i % 2 === 0 ? -1 : 1) * (11 + rr() * 2),
+      x: (i % 2 === 0 ? -1 : 1) * (7 + rr() * 2),
       z: -i * 4 + rr() * 2,
       seed: 800 + i,
       color: TONG_LAU_COLORS[Math.floor(rr() * TONG_LAU_COLORS.length)],

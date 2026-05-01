@@ -19,7 +19,7 @@ import { AnimatedPassenger } from '../TramPassengers'
 // Bench cushion top is at y=3.04 (floor 2.55 + SEAT_Y offset 0.45 + half-
 // cushion 0.04). Raise hip origin so thighs rest ABOVE the bench cushion
 // (same fix as lower-deck SEAT_Y rebase).
-const SEAT_Y = 1.33  // 3.13 - 1.8 cabin group offset; world y = 3.13
+const SEAT_Y = 3.13
 
 // Upper-deck seat X positions (outer + inner per side, from UpperDeckSeats)
 const SIDE_X_OUTER = 0.85

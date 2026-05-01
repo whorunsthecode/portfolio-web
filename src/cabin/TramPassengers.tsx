@@ -1025,18 +1025,15 @@ interface SeatAssignment {
 //
 // Left bench  x = -0.73 → face +X (aisle) → facingAngle = +π/2
 // Right bench x = +0.73 → face -X (aisle) → facingAngle = -π/2
-// Passenger z positions were compressed when the tram was shortened from
-// 14m to 9m. Old bench range [-6.5, -1.5] linearly remaps to the new
-// 4m bench range [-7.0, -3.5] so passengers stay between the bench ends.
 const ASSIGNMENTS: SeatAssignment[] = [
-  { variant: 0, x: -0.73, z: -7.0, facingAngle: Math.PI / 2 },    // Office male with newspaper — left bench
-  { variant: 7, x: 0.73,  z: -7.0, facingAngle: -Math.PI / 2 },   // Leslie Cheung (Monica-era red jacket + Vitasoy) — right bench
-  { variant: 1, x: 0.73,  z: -6.3, facingAngle: -Math.PI / 2 },   // OL "pink top lady" — right bench
-  { variant: 6, x: -0.73, z: -6.16, facingAngle: Math.PI / 2 },   // Anita Mui (black tuxedo + lemon tea) — left bench, faces Leslie
-  { variant: 4, x: 0.73,  z: -5.39, facingAngle: -Math.PI / 2 },  // Auntie with 紅白藍 bag — right bench
-  { variant: 2, x: -0.73, z: -5.25, facingAngle: Math.PI / 2 },   // Schoolboy — left bench
-  { variant: 3, x: -0.73, z: -4.2, facingAngle: Math.PI / 2 },    // Schoolgirl with paperback — left bench
-  { variant: 5, x: 0.73,  z: -3.5, facingAngle: -Math.PI / 2 },   // Tourist with Walkman — right bench
+  { variant: 0, x: -0.73, z: -6.5, facingAngle: Math.PI / 2 },    // Office male with newspaper — left bench
+  { variant: 7, x: 0.73,  z: -6.5, facingAngle: -Math.PI / 2 },   // Leslie Cheung (Monica-era red jacket + Vitasoy) — right bench
+  { variant: 1, x: 0.73,  z: -5.5, facingAngle: -Math.PI / 2 },   // OL "pink top lady" — right bench
+  { variant: 6, x: -0.73, z: -5.3, facingAngle: Math.PI / 2 },    // Anita Mui (black tuxedo + lemon tea) — left bench, faces Leslie
+  { variant: 4, x: 0.73,  z: -4.2, facingAngle: -Math.PI / 2 },   // Auntie with 紅白藍 bag — right bench
+  { variant: 2, x: -0.73, z: -4.0, facingAngle: Math.PI / 2 },    // Schoolboy — left bench
+  { variant: 3, x: -0.73, z: -2.5, facingAngle: Math.PI / 2 },    // Schoolgirl with paperback — left bench
+  { variant: 5, x: 0.73,  z: -1.5, facingAngle: -Math.PI / 2 },   // Tourist with Walkman — right bench
 ]
 
 // Bench seat top is at world y=0.98 (SEAT_Y 0.95 + half of 0.06 thickness).
