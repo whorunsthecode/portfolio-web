@@ -39,7 +39,6 @@ function makeConcreteTexture(size = 1024, opts: { mold?: boolean; streak?: boole
   }
 
   if (opts.mold) {
-    // Black mold blooms in the corners/edges
     for (let i = 0; i < 40; i++) {
       const edge = Math.random() < 0.5 ? 0 : size
       const x = Math.random() < 0.5 ? edge + (Math.random() - 0.5) * 120 : Math.random() * size
@@ -56,7 +55,6 @@ function makeConcreteTexture(size = 1024, opts: { mold?: boolean; streak?: boole
   }
 
   if (opts.streak) {
-    // Rust/water streaks running down
     for (let i = 0; i < 12; i++) {
       const x = Math.random() * size
       const top = Math.random() * size * 0.5
@@ -71,7 +69,6 @@ function makeConcreteTexture(size = 1024, opts: { mold?: boolean; streak?: boole
     }
   }
 
-  // Torn poster remnants
   for (let i = 0; i < 8; i++) {
     ctx.fillStyle = `rgba(${180 + Math.random() * 40}, ${170 + Math.random() * 30}, ${140 + Math.random() * 30}, 0.35)`
     const x = Math.random() * size
@@ -84,85 +81,87 @@ function makeConcreteTexture(size = 1024, opts: { mold?: boolean; streak?: boole
   return tex
 }
 
-/**
- * Alley shell — 1.8 wide × 10 deep × 3.8 tall. The ceiling has a long slit
- * down the middle (cut from the mesh geometry) so a thin strip of sky
- * bleeds in — that's the iconic Walled City "daylight" moment.
- */
-export function AlleyShell() {
-  const wallTex = useMemo(() => makeConcreteTexture(1024, { mold: true, streak: true }), [])
-  const floorTex = useMemo(() => makeConcreteTexture(1024, { mold: true }), [])
-  const ceilingTex = useMemo(() => makeConcreteTexture(512, { mold: true }), [])
+const W = 1.8
+const H = 3.8
 
-  const W = 1.8
-  const D = 10
-  const H = 3.8
+// Explicit wall openings (for shop frontages — Sundry in entrance segment, BingSutt in deep).
+// Corridors come from the CORRIDORS array imported above and apply automatically per-segment.
+type SegmentOpening = { side: 'left' | 'right'; zMin: number; zMax: number; ceiling: number }
 
-  const slitRef = useRef<THREE.MeshStandardMaterial>(null)
-  useFrame(() => {
-    if (slitRef.current) {
-      slitRef.current.emissiveIntensity = 1.2 * (1 - 0.8 * walledCityBus.flyoverK)
-    }
-  })
+function Segment({
+  centerX, zMin, zMax, hasFrontWall, hasBackWall, hasSkySlit,
+  extraOpenings = [], wallTex, floorTex, ceilingTex, slitRef,
+}: {
+  centerX: number
+  zMin: number
+  zMax: number
+  hasFrontWall: boolean
+  hasBackWall: boolean
+  hasSkySlit: boolean
+  extraOpenings?: SegmentOpening[]
+  wallTex: THREE.CanvasTexture
+  floorTex: THREE.CanvasTexture
+  ceilingTex: THREE.CanvasTexture
+  slitRef?: React.RefObject<THREE.MeshStandardMaterial | null>
+}) {
+  const length = zMax - zMin
+  const midZ = (zMin + zMax) / 2
 
   return (
     <group>
-      {/* Floor — wet concrete with dark pool patches */}
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[W, D]} />
-        <meshStandardMaterial
-          map={floorTex}
-          roughness={0.45} // wet = lower roughness
-          metalness={0.1}
-          color={'#1e1a14'}
-        />
+      {/* Floor */}
+      <mesh position={[centerX, 0, midZ]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[W, length]} />
+        <meshStandardMaterial map={floorTex} roughness={0.45} metalness={0.1} color={'#1e1a14'} />
       </mesh>
 
-      {/* Ceiling — two panels with a gap in the middle for the sky slit */}
-      <mesh position={[-W / 2 + 0.3, H, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.6, D]} />
+      {/* Ceiling — two panels with a gap in the middle for sky slit */}
+      <mesh position={[centerX - W / 2 + 0.3, H, midZ]} rotation={[Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.6, length]} />
         <meshStandardMaterial map={ceilingTex} roughness={0.95} color={'#2a261e'} />
       </mesh>
-      <mesh position={[W / 2 - 0.3, H, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.6, D]} />
+      <mesh position={[centerX + W / 2 - 0.3, H, midZ]} rotation={[Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.6, length]} />
         <meshStandardMaterial map={ceilingTex} roughness={0.95} color={'#2a261e'} />
       </mesh>
 
-      {/* Sky slit — bright emissive strip between the ceiling panels.
-          Material ref lets PlaneFlyover dim it as a plane passes over. */}
-      <mesh position={[0, H + 0.01, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[0.3, D]} />
-        <meshStandardMaterial
-          ref={slitRef}
-          color={'#e8d890'}
-          emissive={'#f8e4a0'}
-          emissiveIntensity={1.2}
-          roughness={1}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      {/* Sky slit — only on segments where the rooftop is overhead (entrance segment) */}
+      {hasSkySlit && (
+        <mesh position={[centerX, H + 0.01, midZ]} rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[0.3, length]} />
+          <meshStandardMaterial
+            ref={slitRef}
+            color={'#e8d890'}
+            emissive={'#f8e4a0'}
+            emissiveIntensity={1.2}
+            roughness={1}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
 
-      {/* Left + right walls — rendered as segments around any corridor
-          openings so the corridor behind the wall is visible through
-          the gap. Each opening leaves a top lintel from y = corridor
-          ceiling up to the alley ceiling. */}
+      {/* Side walls — segments around openings (corridors + extra). */}
       {(['left', 'right'] as const).map((side) => {
         const sign = side === 'left' ? -1 : 1
         const rotY = sign * Math.PI / 2
-        // Collect openings for this side, sorted by z
-        const openings = CORRIDORS
-          .filter((c) => c.side === side)
+        const wallX = centerX + sign * W / 2
+        // Combine corridor openings (within this segment's z range, on this side)
+        // with explicit extra openings.
+        const corridorOpenings = CORRIDORS
+          .filter((c) => c.side === side && c.z >= zMin && c.z <= zMax)
           .map((c) => ({ zMin: c.z - c.halfWidth, zMax: c.z + c.halfWidth, ceiling: c.ceiling }))
-          .sort((a, b) => a.zMin - b.zMin)
-        // Derive wall segments — between each pair of openings + before
-        // the first and after the last
+        const extras = extraOpenings
+          .filter((o) => o.side === side)
+          .map((o) => ({ zMin: o.zMin, zMax: o.zMax, ceiling: o.ceiling }))
+        const openings = [...corridorOpenings, ...extras].sort((a, b) => a.zMin - b.zMin)
+
         const segs: { zMin: number; zMax: number }[] = []
-        let cursor = -D / 2
+        let cursor = zMin
         for (const o of openings) {
           if (o.zMin > cursor) segs.push({ zMin: cursor, zMax: o.zMin })
           cursor = o.zMax
         }
-        if (cursor < D / 2) segs.push({ zMin: cursor, zMax: D / 2 })
+        if (cursor < zMax) segs.push({ zMin: cursor, zMax: zMax })
 
         return (
           <group key={side}>
@@ -170,7 +169,7 @@ export function AlleyShell() {
               const w = s.zMax - s.zMin
               const cz = (s.zMin + s.zMax) / 2
               return (
-                <mesh key={i} position={[sign * W / 2, H / 2, cz]} rotation={[0, rotY, 0]}>
+                <mesh key={i} position={[wallX, H / 2, cz]} rotation={[0, rotY, 0]}>
                   <planeGeometry args={[w, H]} />
                   <meshStandardMaterial map={wallTex} roughness={0.9} color={'#3a342a'} side={THREE.DoubleSide} />
                 </mesh>
@@ -184,7 +183,7 @@ export function AlleyShell() {
               return (
                 <mesh
                   key={`lintel-${i}`}
-                  position={[sign * W / 2, (o.ceiling + H) / 2, cz]}
+                  position={[wallX, (o.ceiling + H) / 2, cz]}
                   rotation={[0, rotY, 0]}
                 >
                   <planeGeometry args={[w, lintelH]} />
@@ -196,29 +195,82 @@ export function AlleyShell() {
         )
       })}
 
-      {/* Back wall (z = -D/2) — split into three segments around a 1m-wide,
-          2.1m-tall doorway leading into the stairwell behind. */}
-      {/* Left jamb */}
-      <mesh position={[(-W / 2 + -0.5) / 2, H / 2, -D / 2]}>
-        <planeGeometry args={[-0.5 - (-W / 2), H]} />
-        <meshStandardMaterial color={'#18140e'} roughness={0.95} side={THREE.DoubleSide} />
-      </mesh>
-      {/* Right jamb */}
-      <mesh position={[(W / 2 + 0.5) / 2, H / 2, -D / 2]}>
-        <planeGeometry args={[W / 2 - 0.5, H]} />
-        <meshStandardMaterial color={'#18140e'} roughness={0.95} side={THREE.DoubleSide} />
-      </mesh>
-      {/* Top lintel above the doorway */}
-      <mesh position={[0, (2.1 + H) / 2, -D / 2]}>
-        <planeGeometry args={[1.0, H - 2.1]} />
-        <meshStandardMaterial color={'#18140e'} roughness={0.95} side={THREE.DoubleSide} />
-      </mesh>
+      {/* Back wall (z = zMin) */}
+      {hasBackWall && (
+        <mesh position={[centerX, H / 2, zMin]}>
+          <planeGeometry args={[W, H]} />
+          <meshStandardMaterial color={'#18140e'} roughness={0.95} side={THREE.DoubleSide} />
+        </mesh>
+      )}
 
-      {/* Front wall (behind camera) */}
-      <mesh position={[0, H / 2, D / 2]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[W, H]} />
-        <meshStandardMaterial color={'#1a1610'} roughness={0.95} side={THREE.DoubleSide} />
-      </mesh>
+      {/* Front wall (z = zMax) — for the entrance closure behind player start */}
+      {hasFrontWall && (
+        <mesh position={[centerX, H / 2, zMax]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[W, H]} />
+          <meshStandardMaterial color={'#1a1610'} roughness={0.95} side={THREE.DoubleSide} />
+        </mesh>
+      )}
+    </group>
+  )
+}
+
+/**
+ * Alley shell — now built as 2 segments to support the dogleg geometry.
+ * Entrance: z=+4.8 to z=−14, axis x=0 (with sky slit overhead).
+ * Deep:     z=−30 to z=−16, axis x=−2 (no sky slit — gloomier per spec).
+ * The dogleg between is rendered by AlleyDogleg.tsx.
+ *
+ * Shop frontages are punched as extraOpenings on the appropriate segment:
+ *   Sundry  — entrance segment, left wall, z=−8 to −5
+ *   BingSutt — deep segment, right wall, z=−22 to −18
+ */
+export function AlleyShell() {
+  const wallTex = useMemo(() => makeConcreteTexture(1024, { mold: true, streak: true }), [])
+  const floorTex = useMemo(() => makeConcreteTexture(1024, { mold: true }), [])
+  const ceilingTex = useMemo(() => makeConcreteTexture(512, { mold: true }), [])
+
+  const slitRef = useRef<THREE.MeshStandardMaterial>(null)
+  useFrame(() => {
+    if (slitRef.current) {
+      slitRef.current.emissiveIntensity = 1.2 * (1 - 0.8 * walledCityBus.flyoverK)
+    }
+  })
+
+  return (
+    <group>
+      {/* Entrance segment — z=+4.8 (front wall, behind player start) to z=−14 (open to dogleg) */}
+      <Segment
+        centerX={0}
+        zMin={-14}
+        zMax={4.8}
+        hasFrontWall={true}
+        hasBackWall={false}
+        hasSkySlit={true}
+        extraOpenings={[
+          // Sundry shop frontage — left wall at z=−8 to −5
+          { side: 'left', zMin: -8, zMax: -5, ceiling: 2.8 },
+        ]}
+        wallTex={wallTex}
+        floorTex={floorTex}
+        ceilingTex={ceilingTex}
+        slitRef={slitRef}
+      />
+      {/* Deep segment — z=−30 (dead end, blocked by FruitStall) to z=−16 (open to dogleg) */}
+      <Segment
+        centerX={-2}
+        zMin={-30}
+        zMax={-16}
+        hasFrontWall={false}
+        hasBackWall={false}
+        hasSkySlit={false}
+        extraOpenings={[
+          // BingSutt walk-in entrance — right wall at z=−22 to −18
+          { side: 'right', zMin: -22, zMax: -18, ceiling: 2.8 },
+        ]}
+        wallTex={wallTex}
+        floorTex={floorTex}
+        ceilingTex={ceilingTex}
+      />
     </group>
   )
 }
