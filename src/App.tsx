@@ -53,8 +53,16 @@ export default function App() {
   return (
     <>
       <Canvas
-        shadows
-        dpr={[1, 2]}
+        // Shadows are one of the biggest mobile-GPU costs — a directional
+        // light casting a 1024² shadow map + receiveShadow on every
+        // tenement/landmark/vehicle roughly doubles the per-frame render
+        // cost on low-end phones. Desktop keeps shadows; mobile gets the
+        // ambient/directional lighting without the cast-map pass.
+        shadows={!mobile}
+        // Mobile retina panels were rendering at dpr 2, doubling the
+        // pixel count for no visible gain on 3D at phone distance —
+        // cap at 1.5 there to claw back frame budget.
+        dpr={mobile ? [1, 1.5] : [1, 2]}
         camera={{
           position: boardingDone || prefersReduced ? [0, 1.7, -9.0] : [5.5, 0.8, -2.0],
           fov: boardingDone || prefersReduced ? (mobile ? 88 : 72) : (mobile ? 78 : 65),

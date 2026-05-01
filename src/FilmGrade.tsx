@@ -52,6 +52,13 @@ export function FilmGrade() {
     return <GateWeave />
   }
 
+  // Mobile: skip the composer entirely. The tram view still gets the
+  // subtle gate-weave camera jitter (cheap), but the six fullscreen
+  // passes are gone. Low-end phones were losing 5–10 fps here.
+  if (IS_MOBILE_VIEWPORT) {
+    return <GateWeave />
+  }
+
   return (
     <>
       <GateWeave />
