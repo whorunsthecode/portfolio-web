@@ -116,12 +116,15 @@ export function WalledCity() {
         <Rooftop />
         <Salon />
         <PlaneFlyover />
-        <Sundry />
-        <BingSutt />
-        <FruitStall />
-        <ShopFigures />
+        {/* DEBUG: temporarily disable new shop components to isolate
+            'all black' bug. If WC renders with these off, the issue is
+            in one of these. Re-enable after diagnosis. */}
+        {/* <Sundry /> */}
+        {/* <BingSutt /> */}
+        {/* <FruitStall /> */}
+        {/* <ShopFigures /> */}
       </group>
-      <InteractableHUD />
+      {/* <InteractableHUD /> */}
       <FirstPersonControls
         bounds={BOUNDS}
         start={[WORLD_X, 0, 4.5]}
