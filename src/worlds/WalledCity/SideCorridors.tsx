@@ -13,7 +13,7 @@ export interface CorridorDef {
   halfWidth: number   // half of the opening width (z axis)
   depth: number       // how far the corridor extends perpendicular from the alley
   ceiling: number     // y height of corridor ceiling
-  kind: 'window' | 'laundry' | 'salon'
+  kind: 'window' | 'laundry' | 'salon' | 'false-path' | 'sign-alcove'
 }
 
 export const CORRIDORS: CorridorDef[] = [
@@ -23,6 +23,12 @@ export const CORRIDORS: CorridorDef[] = [
   // only so AlleyShell cuts a gap in the alley right wall and the player
   // can walk through. SideCorridors skips rendering for kind:'salon'.
   { side: 'right', z: -0.4, halfWidth: 0.4, depth: 0.3, ceiling: 2.1, kind: 'salon' },
+  // False-path bending out of sight at z=-12 (entrance segment, axis x=0).
+  // Player sees darkness curving; if they walk in they hit a back wall.
+  { side: 'right', z: -12, halfWidth: 0.5, depth: 2.0, ceiling: 2.3, kind: 'false-path' },
+  // Sign-alcove at z=-25 (deep segment, axis x=-2). Hangs the iconic
+  // "九龍城寨業主聯誼會" vertical wood sign. Shallow — just a side-pocket.
+  { side: 'left',  z: -25, halfWidth: 0.4, depth: 1.0, ceiling: 2.3, kind: 'sign-alcove' },
 ]
 
 function makeGrimyConcrete(size = 512): THREE.CanvasTexture {
@@ -59,8 +65,11 @@ function Corridor({ def }: { def: CorridorDef }) {
   // Side convention: the corridor extends AWAY from the alley in the ±X
   // direction depending on which alley wall it opens from.
   const outward = def.side === 'left' ? -1 : 1
+  // Alley axis depends on which segment this corridor sits in: entrance
+  // segment is centered at x=0; deep segment (z<-16) is centered at x=-2.
+  const segmentCenterX = def.z < -16 ? -2 : 0
   // x at the alley wall (opening plane)
-  const alleyWallX = def.side === 'left' ? -0.9 : 0.9
+  const alleyWallX = segmentCenterX + (def.side === 'left' ? -0.9 : 0.9)
   // x at the corridor's far end wall
   const farWallX = alleyWallX + outward * def.depth
   const midX = (alleyWallX + farWallX) / 2
@@ -99,22 +108,33 @@ function Corridor({ def }: { def: CorridorDef }) {
       ))}
 
       {/* Atmospheric fill at the dead end */}
-      {def.kind === 'window' ? (
+      {def.kind === 'window' && (
         <LitWindowDecor farWallX={farWallX} centreZ={centreZ} outward={outward} />
-      ) : (
+      )}
+      {def.kind === 'laundry' && (
         <LaundryKnotDecor midX={midX} farWallX={farWallX} centreZ={centreZ}
           outward={outward} ceiling={ceiling} />
       )}
+      {def.kind === 'false-path' && (
+        <FalsePathDecor farWallX={farWallX} centreZ={centreZ} outward={outward} ceiling={ceiling} />
+      )}
+      {def.kind === 'sign-alcove' && (
+        <SignAlcoveDecor farWallX={farWallX} centreZ={centreZ} outward={outward} ceiling={ceiling} />
+      )}
 
       {/* Weak ambient bulb near the corridor entrance so the opening
-          reads as a dim passage rather than a black rectangle. */}
-      <pointLight
-        position={[alleyWallX + outward * 0.5, ceiling - 0.25, centreZ]}
-        color={'#d8a060'}
-        intensity={0.35}
-        distance={2.5}
-        decay={2}
-      />
+          reads as a dim passage rather than a black rectangle. The
+          false-path corridor skips this — it's intentionally pitch-black
+          so the player doesn't realize it's a dead end until they walk in. */}
+      {def.kind !== 'false-path' && (
+        <pointLight
+          position={[alleyWallX + outward * 0.5, ceiling - 0.25, centreZ]}
+          color={'#d8a060'}
+          intensity={0.35}
+          distance={2.5}
+          decay={2}
+        />
+      )}
     </group>
   )
 }
@@ -244,6 +264,96 @@ function LaundryKnotDecor({ midX, farWallX, centreZ, outward, ceiling }: {
         color={'#f8cc70'}
         intensity={0.9}
         distance={3}
+        decay={2}
+      />
+    </group>
+  )
+}
+
+function FalsePathDecor({ farWallX, centreZ, outward, ceiling }: {
+  farWallX: number
+  centreZ: number
+  outward: number
+  ceiling: number
+}) {
+  // The illusion: dark passage that LOOKS like it bends/continues. Achieved
+  // with a darker far-wall + a single VERY dim point light deep in, biased
+  // toward the floor so the wall reads as "more darkness beyond" rather
+  // than a flat dead end.
+  return (
+    <group>
+      {/* Repaint the far wall darker than the corridor's default to enhance
+          the depth illusion — slightly inset from the standard far wall. */}
+      <mesh
+        position={[farWallX - outward * 0.005, ceiling / 2, centreZ]}
+        rotation={[0, -outward * Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[0.9, ceiling]} />
+        <meshStandardMaterial color={'#0a0806'} roughness={0.98} />
+      </mesh>
+      {/* Very dim deep light, biased toward the floor */}
+      <pointLight
+        position={[farWallX - outward * 0.15, 0.4, centreZ]}
+        color={'#503020'}
+        intensity={0.25}
+        distance={1.8}
+        decay={2}
+      />
+    </group>
+  )
+}
+
+function SignAlcoveDecor({ farWallX, centreZ, outward, ceiling }: {
+  farWallX: number
+  centreZ: number
+  outward: number
+  ceiling: number
+}) {
+  // Vertical "九龍城寨業主聯誼會" wood sign hanging from the alcove ceiling.
+  const signTex = useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 64; c.height = 256
+    const ctx = c.getContext('2d')!
+    ctx.fillStyle = '#f4e8c8'
+    ctx.fillRect(0, 0, 64, 256)
+    // Wood grain streaks
+    ctx.strokeStyle = 'rgba(120, 80, 40, 0.3)'
+    ctx.lineWidth = 1
+    for (let i = 0; i < 8; i++) {
+      ctx.beginPath()
+      ctx.moveTo(0, i * 32 + Math.random() * 6)
+      ctx.lineTo(64, i * 32 + Math.random() * 6)
+      ctx.stroke()
+    }
+    ctx.fillStyle = '#8a1a18'
+    ctx.font = 'bold 32px serif'
+    ctx.textAlign = 'center'
+    const chars = ['九', '龍', '城', '寨', '業', '主', '聯', '誼', '會']
+    chars.forEach((ch, i) => ctx.fillText(ch, 32, 30 + i * 25))
+    return new THREE.CanvasTexture(c)
+  }, [])
+
+  return (
+    <group>
+      {/* Sign plank, hanging from the alcove ceiling */}
+      <mesh position={[farWallX - outward * 0.25, ceiling - 0.9, centreZ]}>
+        <boxGeometry args={[0.04, 1.4, 0.18]} />
+        <meshStandardMaterial map={signTex} color={'#f0e0c0'} roughness={0.85} />
+      </mesh>
+      {/* Two hanging wires */}
+      {[-0.06, 0.06].map((zOff, i) => (
+        <mesh key={i}
+          position={[farWallX - outward * 0.25, ceiling - 0.18, centreZ + zOff]}>
+          <cylinderGeometry args={[0.003, 0.003, 0.4, 4]} />
+          <meshStandardMaterial color={'#1a1410'} />
+        </mesh>
+      ))}
+      {/* Warm ambient bulb to rim-light the sign */}
+      <pointLight
+        position={[farWallX - outward * 0.05, ceiling - 0.15, centreZ]}
+        color={'#ffb878'}
+        intensity={0.7}
+        distance={1.8}
         decay={2}
       />
     </group>
