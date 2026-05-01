@@ -116,12 +116,11 @@ export function WalledCity() {
         <Rooftop />
         <Salon />
         <PlaneFlyover />
-        {/* DEBUG bisect step 3: re-enable BingSutt to test if it's the
-            culprit. ShopFigures + HUD still off. */}
+        {/* DEBUG bisect step 4: re-enable ShopFigures. HUD still off. */}
         <Sundry />
         <BingSutt />
         <FruitStall />
-        {/* <ShopFigures /> */}
+        <ShopFigures />
       </group>
       {/* <InteractableHUD /> */}
       <FirstPersonControls
