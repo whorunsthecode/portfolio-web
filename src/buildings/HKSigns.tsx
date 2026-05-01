@@ -874,7 +874,7 @@ function buildSigns(): Sign[] {
   return signs
 }
 
-const SCROLL_SPEED = 6
+const SCROLL_SPEED = 4
 const ROUTE_LENGTH = 140
 const RESET_THRESHOLD = 15
 

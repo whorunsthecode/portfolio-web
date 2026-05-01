@@ -26,7 +26,7 @@ const ROAD_HALF = 5.5  // buildings start this far from center
  *  compute the facade plane from each BuildingDef without re-reading the
  *  Tenement component internals. */
 export const TENEMENT_DEPTH = 7
-const SCROLL_SPEED = 6 // match lane marking speed
+const SCROLL_SPEED = 4 // match lane marking speed — ~14 km/h perceived tram speed
 
 // Landmark z positions — skip tenements near these so landmarks are visible.
 // Keep in sync with LANDMARKS in buildings/landmarks/Landmarks.tsx.
@@ -95,21 +95,30 @@ export const BUILDINGS = generateBuildings()
 const MIN_Z = Math.min(...BUILDINGS.map((b) => b.z)) - 12
 const RANGE = 10 - MIN_Z // total z-range for recycling
 
+/**
+ * Shared mutable array of the CURRENT z position of each building. The
+ * TenementRow useFrame writes to it each frame; anything that needs to
+ * scroll in lock-step with the buildings (BambooScaffold, landmarks)
+ * reads from it and sets its own children to the same z. This replaces
+ * the old pattern of each component running its own scroll loop, which
+ * drifted apart after a few recycle cycles because of per-building
+ * randomised reset offsets.
+ */
+export const BUILDING_OFFSETS: number[] = BUILDINGS.map((b) => b.z)
+
 export function TenementRow() {
   const groupRef = useRef<THREE.Group>(null)
-  // Track per-building z offsets for recycling
-  const offsets = useRef(BUILDINGS.map((b) => b.z))
 
   useFrame((_, delta) => {
     if (!groupRef.current) return
     const children = groupRef.current.children
 
     for (let i = 0; i < children.length; i++) {
-      offsets.current[i] += SCROLL_SPEED * delta
-      if (offsets.current[i] > 10) {
-        offsets.current[i] -= RANGE + Math.random() * 3
+      BUILDING_OFFSETS[i] += SCROLL_SPEED * delta
+      if (BUILDING_OFFSETS[i] > 10) {
+        BUILDING_OFFSETS[i] -= RANGE + Math.random() * 3
       }
-      children[i].position.z = offsets.current[i]
+      children[i].position.z = BUILDING_OFFSETS[i]
     }
   })
 

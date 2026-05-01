@@ -117,7 +117,7 @@ export function LaneMarkings() {
 
   useFrame((_, delta) => {
     if (!meshRef.current) return
-    const speed = 6 // units per second
+    const speed = 4 // units per second — matches tenement/signs/landmarks scroll for parallax sync
 
     for (let i = 0; i < MARKING_COUNT; i++) {
       offsets[i] += speed * delta
