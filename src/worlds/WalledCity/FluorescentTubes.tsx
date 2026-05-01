@@ -8,15 +8,27 @@ interface Tube {
   z: number
   profile: Profile
   seed: number
+  x?: number  // axis offset — 0 for entrance segment, -2 for deep segment
 }
 
-// Spec: roughly 30% healthy / 50% flickering / 20% dying. With 3 tubes
-// that's one of each. Placement is spread along the 10m alley (z -5..5)
-// avoiding the deepest wall and leaving the middle for the open door spill.
+// Original entrance-segment tubes — one of each profile. Plus extension
+// tubes covering the new run. Past the dogleg (z<-16) the mix shifts to
+// mostly dying/flicker per the spec gloom brief.
 const TUBES: Tube[] = [
+  // Entrance segment original
   { z: -4.2, profile: 'dying',   seed: 1.7 },
   { z: -0.8, profile: 'flicker', seed: 4.3 },
   { z:  2.8, profile: 'healthy', seed: 2.1 },
+  // Entrance extension — one healthy near Sundry, one flicker mid, one dying past stairwell
+  { z: -7,   profile: 'healthy', seed: 5.5 },
+  { z: -11,  profile: 'flicker', seed: 3.2 },
+  { z: -13.5, profile: 'dying',  seed: 6.8 },
+  // Deep segment (axis x=-2). One healthy over BingSutt entrance, rest dim.
+  { z: -17, profile: 'flicker', seed: 7.4, x: -2 },
+  { z: -20, profile: 'healthy', seed: 1.1, x: -2 },
+  { z: -23.5, profile: 'dying', seed: 4.9, x: -2 },
+  { z: -26, profile: 'flicker', seed: 8.3, x: -2 },
+  { z: -28.5, profile: 'dying', seed: 2.7, x: -2 },
 ]
 
 function tubeIntensity(profile: Profile, t: number, seed: number): number {
@@ -60,7 +72,7 @@ function Tube({ tube }: { tube: Tube }) {
   })
 
   return (
-    <group position={[0, 3.25, tube.z]}>
+    <group position={[tube.x ?? 0, 3.25, tube.z]}>
       {/* Metal housing */}
       <mesh>
         <boxGeometry args={[0.24, 0.08, 1.0]} />

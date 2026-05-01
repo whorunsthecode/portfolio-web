@@ -129,6 +129,104 @@ function pipesDef(): PipeSeg[] {
     })
   }
 
+  // === ENTRANCE EXTENSION (z=-14 to -4.8, axis x=0) ===
+  // 4 overhead runs continuing the main bundle
+  overheadRuns.forEach((r) => {
+    defs.push({
+      start: [r.x, r.y, -14],
+      end: [r.x, r.y, -4.8],
+      radius: r.radius,
+      color: r.color,
+      metalness: r.m,
+      roughness: r.r,
+    })
+  })
+  // Cross pipes in the extension — looser density
+  const extCross: Array<{ z: number; y: number; radius: number; color: string; m: number; r: number }> = [
+    { z: -6.5, y: 3.25, radius: 0.085, color: '#7a5028', m: 0.3, r: 0.85 },
+    { z: -10.2, y: 3.4, radius: 0.06, color: '#3a342a', m: 0.25, r: 0.85 },
+    { z: -10.5, y: 3.05, radius: 0.04, color: '#5a4030', m: 0.3, r: 0.8 },
+    { z: -13, y: 3.32, radius: 0.07, color: '#2a2018', m: 0.2, r: 0.95 },
+  ]
+  extCross.forEach((c) => {
+    defs.push({
+      start: [-0.88, c.y, c.z],
+      end: [0.88, c.y - 0.02, c.z],
+      radius: c.radius,
+      color: c.color,
+      metalness: c.m,
+      roughness: c.r,
+    })
+  })
+  // 4 more vertical conduits
+  for (let i = 0; i < 4; i++) {
+    const side = i % 2 === 0 ? -1 : 1
+    const z = -13 + i * 2.1
+    defs.push({
+      start: [side * 0.88, 0.2, z],
+      end: [side * 0.88, 3.4, z],
+      radius: 0.022,
+      color: '#1a1410',
+      metalness: 0.1,
+      roughness: 0.9,
+    })
+  }
+
+  // === DEEP SEGMENT (z=-30 to -16, axis x=-2) ===
+  // Bumped 1.5× density per spec — 6 overhead runs instead of 4, denser cross
+  const deepOverhead = [
+    { x: -2.6, y: 3.5, radius: 0.04, color: '#5a4830', m: 0.4, r: 0.7 },
+    { x: -2.3, y: 3.58, radius: 0.055, color: '#3a342a', m: 0.2, r: 0.85 },
+    { x: -1.95, y: 3.48, radius: 0.05, color: '#4a3a28', m: 0.3, r: 0.75 },
+    { x: -1.6, y: 3.55, radius: 0.035, color: '#6a5440', m: 0.3, r: 0.7 },
+    { x: -2.0, y: 3.3, radius: 0.07, color: '#1f1c18', m: 0.25, r: 0.95 },
+    { x: -1.45, y: 3.4, radius: 0.045, color: '#7a4528', m: 0.35, r: 0.85 },
+  ]
+  deepOverhead.forEach((r) => {
+    defs.push({
+      start: [r.x, r.y, -30],
+      end: [r.x, r.y, -16],
+      radius: r.radius,
+      color: r.color,
+      metalness: r.m,
+      roughness: r.r,
+    })
+  })
+  // Cross pipes — denser in deep segment
+  const deepCross: Array<{ z: number; y: number; radius: number; color: string; m: number; r: number }> = [
+    { z: -16.5, y: 3.32, radius: 0.075, color: '#7a4528', m: 0.35, r: 0.85 },
+    { z: -17.5, y: 3.2,  radius: 0.05, color: '#5a4030', m: 0.3, r: 0.8 },
+    { z: -19,   y: 3.4,  radius: 0.085, color: '#1f1c18', m: 0.25, r: 0.95 },
+    { z: -22,   y: 3.1,  radius: 0.06, color: '#3a342a', m: 0.2, r: 0.85 },
+    { z: -23.5, y: 3.45, radius: 0.04, color: '#5a4030', m: 0.3, r: 0.8 },
+    { z: -25,   y: 3.28, radius: 0.09, color: '#1f1c18', m: 0.25, r: 0.95 },
+    { z: -27,   y: 3.18, radius: 0.07, color: '#7a4528', m: 0.35, r: 0.85 },
+    { z: -28.5, y: 3.4,  radius: 0.05, color: '#3a342a', m: 0.2, r: 0.85 },
+  ]
+  deepCross.forEach((c) => {
+    defs.push({
+      start: [-2.88, c.y, c.z],
+      end: [-1.12, c.y - 0.02, c.z],
+      radius: c.radius,
+      color: c.color,
+      metalness: c.m,
+      roughness: c.r,
+    })
+  })
+  // Vertical conduits — 6 in deep segment (1.5× density)
+  for (let i = 0; i < 6; i++) {
+    const side = i % 2 === 0 ? -1 : 1
+    const z = -29 + i * 2.2
+    defs.push({
+      start: [-2 + side * 0.88, 0.2, z],
+      end: [-2 + side * 0.88, 3.4, z],
+      radius: 0.022,
+      color: '#1a1410',
+      metalness: 0.1,
+      roughness: 0.9,
+    })
+  }
+
   return defs
 }
 
@@ -271,6 +369,15 @@ export function PipeWeb() {
       [-0.84, 2.7,  0.8],
       [ 0.84, 2.55, 2.4],
       [-0.84, 2.45, 3.6],
+      // Entrance extension
+      [ 0.84, 2.6, -10.5],
+      [-0.84, 2.55, -13],
+      // Deep segment (axis x=-2, so wall x at -2.84 / -1.16). Denser per spec.
+      [-2.84, 2.6, -17],
+      [-1.16, 2.5, -20],
+      [-2.84, 2.55, -23.5],
+      [-1.16, 2.65, -26],
+      [-2.84, 2.45, -28],
     ]
     const cables: CableSpec[] = []
 
@@ -278,9 +385,16 @@ export function PipeWeb() {
     // wall or along the ceiling, often bundled with adjacent ones.
     junctions.forEach((j) => {
       const n = 5 + Math.floor(rng() * 4)
+      // Determine which segment this junction belongs to so opposite-wall
+      // cables fan within the same segment.
+      const segCenter = j[2] < -16 ? -2 : 0
+      const leftWall = segCenter - 0.84
+      const rightWall = segCenter + 0.84
       for (let i = 0; i < n; i++) {
         const toWall = rng() < 0.6
-        const toX = toWall ? (j[0] > 0 ? -0.84 : 0.84) : (rng() - 0.5) * 1.5
+        const toX = toWall
+          ? (j[0] > segCenter ? leftWall : rightWall)
+          : segCenter + (rng() - 0.5) * 1.5
         const toY = 2.3 + rng() * 1.1
         const toZ = j[2] + (rng() - 0.5) * 4
         cables.push({
@@ -295,10 +409,18 @@ export function PipeWeb() {
     })
 
     // Junction-to-junction backbones: a thick, dark bundle runs between
-    // adjacent junctions, visible as 2–4 parallel lines.
+    // adjacent junctions, visible as 2–4 parallel lines. Skip pairs that
+    // straddle different alley segments (entrance↔deep) since those would
+    // try to bridge across the dogleg in straight lines.
     for (let k = 0; k < junctions.length - 1; k++) {
       const a = junctions[k]
       const b = junctions[k + 1]
+      const aSeg = a[2] < -16 ? -2 : 0
+      const bSeg = b[2] < -16 ? -2 : 0
+      if (aSeg !== bSeg) continue
+      // Also skip pairs whose z gap is too wide (>6m) — those leave odd
+      // long backbones bridging across many doors.
+      if (Math.abs(a[2] - b[2]) > 6) continue
       const bundleCount = 3 + Math.floor(rng() * 2)
       for (let b2 = 0; b2 < bundleCount; b2++) {
         const offY = (b2 - bundleCount / 2) * 0.025
@@ -314,23 +436,31 @@ export function PipeWeb() {
       }
     }
 
-    // Extra free-floating cables strung across the alley at various heights
-    for (let i = 0; i < 22; i++) {
-      const z1 = -4.5 + rng() * 9
-      const z2 = z1 + (rng() - 0.3) * 2.5
-      const y1 = 2.4 + rng() * 1.1
-      const y2 = 2.4 + rng() * 1.1
-      const x1 = (rng() - 0.5) * 1.5
-      const x2 = (rng() - 0.5) * 1.5
-      cables.push({
-        from: [x1, y1, z1],
-        to:   [x2, y2, z2],
-        sag: 0.1 + rng() * 0.3,
-        radius: 0.003 + rng() * 0.004,
-        color: pickColor(rng),
-        extraLoop: rng() < 0.18 ? 0.2 + rng() * 0.3 : 0,
-      })
-    }
+    // Extra free-floating cables strung across the alley at various heights.
+    // Three passes over different z bands so the new sections aren't bare.
+    const bands: { zMin: number; zMax: number; segCenter: number; count: number }[] = [
+      { zMin: -4.5, zMax: 4.5, segCenter: 0, count: 22 },   // original entrance
+      { zMin: -14, zMax: -5, segCenter: 0, count: 14 },     // entrance extension
+      { zMin: -29, zMax: -16, segCenter: -2, count: 28 },   // deep segment (1.5×)
+    ]
+    bands.forEach((band) => {
+      for (let i = 0; i < band.count; i++) {
+        const z1 = band.zMin + rng() * (band.zMax - band.zMin)
+        const z2 = z1 + (rng() - 0.3) * 2.5
+        const y1 = 2.4 + rng() * 1.1
+        const y2 = 2.4 + rng() * 1.1
+        const x1 = band.segCenter + (rng() - 0.5) * 1.5
+        const x2 = band.segCenter + (rng() - 0.5) * 1.5
+        cables.push({
+          from: [x1, y1, z1],
+          to:   [x2, y2, z2],
+          sag: 0.1 + rng() * 0.3,
+          radius: 0.003 + rng() * 0.004,
+          color: pickColor(rng),
+          extraLoop: rng() < 0.18 ? 0.2 + rng() * 0.3 : 0,
+        })
+      }
+    })
 
     return { junctions, cables }
   }, [])

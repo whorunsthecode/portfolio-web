@@ -98,11 +98,26 @@ export function Clutter() {
       <Puddle x={0.3} z={1.5} r={0.22} />
       <Puddle x={-0.4} z={3.0} r={0.18} />
       <Puddle x={0.1} z={-3.6} r={0.28} />
+      {/* Entrance extension puddles */}
+      <Puddle x={-0.3} z={-7.5} r={0.3} />
+      <Puddle x={0.2} z={-12} r={0.25} />
+      {/* Deep segment puddles (axis x=-2) — gloomier, larger */}
+      <Puddle x={-1.7} z={-19} r={0.4} />
+      <Puddle x={-2.3} z={-22.5} r={0.32} />
+      <Puddle x={-2.0} z={-26.5} r={0.45} />
 
       {/* Crates */}
       <Crate pos={[0.6, 0, -4.1]} size={[0.44, 0.42, 0.38]} rot={0.2} />
       <Crate pos={[0.6, 0.42, -4.1]} size={[0.4, 0.3, 0.34]} rot={-0.1} />
       <Crate pos={[-0.55, 0, 3.8]} size={[0.4, 0.36, 0.32]} rot={0.35} />
+      {/* Entrance extension crates */}
+      <Crate pos={[-0.5, 0, -10]} size={[0.4, 0.36, 0.32]} rot={-0.2} />
+      <Crate pos={[0.6, 0, -13]} size={[0.42, 0.4, 0.36]} rot={0.15} />
+      {/* Deep segment crates */}
+      <Crate pos={[-2.5, 0, -17.5]} size={[0.42, 0.38, 0.34]} rot={0.3} />
+      <Crate pos={[-1.5, 0, -24]} size={[0.4, 0.36, 0.32]} rot={-0.25} />
+      <Crate pos={[-2.5, 0, -27]} size={[0.44, 0.4, 0.36]} rot={0.4} />
+      <Crate pos={[-2.5, 0.4, -27]} size={[0.36, 0.28, 0.32]} rot={-0.1} />
 
       {/* Bicycle leaned against right wall */}
       <Bicycle x={0.55} z={0.8} rot={Math.PI / 2 + 0.1} />
@@ -110,12 +125,24 @@ export function Clutter() {
       {/* Trash pails */}
       <TrashPail x={-0.55} z={-4.0} />
       <TrashPail x={0.6} z={2.6} />
+      {/* Entrance extension trash */}
+      <TrashPail x={0.55} z={-11} />
+      {/* Deep segment trash */}
+      <TrashPail x={-2.6} z={-21} />
+      <TrashPail x={-1.45} z={-26.5} />
 
       {/* Stray newspapers (flat dark rectangles on the floor) */}
       {[
         { pos: [0.05, 0.004, 0.2] as [number, number, number], rot: 0.4 },
         { pos: [-0.3, 0.004, -2.1] as [number, number, number], rot: -0.6 },
         { pos: [0.2, 0.004, -0.8] as [number, number, number], rot: 0.15 },
+        // Entrance extension
+        { pos: [-0.4, 0.004, -8.5] as [number, number, number], rot: 0.3 },
+        { pos: [0.3, 0.004, -12.5] as [number, number, number], rot: -0.4 },
+        // Deep segment
+        { pos: [-2.3, 0.004, -19.5] as [number, number, number], rot: 0.5 },
+        { pos: [-1.7, 0.004, -23] as [number, number, number], rot: -0.3 },
+        { pos: [-2.5, 0.004, -25.5] as [number, number, number], rot: 0.2 },
       ].map((n, i) => (
         <mesh key={i} position={n.pos} rotation={[-Math.PI / 2, 0, n.rot]}>
           <planeGeometry args={[0.22, 0.3]} />
