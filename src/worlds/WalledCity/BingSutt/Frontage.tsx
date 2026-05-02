@@ -63,32 +63,45 @@ export function Frontage() {
 
   return (
     <group>
-      {/* Green steel vertical frame on the doorway side */}
-      <mesh position={[BING_SUTT.doorwayX + 0.02, 1.4, BING_SUTT.zMid]}>
-        <boxGeometry args={[0.05, 2.7, length]} />
-        <meshStandardMaterial color={'#2a5a3a'} roughness={0.6} metalness={0.3} />
-      </mesh>
-      {/* Green steel top horizontal frame */}
+      {/* Green steel top horizontal frame — kept (above the doorway, doesn't
+          block sight lines from the alley) */}
       <mesh position={[BING_SUTT.doorwayX + 0.05, 2.6, BING_SUTT.zMid]}>
         <boxGeometry args={[0.1, 0.15, length + 0.1]} />
         <meshStandardMaterial color={'#2a5a3a'} roughness={0.6} metalness={0.3} />
       </mesh>
+      {/* Floor sill — short kick rail at the threshold */}
+      <mesh position={[BING_SUTT.doorwayX + 0.05, 0.06, BING_SUTT.zMid]}>
+        <boxGeometry args={[0.1, 0.12, length]} />
+        <meshStandardMaterial color={'#2a5a3a'} roughness={0.6} metalness={0.3} />
+      </mesh>
+      {/* Two slim vertical mullions at the ends of the storefront — frames
+          the doorway visually without walling it off. */}
+      {[BING_SUTT.zNear, BING_SUTT.zFar].map((z) => (
+        <mesh key={z} position={[BING_SUTT.doorwayX + 0.05, 1.34, z]}>
+          <boxGeometry args={[0.08, 2.55, 0.08]} />
+          <meshStandardMaterial color={'#2a5a3a'} roughness={0.6} metalness={0.3} />
+        </mesh>
+      ))}
 
-      {/* Sliding glass door — only the FAR half is closed (with menu papers).
-          The near half is open so the player walks in. */}
+      {/* Sliding glass door — half-open. The FAR half has clear glass with
+          a few menu strips so the interior is still visible through it;
+          the NEAR half is fully open so the player walks in. */}
       <mesh
         position={[BING_SUTT.doorwayX + 0.04, 1.4, BING_SUTT.zFar + length * 0.25]}
         rotation={[0, Math.PI / 2, 0]}
       >
         <planeGeometry args={[length * 0.5, 2.4]} />
-        <meshStandardMaterial map={menuTex} transparent opacity={0.85}
-          roughness={0.15} side={THREE.DoubleSide} />
+        <meshStandardMaterial map={menuTex} transparent opacity={0.35}
+          roughness={0.1} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
 
-      {/* Vertical "強記冰室" sign hanging perpendicular over the doorway */}
-      <mesh position={[BING_SUTT.doorwayX - 0.5, 2.0, BING_SUTT.zNear - 0.1]}
+      {/* Vertical "強記冰室" sign hanging perpendicular over the doorway.
+          Plane size matches the canvas (96:256 ≈ 3:8) so the four stacked
+          characters render at their drawn aspect instead of being squished
+          into a wide rectangle (which made them unreadable). */}
+      <mesh position={[BING_SUTT.doorwayX - 0.5, 1.6, BING_SUTT.zNear - 0.1]}
         rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[1.0, 0.4]} />
+        <planeGeometry args={[0.36, 0.95]} />
         <meshStandardMaterial map={signTex} side={THREE.DoubleSide}
           emissive={'#a01818'} emissiveIntensity={0.3} />
       </mesh>

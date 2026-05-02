@@ -17,9 +17,13 @@ const SIDEWALK_LOOK = new Vector3(0, 1.5, -5)
 const APPROACH_POS = new Vector3(2.5, 0.9, -3.5)
 const APPROACH_LOOK = new Vector3(0, 1.5, -7)
 
-// Phase 3: Board — ascending to the upper deck seated position
-const SEATED_POS = new Vector3(0, 3.5, -9.0)
-const SEATED_LOOK = new Vector3(0, 3.4, -15)
+// Phase 3: Board — settling into the lower-deck driver seat. Must match
+// the seated position App.tsx hands off to SeatedOrbit (0, 1.7, -9.0)
+// so the boarding animation lands directly there instead of jumping
+// from upper deck (the previous y=3.5) down to the lower deck the
+// moment SeatedOrbit takes over.
+const SEATED_POS = new Vector3(0, 1.7, -9.0)
+const SEATED_LOOK = new Vector3(0, 1.6, -15)
 
 const PHASE1_END = 1.5
 const PHASE2_END = 3.5
