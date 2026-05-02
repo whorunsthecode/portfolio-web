@@ -21,9 +21,17 @@ interface Props {
   height?: number
   speed?: number
   bob?: number
+  // Max vertical change between adjacent floor samples a single move can
+  // accept. Catches the case where two bounds with different floors share
+  // a boundary in xz — without this, walking across the boundary teleports
+  // the player up or down by metres (e.g. on the walled-city stair shaft
+  // where a rooftop zone at y=5 overlaps the ramping stair zone). 0.4m
+  // accommodates the steepest legitimate step (stair tread rise ~0.23m).
+  maxStep?: number
 }
 
 const HALF_PI_MINUS = Math.PI / 2 - 0.05
+const DEFAULT_MAX_STEP = 0.4
 
 function floorAt(zone: Zone, x: number, z: number): number {
   return zone.floorFn ? zone.floorFn(x, z) : zone.min[1]
@@ -69,6 +77,7 @@ export function FirstPersonControls({
   height = 1.65,
   speed = 2.6,
   bob = 0.015,
+  maxStep = DEFAULT_MAX_STEP,
 }: Props) {
   const { camera, gl } = useThree()
 
@@ -138,6 +147,30 @@ export function FirstPersonControls({
 
     const clamped = clampToZones(nx, nz, bounds)
     const floorY = floorAt(clamped.zone, clamped.x, clamped.z)
+
+    // Step-height guard. If the destination floor differs from the current
+    // floor by more than maxStep, treat the boundary as a wall and reject
+    // the xz move. This is what stops the rooftop's y=5 bound from yanking
+    // the player up off the mid-stair ramp (and equivalent vice-versa
+    // drops) when walking across overlapping bounds.
+    const currentFloorY = pos.current.y - height
+    if (Math.abs(floorY - currentFloorY) > maxStep) {
+      // Reject move — keep xz at previous frame, recompute floor at the
+      // unchanged xz so the resting height stays consistent.
+      const stay = clampToZones(pos.current.x, pos.current.z, bounds)
+      const stayFloorY = floorAt(stay.zone, stay.x, stay.z)
+      pos.current.x = stay.x
+      pos.current.z = stay.z
+      const moving = 0
+      bobPhase.current += dt * 8 * moving
+      const bobY = Math.sin(bobPhase.current) * bob * moving
+      pos.current.y = stayFloorY + height + bobY
+      euler.set(pitch.current, yaw.current, 0, 'YXZ')
+      camera.quaternion.setFromEuler(euler)
+      camera.position.copy(pos.current)
+      return
+    }
+
     pos.current.x = clamped.x
     pos.current.z = clamped.z
 
