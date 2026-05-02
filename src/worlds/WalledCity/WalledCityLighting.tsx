@@ -1,7 +1,15 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { walledCityBus } from './bus'
+
+// RectAreaLight needs LTC (Linearly Transformed Cosines) textures loaded
+// before it can emit light. Without this init, the alley's main lights
+// (SkySlitLight + the 3 entrance fluorescent tubes) silently fail and
+// the world reads as black against the 0.08 ambient. This must be called
+// exactly once at module load before any RectAreaLight enters the scene.
+RectAreaLightUniformsLib.init()
 
 // Lighting layer minus the tubes (moved to FluorescentTubes.tsx). What's
 // here is ambient + sky-slit rake + incidental door/mouth spills. The
