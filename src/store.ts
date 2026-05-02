@@ -19,12 +19,19 @@ interface State {
   showDetails: boolean
   activeRoom: null | StopId
   blindIndex: number
+  // The walled-city interactable currently in proximity range. Driven from
+  // InteractableHUD's per-frame distance check, consumed by HUD.tsx (which
+  // lives outside the Canvas) so we don't have to createPortal a <div> out
+  // of an R3F tree — that combo throws "Div is not part of THREE namespace"
+  // and kills the WebGL context.
+  wcInteractable: null | string
   setMode: (m: 'day' | 'night') => void
   advanceRoute: (delta: number) => void
   toggleMute: () => void
   toggleDetails: () => void
   setRoom: (r: State['activeRoom']) => void
   cycleBind: (dir: 1 | -1) => void
+  setWcInteractable: (id: null | string) => void
 }
 
 export const useStore = create<State>((set) => ({
@@ -34,6 +41,7 @@ export const useStore = create<State>((set) => ({
   showDetails: false,
   activeRoom: null,
   blindIndex: 0,
+  wcInteractable: null,
   setMode: (mode) => set({ mode }),
   advanceRoute: (delta) => set((s) => ({
     routePos: (s.routePos + delta) % 140,
@@ -44,4 +52,5 @@ export const useStore = create<State>((set) => ({
   cycleBind: (dir) => set((s) => ({
     blindIndex: (s.blindIndex + dir + STOPS.length) % STOPS.length,
   })),
+  setWcInteractable: (wcInteractable) => set({ wcInteractable }),
 }))

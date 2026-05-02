@@ -1,20 +1,26 @@
 import * as THREE from 'three'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { createPortal } from 'react-dom'
+import { useStore } from '../../store'
 
 // Spec §5 — proximity-based affordance for the 4 interactable shops.
 // Two-part design:
 //   1. Diegetic warm glow at each interactable's doorway (point light fades
-//      in within 3.5m, fades out beyond)
-//   2. Spatial tooltip overlay (DOM portal) shows shop name + Eng + kind
-//      hint when within range
+//      in within 3.5m, fades out beyond) — rendered HERE in R3F
+//   2. Tooltip overlay showing shop name + Eng + kind hint when within
+//      range — rendered OUTSIDE the Canvas in HUD.tsx, which reads the
+//      store key `wcInteractable` we write to from the proximity check.
+//
+// Earlier this component used react-dom createPortal to render a <div>
+// from inside the R3F tree, which throws "Div is not part of THREE
+// namespace" and tears down the WebGL context (entire walled city goes
+// black). The store hop avoids that.
 
 const WORLD_X = 100  // matches WalledCity index.tsx
 
 type InteractableKind = 'walk-in' | 'look-only'
 
-interface Interactable {
+export interface Interactable {
   id: string
   nameZh: string
   nameEn: string
@@ -22,7 +28,7 @@ interface Interactable {
   centerLocal: [number, number, number]  // x, y, z in WalledCity-local space
 }
 
-const INTERACTABLES: Interactable[] = [
+export const INTERACTABLES: Interactable[] = [
   { id: 'salon',       nameZh: '理髮室',  nameEn: 'Salon',          kind: 'walk-in',  centerLocal: [1.9, 1.4, -0.4] },
   { id: 'bing-sutt',   nameZh: '強記冰室', nameEn: 'Keung Kee Café', kind: 'walk-in',  centerLocal: [-1.0, 1.4, -20] },
   { id: 'sundry',      nameZh: '士多',    nameEn: 'Sundry Shop',    kind: 'look-only', centerLocal: [-0.9, 1.4, -6.5] },
@@ -33,38 +39,21 @@ const RANGE = 3.5
 const FADE_TIME = 0.25  // seconds for glow fade
 
 export function InteractableHUD() {
-  const [activeId, setActiveId] = useState<string | null>(null)
   return (
     <>
       {INTERACTABLES.map((it) => (
-        <ProximityGlow
-          key={it.id}
-          interactable={it}
-          onActiveChange={(active) => {
-            // Last writer wins per frame. With 4 interactables and small
-            // RANGE, simultaneous-active situations are rare and visually
-            // harmless — the closest one effectively dominates.
-            if (active) setActiveId(it.id)
-            else setActiveId((prev) => (prev === it.id ? null : prev))
-          }}
-        />
+        <ProximityGlow key={it.id} interactable={it} />
       ))}
-      <TooltipOverlay activeId={activeId} />
     </>
   )
 }
 
-function ProximityGlow({
-  interactable,
-  onActiveChange,
-}: {
-  interactable: Interactable
-  onActiveChange: (active: boolean) => void
-}) {
+function ProximityGlow({ interactable }: { interactable: Interactable }) {
   const lightRef = useRef<THREE.PointLight>(null)
   const intensityRef = useRef(0)
   const wasActiveRef = useRef(false)
   const { camera } = useThree()
+  const setWcInteractable = useStore((s) => s.setWcInteractable)
 
   useFrame((_, dt) => {
     if (!lightRef.current) return
@@ -76,7 +65,13 @@ function ProximityGlow({
     const isActive = dist < RANGE
     if (isActive !== wasActiveRef.current) {
       wasActiveRef.current = isActive
-      onActiveChange(isActive)
+      // Last writer wins per frame. With 4 interactables and small RANGE,
+      // simultaneous-active situations are rare and visually harmless —
+      // the closest one effectively dominates.
+      if (isActive) setWcInteractable(interactable.id)
+      else if (useStore.getState().wcInteractable === interactable.id) {
+        setWcInteractable(null)
+      }
     }
     const target = isActive ? 1.2 : 0
     const step = (dt / FADE_TIME) * 1.2
@@ -101,45 +96,5 @@ function ProximityGlow({
       distance={3}
       decay={2}
     />
-  )
-}
-
-function TooltipOverlay({ activeId }: { activeId: string | null }) {
-  if (typeof document === 'undefined') return null
-  const interactable = activeId ? INTERACTABLES.find((it) => it.id === activeId) : null
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        left: '50%',
-        bottom: '64px',
-        transform: 'translateX(-50%)',
-        zIndex: 100,
-        background: 'rgba(20, 16, 12, 0.78)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        color: '#f0e6d3',
-        padding: '10px 22px',
-        borderRadius: '999px',
-        fontFamily: 'serif',
-        textAlign: 'center',
-        opacity: interactable ? 1 : 0,
-        transition: 'opacity 200ms ease-out',
-        pointerEvents: 'none',
-      }}
-    >
-      {interactable ? (
-        <>
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>{interactable.nameZh}</div>
-          <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>
-            {interactable.nameEn}
-            <span style={{ marginLeft: '8px', opacity: 0.6 }}>
-              {interactable.kind === 'walk-in' ? 'Enter ▸' : 'View ▸'}
-            </span>
-          </div>
-        </>
-      ) : null}
-    </div>,
-    document.body,
   )
 }

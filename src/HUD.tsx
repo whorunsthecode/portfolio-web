@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useStore, STOPS } from './store'
+import { INTERACTABLES } from './worlds/WalledCity/InteractableHUD'
 
 const IS_TOUCH = typeof window !== 'undefined' && (
   'ontouchstart' in window || (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! > 0
@@ -303,6 +304,47 @@ export function HUD() {
           <SocialChip label="@karmenbuilds" platform="Instagram" url="https://instagram.com/karmenbuilds" />
         </div>
       )}
+
+      <WcInteractableTooltip />
+    </div>
+  )
+}
+
+function WcInteractableTooltip() {
+  const id = useStore((s) => s.wcInteractable)
+  const interactable = id ? INTERACTABLES.find((it) => it.id === id) : null
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        left: '50%',
+        bottom: '64px',
+        transform: 'translateX(-50%)',
+        zIndex: 100,
+        background: 'rgba(20, 16, 12, 0.78)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        color: '#f0e6d3',
+        padding: '10px 22px',
+        borderRadius: '999px',
+        fontFamily: 'serif',
+        textAlign: 'center',
+        opacity: interactable ? 1 : 0,
+        transition: 'opacity 200ms ease-out',
+        pointerEvents: 'none',
+      }}
+    >
+      {interactable ? (
+        <>
+          <div style={{ fontSize: '18px', fontWeight: 600 }}>{interactable.nameZh}</div>
+          <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>
+            {interactable.nameEn}
+            <span style={{ marginLeft: '8px', opacity: 0.6 }}>
+              {interactable.kind === 'walk-in' ? 'Enter ▸' : 'View ▸'}
+            </span>
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }
