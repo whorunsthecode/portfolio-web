@@ -33,7 +33,8 @@ const DOOR_LEFT: { z: number; seg?: number }[] = [
   { z: -17.5, seg: -2 }, { z: -21.5, seg: -2 }, { z: -23.5, seg: -2 }, { z: -27, seg: -2 },
 ]
 const DOOR_RIGHT: { z: number; seg?: number }[] = [
-  { z: -2.6 }, { z: -0.8 }, { z: 1.0 }, { z: 2.8 },
+  // Skip z=-0.8 — that slot is the Salon storefront, not an apartment.
+  { z: -2.6 }, { z: 1.0 }, { z: 2.8 },
   // Entrance extension
   { z: -4.5 }, { z: -7.5 }, { z: -10 }, { z: -13.5 },
   // Deep segment

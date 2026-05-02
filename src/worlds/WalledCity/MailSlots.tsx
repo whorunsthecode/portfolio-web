@@ -33,9 +33,12 @@ const LEFT_DOORS: Door[] = [
 ]
 
 const RIGHT_DOORS: Door[] = [
-  // Entrance segment (axis x=0)
+  // Entrance segment (axis x=0). NOTE: no door at z=-0.8 — that wall slot
+  // is taken by the Salon (理髮室) frontage at z=-0.4. A residential door
+  // 0.4m from the barber's glass storefront read as a household door
+  // bolted onto the barbershop, which the Salon's frontage already
+  // implies a single full-width unit.
   { z: -2.6, number: '14A', familyChinese: '張' },
-  { z: -0.8, number: '14C', familyChinese: '趙' },
   { z: 1.0,  number: '15B', familyChinese: '林' },
   { z: 2.8,  number: '16A', familyChinese: '吳' },
   // Extended entrance segment — skip false-path at z=-12.
