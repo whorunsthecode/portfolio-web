@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { AlleyShell } from './AlleyShell'
 import { AlleyDogleg } from './AlleyDogleg'
 import { Sundry } from './Sundry'
@@ -113,33 +114,74 @@ const BOUNDS: Zone[] = [
   { min: [WORLD_X - 1.0, 0, -22], max: [WORLD_X + 0.8, 2.8, -18] },
 ]
 
+// Decor that doesn't block the player from seeing the alley + walking on
+// arrival. We mount the shell + lights + FPS controls on first render and
+// hold the rest back by ~80ms so the click-GO-to-visible delay collapses
+// from "seconds of canvas-texture generation" to "show me the alley
+// immediately, fill in the props next tick". The player rarely notices
+// the decor pop in because they're still looking at the front wall during
+// the camera fly-in.
+function useDeferredMount(ms: number): boolean {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), ms)
+    return () => clearTimeout(t)
+  }, [ms])
+  return ready
+}
+
+function DeferredDecor() {
+  // Three staggered tiers so we don't blow the main thread on a single
+  // frame. Each tier is mounted after the previous one yields to paint.
+  const tier1 = useDeferredMount(80)   // structural / large surfaces
+  const tier2 = useDeferredMount(220)  // shop interiors
+  const tier3 = useDeferredMount(420)  // small props + figures
+  return (
+    <>
+      {tier1 && (
+        <>
+          <AlleyDogleg />
+          <SideCorridors />
+          <Stairwell />
+          <Rooftop />
+          <ApartmentFacades />
+          <MailSlots />
+        </>
+      )}
+      {tier2 && (
+        <>
+          <Salon />
+          <Sundry />
+          <BingSutt />
+          <FruitStall />
+          <PipeWeb />
+        </>
+      )}
+      {tier3 && (
+        <>
+          <PosterLayers />
+          <DentistSigns />
+          <Clutter />
+          <PlaneFlyover />
+          <ShopFigures />
+        </>
+      )}
+    </>
+  )
+}
+
 export function WalledCity() {
   return (
     <>
       <group position={[WORLD_X, 0, 0]}>
+        {/* Critical-first: anything that affects whether the player can
+            see and walk on arrival. Everything else waits in DeferredDecor. */}
         <WalledCityLighting />
         <FluorescentTubes />
         <AlleyShell />
-        <AlleyDogleg />
-        <PipeWeb />
-        <MailSlots />
-        <ApartmentFacades />
-        <PosterLayers />
-        <DentistSigns />
-        <Clutter />
-        <SideCorridors />
-        <Stairwell />
-        <Rooftop />
-        <Salon />
-        <PlaneFlyover />
-        <Sundry />
-        <BingSutt />
-        <FruitStall />
-        <ShopFigures />
+        <DeferredDecor />
       </group>
       <InteractableHUD />
-      {/* DEBUG bisect step 5: re-enable HUD — last suspect. If this
-          re-introduces the all-black bug, fix needed in HUD. */}
       <FirstPersonControls
         bounds={BOUNDS}
         start={[WORLD_X, 0, 4.5]}

@@ -225,9 +225,14 @@ function Segment({
  *   BingSutt — deep segment, right wall, z=−22 to −18
  */
 export function AlleyShell() {
-  const wallTex = useMemo(() => makeConcreteTexture(1024, { mold: true, streak: true }), [])
-  const floorTex = useMemo(() => makeConcreteTexture(1024, { mold: true }), [])
-  const ceilingTex = useMemo(() => makeConcreteTexture(512, { mold: true }), [])
+  // 512² is enough for procedural concrete at the distances the player ever
+  // sees these surfaces — 1024² doubled the canvas-draw cost (~4× pixels,
+  // ~4× random-fill loop iterations) which on lower-end devices stretches
+  // the click-GO-to-visible delay into the multi-second range. Tex repeat
+  // wrap stays the same so visual scale doesn't change.
+  const wallTex = useMemo(() => makeConcreteTexture(512, { mold: true, streak: true }), [])
+  const floorTex = useMemo(() => makeConcreteTexture(512, { mold: true }), [])
+  const ceilingTex = useMemo(() => makeConcreteTexture(256, { mold: true }), [])
 
   const slitRef = useRef<THREE.MeshStandardMaterial>(null)
   useFrame(() => {
