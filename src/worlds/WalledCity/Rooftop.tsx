@@ -12,7 +12,18 @@ const ROOF_Y = 5
 const ROOF_X_MIN = -6
 const ROOF_X_MAX = 6
 const ROOF_Z_MIN = -25
-const ROOF_Z_MAX = -11
+// Rooftop floor extends south to z=-7 so it covers the stairwell landing
+// at x=[-6,-0.9], z=[-9,-8] (top of stairs from Stairwell.tsx). The bounds
+// in WalledCity/index.tsx are already at z=-7. A rectangular hole is cut
+// out of the floor mesh over the stair shaft so the player can descend.
+const ROOF_Z_MAX = -7
+
+// Stair-shaft hole — the player descends through this opening on the
+// rooftop. Matches Stairwell.tsx: x=[-6,-0.9], z=[-9,-8].
+const STAIR_HOLE_X_MIN = -6
+const STAIR_HOLE_X_MAX = -0.9
+const STAIR_HOLE_Z_MIN = -9
+const STAIR_HOLE_Z_MAX = -8
 
 function useRoofTex() {
   return useMemo(() => {
@@ -129,60 +140,126 @@ function Parapet() {
         <boxGeometry args={[t, 0.5, ROOF_Z_MAX - ROOF_Z_MIN]} />
         <meshStandardMaterial color={'#3a342a'} roughness={0.9} />
       </mesh>
-      {/* South edge — parts either side of the stairwell hut */}
-      <mesh position={[(ROOF_X_MIN + -0.85) / 2, 0, ROOF_Z_MAX]}>
-        <boxGeometry args={[(-0.85 - ROOF_X_MIN), 0.5, t]} />
-        <meshStandardMaterial color={'#3a342a'} roughness={0.9} />
-      </mesh>
-      <mesh position={[(0.85 + ROOF_X_MAX) / 2, 0, ROOF_Z_MAX]}>
-        <boxGeometry args={[(ROOF_X_MAX - 0.85), 0.5, t]} />
+      {/* South edge — full wall (the stair shaft is INSIDE the rooftop now,
+          not at the edge, so no gap is needed here) */}
+      <mesh position={[0, 0, ROOF_Z_MAX]}>
+        <boxGeometry args={[ROOF_X_MAX - ROOF_X_MIN, 0.5, t]} />
         <meshStandardMaterial color={'#3a342a'} roughness={0.9} />
       </mesh>
     </group>
   )
 }
 
-function StairwellHut() {
-  // The above-roof portion of the stairwell — a small concrete shed with
-  // a doorway facing onto the rooftop. The stairwell walls below are
-  // built in Stairwell.tsx; this adds the external-facing sides visible
-  // from the rooftop.
-  const w = 1.7
-  const depth = 6 // z from -11 (ROOF_Z_MAX) to -5
-  const hutTop = 7
+// Stair access gap on the north railing — at the WEST end of the hole,
+// near the stair TOP (x = STAIR_HOLE_X_MIN). Player must enter through
+// this gap so they only fall a small height (stair floor at the gap is
+// close to ROOF_Y).
+const STAIR_ENTRY_GAP_X_MAX = STAIR_HOLE_X_MIN + 0.7  // 70 cm gap
+
+function StairOpeningRailing() {
+  // 1.1m-tall railing wrapping the stair-shaft hole on the rooftop. The
+  // north side is the only practical approach (south side ends at the
+  // south parapet), and we leave a 70cm gap at the WEST end of that
+  // north rail — that's the stair-top corner where the stair floor sits
+  // at y≈5, matching the rooftop, so the player can step in without a
+  // big drop. Everywhere else, the rail discourages stepping off.
+  const t = 0.08
+  const railH = 1.1
+  const railColor = '#3a342a'
+  return (
+    <group position={[0, ROOF_Y + railH / 2, 0]}>
+      {/* North rail — split into east section (the only blocking side
+          that matters; the west 70cm is left open as the entry gap) */}
+      <mesh position={[
+        (STAIR_ENTRY_GAP_X_MAX + STAIR_HOLE_X_MAX) / 2,
+        0,
+        STAIR_HOLE_Z_MIN,
+      ]}>
+        <boxGeometry args={[STAIR_HOLE_X_MAX - STAIR_ENTRY_GAP_X_MAX, railH, t]} />
+        <meshStandardMaterial color={railColor} roughness={0.9} />
+      </mesh>
+      {/* East rail (x = STAIR_HOLE_X_MAX) — caps the east end of the hole */}
+      <mesh position={[
+        STAIR_HOLE_X_MAX,
+        0,
+        (STAIR_HOLE_Z_MIN + STAIR_HOLE_Z_MAX) / 2,
+      ]}>
+        <boxGeometry args={[t, railH, STAIR_HOLE_Z_MAX - STAIR_HOLE_Z_MIN]} />
+        <meshStandardMaterial color={railColor} roughness={0.9} />
+      </mesh>
+      {/* South rail — full, blocks approach from the south rooftop strip */}
+      <mesh position={[
+        (STAIR_HOLE_X_MIN + STAIR_HOLE_X_MAX) / 2,
+        0,
+        STAIR_HOLE_Z_MAX,
+      ]}>
+        <boxGeometry args={[STAIR_HOLE_X_MAX - STAIR_HOLE_X_MIN, railH, t]} />
+        <meshStandardMaterial color={railColor} roughness={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function RooftopFloor({ tex }: { tex: THREE.Texture }) {
+  // The rooftop floor is split into 4 rectangles around the stair-shaft
+  // hole at x=[STAIR_HOLE_X_MIN, STAIR_HOLE_X_MAX], z=[STAIR_HOLE_Z_MIN,
+  // STAIR_HOLE_Z_MAX]. Cutting a hole this way avoids needing
+  // ShapeGeometry. The 4 strips collectively cover everything except the
+  // stair shaft.
+  //
+  // Layout (looking down on rooftop, +X right, -Z up):
+  //   ┌─────────────────────────────┐
+  //   │           NORTH             │  z = ROOF_Z_MIN .. STAIR_HOLE_Z_MIN
+  //   ├──────┬──────┬───────────────┤
+  //   │ WEST │ HOLE │     EAST      │  z = STAIR_HOLE_Z_MIN .. STAIR_HOLE_Z_MAX
+  //   ├──────┴──────┴───────────────┤
+  //   │           SOUTH             │  z = STAIR_HOLE_Z_MAX .. ROOF_Z_MAX
+  //   └─────────────────────────────┘
+  // (West is x < STAIR_HOLE_X_MIN, but STAIR_HOLE_X_MIN == ROOF_X_MIN here
+  //  so the WEST cell has zero width and we skip it.)
+
+  const mat = (
+    <meshStandardMaterial map={tex} color={'#2a2420'} roughness={0.95} />
+  )
   return (
     <group>
-      {/* North-facing wall of the hut — this is the side the player
-          approaches from after exiting the stairs. Has a cutout doorway. */}
-      {[
-        // Left jamb
-        { x: (-w / 2 + -0.5) / 2, w: (-0.5 - (-w / 2)), y: hutTop / 2, h: hutTop },
-        // Right jamb
-        { x: (w / 2 + 0.5) / 2,   w: (w / 2 - 0.5),     y: hutTop / 2, h: hutTop },
-        // Bottom lintel (below doorway — y = 0 to 5, hidden below rooftop)
-        { x: 0, w: 1.0, y: ROOF_Y / 2, h: ROOF_Y },
-        // Top lintel (above doorway)
-        { x: 0, w: 1.0, y: (ROOF_Y + 2 + hutTop) / 2, h: hutTop - (ROOF_Y + 2) },
-      ].map((seg, i) => (
-        <mesh key={i} position={[seg.x, seg.y, ROOF_Z_MAX]}>
-          <planeGeometry args={[seg.w, seg.h]} />
-          <meshStandardMaterial color={'#2e2820'} roughness={0.95} side={THREE.DoubleSide} />
-        </mesh>
-      ))}
-      {/* West side of hut */}
-      <mesh position={[-w / 2, hutTop / 2, ROOF_Z_MAX - depth / 2]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[depth, hutTop]} />
-        <meshStandardMaterial color={'#2e2820'} roughness={0.95} side={THREE.DoubleSide} />
+      {/* NORTH strip — full width, from north parapet down to stair-hole north edge */}
+      <mesh
+        position={[
+          (ROOF_X_MIN + ROOF_X_MAX) / 2,
+          ROOF_Y,
+          (ROOF_Z_MIN + STAIR_HOLE_Z_MIN) / 2,
+        ]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <planeGeometry args={[ROOF_X_MAX - ROOF_X_MIN, STAIR_HOLE_Z_MIN - ROOF_Z_MIN]} />
+        {mat}
       </mesh>
-      {/* East side of hut */}
-      <mesh position={[w / 2, hutTop / 2, ROOF_Z_MAX - depth / 2]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[depth, hutTop]} />
-        <meshStandardMaterial color={'#2e2820'} roughness={0.95} side={THREE.DoubleSide} />
+
+      {/* EAST strip — alongside the stair shaft, between hole east edge and east parapet */}
+      <mesh
+        position={[
+          (STAIR_HOLE_X_MAX + ROOF_X_MAX) / 2,
+          ROOF_Y,
+          (STAIR_HOLE_Z_MIN + STAIR_HOLE_Z_MAX) / 2,
+        ]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <planeGeometry args={[ROOF_X_MAX - STAIR_HOLE_X_MAX, STAIR_HOLE_Z_MAX - STAIR_HOLE_Z_MIN]} />
+        {mat}
       </mesh>
-      {/* Hut roof cap — thin slab with some lip */}
-      <mesh position={[0, hutTop + 0.05, ROOF_Z_MAX - depth / 2]}>
-        <boxGeometry args={[w + 0.1, 0.1, depth + 0.1]} />
-        <meshStandardMaterial color={'#1a140e'} roughness={0.95} />
+
+      {/* SOUTH strip — full width, from stair-hole south edge to south parapet */}
+      <mesh
+        position={[
+          (ROOF_X_MIN + ROOF_X_MAX) / 2,
+          ROOF_Y,
+          (STAIR_HOLE_Z_MAX + ROOF_Z_MAX) / 2,
+        ]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <planeGeometry args={[ROOF_X_MAX - ROOF_X_MIN, ROOF_Z_MAX - STAIR_HOLE_Z_MAX]} />
+        {mat}
       </mesh>
     </group>
   )
@@ -945,12 +1022,8 @@ export function Rooftop() {
     <group>
       <SkyDome />
       <Parapet />
-      <StairwellHut />
-      {/* Floor */}
-      <mesh position={[0, ROOF_Y, (ROOF_Z_MIN + ROOF_Z_MAX) / 2]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[ROOF_X_MAX - ROOF_X_MIN, ROOF_Z_MAX - ROOF_Z_MIN]} />
-        <meshStandardMaterial map={floorTex} color={'#2a2420'} roughness={0.95} />
-      </mesh>
+      <StairOpeningRailing />
+      <RooftopFloor tex={floorTex} />
       <AntennaForest />
       <WaterTanks />
       <DryingRacks />

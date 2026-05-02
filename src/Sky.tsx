@@ -100,22 +100,37 @@ declare module '@react-three/fiber' {
 
 export function Sky() {
   const matRef = useRef<THREE.ShaderMaterial & { uMode: number }>(null)
+  const meshRef = useRef<THREE.Mesh>(null)
   const mode = useStore((s) => s.mode)
   const target = mode === 'night' ? 1 : 0
 
-  useFrame((_, delta) => {
-    if (!matRef.current) return
-    const current = matRef.current.uMode
-    const speed = 1.25 // ~800ms transition
-    if (Math.abs(current - target) > 0.001) {
-      matRef.current.uMode += (target - current) * Math.min(speed * delta * 5, 1)
+  useFrame(({ camera }, delta) => {
+    if (matRef.current) {
+      const current = matRef.current.uMode
+      const speed = 1.25 // ~800ms transition
+      if (Math.abs(current - target) > 0.001) {
+        matRef.current.uMode += (target - current) * Math.min(speed * delta * 5, 1)
+      }
+    }
+    // Keep the sky sphere centred on the camera. Without this, when the
+    // camera flies to a far world (e.g. WalledCity at world x=100), the
+    // camera ends up OUTSIDE the radius-100 sphere and the back-face
+    // skybox is no longer visible — the renderer clears to black and the
+    // world reads as "all black after clicking walled city".
+    if (meshRef.current) {
+      meshRef.current.position.copy(camera.position)
     }
   })
 
   return (
-    <mesh scale={[-1, 1, 1]}>
+    // renderOrder=-1 keeps the sky behind every other backdrop. The
+    // rooftop's own SkyDome sits over the same world space as this sky
+    // when the player's on the rooftop; without explicit ordering the
+    // farther of the two back-faces ends up painting last and the
+    // rooftop's dusk gradient gets overwritten by the tram-day sky.
+    <mesh ref={meshRef} scale={[-1, 1, 1]} renderOrder={-1}>
       <sphereGeometry args={[100, 32, 32]} />
-      <skyMaterial ref={matRef} side={THREE.BackSide} depthWrite={false} />
+      <skyMaterial ref={matRef} side={THREE.BackSide} depthWrite={false} depthTest={false} />
     </mesh>
   )
 }

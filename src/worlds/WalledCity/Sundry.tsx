@@ -28,6 +28,162 @@ export function Sundry() {
       <SundryShelves />
       <SundryCounter />
       <SundryOutdoorSeating />
+      <SundrySignage />
+    </group>
+  )
+}
+
+// ── Signage / branding so the shop reads as a 1985-HK 士多 ─────────────
+// Without these, the interior is just shelves of geometric primitives and
+// looks like a generic candle shop. The signage gives it identity:
+//   1. Big red 士多 SUNDRY board on the alley wall above the gate
+//   2. Coca-Cola red decal on the fridge glass
+//   3. 1985 月曆 wall calendar on the back wall
+//   4. 煙仔 / CIGARETTES tobacco header strip above the cigarette shelf
+
+function SundrySignage() {
+  const signboardTex = useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 512; c.height = 128
+    const ctx = c.getContext('2d')!
+    ctx.fillStyle = '#a01818'
+    ctx.fillRect(0, 0, 512, 128)
+    for (let i = 0; i < 30; i++) {
+      const x = Math.random() * 512
+      const y = Math.random() * 128
+      const r = 10 + Math.random() * 40
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, r)
+      grad.addColorStop(0, 'rgba(0,0,0,0.18)')
+      grad.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = grad
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.fillStyle = '#f0d860'
+    ctx.font = 'bold 80px serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('士  多', 256, 50)
+    ctx.font = 'bold 28px sans-serif'
+    ctx.fillText('SUNDRY', 256, 100)
+    return new THREE.CanvasTexture(c)
+  }, [])
+
+  const cokeTex = useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 256; c.height = 256
+    const ctx = c.getContext('2d')!
+    ctx.clearRect(0, 0, 256, 256)
+    ctx.fillStyle = '#c81818'
+    ctx.beginPath()
+    ctx.ellipse(128, 128, 110, 90, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = '#f8f0e8'
+    ctx.lineWidth = 4
+    ctx.beginPath()
+    ctx.moveTo(40, 110)
+    ctx.bezierCurveTo(80, 90, 180, 130, 220, 110)
+    ctx.stroke()
+    ctx.fillStyle = '#f8f0e8'
+    ctx.font = 'italic bold 38px serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('Coca-Cola', 128, 145)
+    ctx.font = 'bold 18px serif'
+    ctx.fillText('可口可樂', 128, 175)
+    return new THREE.CanvasTexture(c)
+  }, [])
+
+  const calendarTex = useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 256; c.height = 384
+    const ctx = c.getContext('2d')!
+    ctx.fillStyle = '#f0e4c8'
+    ctx.fillRect(0, 0, 256, 384)
+    ctx.fillStyle = '#c81818'
+    ctx.fillRect(0, 0, 256, 60)
+    ctx.fillStyle = '#f8f0e8'
+    ctx.font = 'bold 36px serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('1985 月曆', 128, 42)
+    ctx.fillStyle = '#3a2a20'
+    ctx.beginPath()
+    ctx.ellipse(128, 160, 60, 70, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(128, 240, 50, 50, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#1a1410'
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 7; col++) {
+        ctx.fillRect(20 + col * 32, 320 + row * 12, 24, 8)
+      }
+    }
+    ctx.fillStyle = '#a01818'
+    ctx.fillRect(20, 320, 24, 8)
+    return new THREE.CanvasTexture(c)
+  }, [])
+
+  const tobaccoTex = useMemo(() => {
+    const c = document.createElement('canvas')
+    c.width = 512; c.height = 64
+    const ctx = c.getContext('2d')!
+    ctx.fillStyle = '#fff0c0'
+    ctx.fillRect(0, 0, 512, 64)
+    ctx.fillStyle = '#a01818'
+    ctx.font = 'bold 42px serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('煙  仔  •  CIGARETTES  •  萬寶路', 256, 46)
+    return new THREE.CanvasTexture(c)
+  }, [])
+
+  return (
+    <group>
+      {/* 士多 signboard above the gate, on the alley wall, facing into the alley (+X) */}
+      <mesh
+        position={[SHOP_X_DOORWAY + 0.005, SHOP_CEILING + 0.25, SHOP_Z_MID]}
+        rotation={[0, Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[SHOP_LENGTH - 0.15, 0.65]} />
+        <meshStandardMaterial color={'#1a1006'} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh
+        position={[SHOP_X_DOORWAY + 0.02, SHOP_CEILING + 0.25, SHOP_Z_MID]}
+        rotation={[0, Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[SHOP_LENGTH - 0.2, 0.6]} />
+        <meshStandardMaterial map={signboardTex} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Coca-Cola decal on fridge glass.
+          Fridge centre = (counterCenterX + 0.45, 0.45, counterZ)
+            counterCenterX = (-0.9 + -2.4)/2 = -1.65 → fridge x = -1.2
+            counterZ      = SHOP_Z_FAR + 0.2 = -7.8
+            glass face    = counterZ + 0.21 = -7.59 (faces +Z toward doorway)
+          We sit just in front of the glass (z = -7.58). */}
+      <mesh position={[-1.2, 0.55, -7.58]}>
+        <planeGeometry args={[0.28, 0.28]} />
+        <meshStandardMaterial map={cokeTex} transparent alphaTest={0.05}
+          roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* 1985 月曆 calendar on back wall */}
+      <mesh
+        position={[SHOP_X_BACK + 0.005, 1.6, SHOP_Z_NEAR + 0.5]}
+        rotation={[0, Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[0.28, 0.42]} />
+        <meshStandardMaterial map={calendarTex} side={THREE.DoubleSide} roughness={0.85} />
+      </mesh>
+
+      {/* 煙仔 / CIGARETTES tobacco strip just above the cigarette shelf */}
+      <mesh
+        position={[SHOP_X_BACK + 0.29, 1.5 + 0.14, SHOP_Z_MID]}
+        rotation={[0, Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[SHOP_LENGTH - 0.2, 0.08]} />
+        <meshStandardMaterial map={tobaccoTex} side={THREE.DoubleSide} />
+      </mesh>
     </group>
   )
 }
