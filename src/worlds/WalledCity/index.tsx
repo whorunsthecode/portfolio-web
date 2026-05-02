@@ -58,9 +58,25 @@ const BOUNDS: Zone[] = [
   // dogleg boundary (-14). 0.1m buffer from left/right walls.
   { min: [WORLD_X - 0.8, 0, -14], max: [WORLD_X + 0.8, 3.8, 4.8] },
 
-  // Dogleg transition zone — covers the bend between segments. Slightly
-  // generous rectangle (the wall meshes contain the player visually).
-  { min: [WORLD_X - 2.8, 0, -16], max: [WORLD_X + 0.8, 3.8, -14] },
+  // Dogleg transition — the visual passage is a DIAGONAL parallelogram
+  // (axis swings from x=0 at z=-14 to x=-2 at z=-16, 1.8m wide). The
+  // bounding rectangle is x=[-2.8, 0.8], z=[-16, -14] so the rectangular
+  // check by itself would let the player walk into "wing" corners
+  // outside the diagonal walls — landing them behind the apartment
+  // façades with a view of the rooftop's surrounding buildings through
+  // what should be solid concrete. The containsFn gates entry on the
+  // actual parallelogram. Diagonal walls (local coords):
+  //   left wall:  x = -0.9 - (z + 14)   (-0.9 at z=-14, -2.9 at z=-16)
+  //   right wall: x =  0.9 - (z + 14)   ( 0.9 at z=-14, -1.1 at z=-16)
+  {
+    min: [WORLD_X - 2.9, 0, -16], max: [WORLD_X + 0.9, 3.8, -14],
+    containsFn: (x, z) => {
+      const lx = x - WORLD_X
+      const leftWall = -0.9 - (z + 14)
+      const rightWall = 0.9 - (z + 14)
+      return lx >= leftWall && lx <= rightWall
+    },
+  },
 
   // Deep alley segment — axis x=-2, z from dogleg boundary (-16) down to
   // FruitStall blockade (-28). 1.6m walkable width centered on x=-2.

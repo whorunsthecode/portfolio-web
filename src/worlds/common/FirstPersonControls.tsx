@@ -8,10 +8,15 @@ import { navState } from './nav'
 
 // A walkable zone: an axis-aligned box. If `floorFn` is set, the floor
 // height inside the zone varies with (x, z) — useful for ramps/stairs.
+// If `containsFn` is set, the rectangular check is gated by it — useful
+// for non-rectangular passages (e.g. the WalledCity dogleg's diagonal
+// parallelogram, where a plain rectangle would let the player slip
+// behind the alley walls into void space).
 export interface Zone {
   min: [number, number, number]
   max: [number, number, number]
   floorFn?: (x: number, z: number) => number
+  containsFn?: (x: number, z: number) => boolean
 }
 
 interface Props {
@@ -37,17 +42,25 @@ function floorAt(zone: Zone, x: number, z: number): number {
   return zone.floorFn ? zone.floorFn(x, z) : zone.min[1]
 }
 
+function inZone(zone: Zone, x: number, z: number): boolean {
+  if (x < zone.min[0] || x > zone.max[0] || z < zone.min[2] || z > zone.max[2]) {
+    return false
+  }
+  return zone.containsFn ? zone.containsFn(x, z) : true
+}
+
 function findZone(x: number, z: number, zones: Zone[]): Zone | null {
   for (const zone of zones) {
-    if (x >= zone.min[0] && x <= zone.max[0] && z >= zone.min[2] && z <= zone.max[2]) {
-      return zone
-    }
+    if (inZone(zone, x, z)) return zone
   }
   return null
 }
 
 // Clamp (x, z) to the nearest walkable zone edge if the point is outside
-// every zone. Returns the zone the clamped point sits inside.
+// every zone. Returns the zone the clamped point sits inside. For zones
+// with a containsFn the rectangular clamp is followed by a containment
+// re-test; if it fails, the zone is skipped (the player is treated as if
+// that zone didn't exist for the purposes of clamping).
 function clampToZones(x: number, z: number, zones: Zone[]): { x: number; z: number; zone: Zone } {
   const inside = findZone(x, z, zones)
   if (inside) return { x, z, zone: inside }
@@ -59,6 +72,7 @@ function clampToZones(x: number, z: number, zones: Zone[]): { x: number; z: numb
   for (const zone of zones) {
     const cx = Math.max(zone.min[0], Math.min(zone.max[0], x))
     const cz = Math.max(zone.min[2], Math.min(zone.max[2], z))
+    if (zone.containsFn && !zone.containsFn(cx, cz)) continue
     const d = (cx - x) ** 2 + (cz - z) ** 2
     if (d < bestDist) {
       bestDist = d
